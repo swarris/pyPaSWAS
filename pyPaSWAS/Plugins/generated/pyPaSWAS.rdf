@@ -1,0 +1,312 @@
+@prefix clp: <http://www.humgen.nl/climate/ontologies/clp#> .
+@prefix co: <http://www.isi.edu/ikcap/Wingse/componentOntology.owl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix fo: <http://www.isi.edu/ikcap/Wingse/fileOntology.owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+<> a <http://xmlns.com/foaf/1.1/Document>;
+    rdfs:label "RDF Definition of pyPaSWAS";
+    dcterms:created "2012-10-04T20:26:26.231264"^^<http://www.w3.org/2001/XMLSchema#dateTime>;
+    dcterms:creator <http://www.humgen.nl/climate> .
+
+<http://www.humgen.nl/climate> a <http://xmlns.com/foaf/1.1/Agent>;
+    dcterms:creator "Zuotian Tatum";
+    dcterms:hasVersion "0.3";
+    dcterms:title "CLI-mate: An interface generator for command line programs" .
+
+[] a <http://www.humgen.nl/climate/ontologies/clp#CommandLineProgramComponentType>;
+    dcterms:description "This program performs a Smith-Waterman alignment of all sequences in the first file against all sequences in the second file";
+    dcterms:label "pyPaSWAS";
+    dcterms:title "python pypaswasall.py";
+    co:hasArguments ( [ a <http://www.isi.edu/ikcap/Wingse/componentOntology.owl#ArgumentAndPrefix>;
+                rdfs:label "Input FASTA file";
+                dcterms:title "input";
+                clp:display "show";
+                clp:hasAlternativePrefix "--input";
+                clp:order 0;
+                co:hasArgument _:input_arg;
+                co:hasPrefix "-i" ] [ a <http://www.isi.edu/ikcap/Wingse/componentOntology.owl#ArgumentAndPrefix>;
+                rdfs:label "Output file to store generated SAM output";
+                dcterms:title "output";
+                clp:display "show";
+                clp:hasAlternativePrefix "--output";
+                clp:order 1;
+                co:hasArgument _:output_arg;
+                co:hasPrefix "-o" ] _:anyScore _:otherScore _:minimumScore _:highestScore _:llimitMaxScore [ a <http://www.isi.edu/ikcap/Wingse/componentOntology.owl#ArgumentAndPrefix>;
+                rdfs:label "The device to use for computations";
+                dcterms:title "device";
+                clp:display "show";
+                clp:hasAlternativePrefix "--device";
+                clp:order 15;
+                co:hasArgument [ a <http://www.isi.edu/ikcap/Wingse/fileOntology.owl#Int>;
+                        fo:hasIntValue 0 ] ] [ a <http://www.isi.edu/ikcap/Wingse/componentOntology.owl#ArgumentAndPrefix>;
+                rdfs:label "The filter factor to be used";
+                dcterms:title "filterFactor";
+                clp:display "show";
+                clp:hasAlternativePrefix "--filterfactor";
+                clp:order 16;
+                co:hasArgument [ a <http://www.isi.edu/ikcap/Wingse/fileOntology.owl#Float>;
+                        fo:hasFloatValue 0.7 ] ] [ a <http://www.isi.edu/ikcap/Wingse/componentOntology.owl#ArgumentAndPrefix>;
+                rdfs:label "Sets a limit to the maximal length of items to be compared at one time";
+                dcterms:title "limitlength";
+                clp:display "show";
+                clp:hasAlternativePrefix "--limitlength";
+                clp:order 17;
+                co:hasArgument [ a <http://www.isi.edu/ikcap/Wingse/fileOntology.owl#Int>;
+                        fo:hasIntValue 5000 ] ] [ a <http://www.isi.edu/ikcap/Wingse/componentOntology.owl#ArgumentAndPrefix>;
+                rdfs:label "Sets the number of jobs to run simultaneously";
+                dcterms:title "numberOfJobs";
+                clp:display "show";
+                clp:hasAlternativePrefix "--numberOfJobs";
+                clp:order 18;
+                co:hasArgument [ ] ] [ a <http://www.isi.edu/ikcap/Wingse/componentOntology.owl#ArgumentAndPrefix>;
+                rdfs:label "Sets the process ID";
+                dcterms:title "processID";
+                clp:display "show";
+                clp:hasAlternativePrefix "--processID";
+                clp:order 19;
+                co:hasArgument [ ] ] _:logfile [ a <http://www.isi.edu/ikcap/Wingse/componentOntology.owl#ArgumentAndPrefix>;
+                rdfs:label "Sets the maximum length of (the part of) the sequence that will be processed at one time";
+                dcterms:description "Should the length of the sequence exceed this setting, the sequence will be divided and the resulting parts will be processed separately";
+                dcterms:title "maxGenomeLength";
+                clp:display "show";
+                clp:hasAlternativePrefix "--maxGenomeLength";
+                clp:order 20;
+                co:hasArgument [ co:hasValue "200000" ] ] _:loglevel _:program _:customMatrix _:gapPenalty _:matrixname _:mismatchPenalty _:matchScore );
+    co:hasExecutionRequirements [ a <http://www.isi.edu/ikcap/Wingse/componentOntology.owl#ExecutionRequirements>;
+            co:requiresOperationSystem <http://www.isi.edu/ikcap/Wingse/componentOntology.owl#Linux> ];
+    co:hasInputs ( _:input_arg _:customMatrix_arg );
+    co:hasOutputs ( _:output_arg _:logfile_arg );
+    co:hasVersion "0.1" .
+
+[] a <http://www.humgen.nl/climate/ontologies/clp#dependency>;
+    clp:dependentScope "display";
+    clp:dependingCondition "aligner";
+    clp:effect "show";
+    clp:hasDependentItem _:anyScore;
+    clp:hasDependingItem _:program .
+
+[] a <http://www.humgen.nl/climate/ontologies/clp#dependency>;
+    clp:dependentScope "display";
+    clp:dependingCondition "aligner";
+    clp:effect "show";
+    clp:hasDependentItem _:otherScore;
+    clp:hasDependingItem _:program .
+
+[] a <http://www.humgen.nl/climate/ontologies/clp#dependency>;
+    clp:dependentScope "display";
+    clp:dependingCondition "aligner";
+    clp:effect "show";
+    clp:hasDependentItem _:minimumScore;
+    clp:hasDependingItem _:program .
+
+[] a <http://www.humgen.nl/climate/ontologies/clp#dependency>;
+    clp:dependentScope "display";
+    clp:dependingCondition "aligner";
+    clp:effect "show";
+    clp:hasDependentItem _:highestScore;
+    clp:hasDependingItem _:program .
+
+[] a <http://www.humgen.nl/climate/ontologies/clp#dependency>;
+    clp:dependentScope "display";
+    clp:dependingCondition "aligner";
+    clp:effect "show";
+    clp:hasDependentItem _:llimitMaxScore;
+    clp:hasDependingItem _:program .
+
+[] a <http://www.humgen.nl/climate/ontologies/clp#dependency>;
+    clp:dependentScope "display";
+    clp:effect "show";
+    clp:hasDependentItem _:logfile;
+    clp:hasDependingItem _:loglevel .
+
+[] a <http://www.humgen.nl/climate/ontologies/clp#dependency>;
+    clp:dependentScope "display";
+    clp:dependingCondition "aligner";
+    clp:effect "show";
+    clp:hasDependentItem _:customMatrix;
+    clp:hasDependingItem _:program .
+
+[] a <http://www.humgen.nl/climate/ontologies/clp#dependency>;
+    clp:dependentScope "display";
+    clp:dependingCondition "aligner";
+    clp:effect "show";
+    clp:hasDependentItem _:gapPenalty;
+    clp:hasDependingItem _:program .
+
+[] a <http://www.humgen.nl/climate/ontologies/clp#dependency>;
+    clp:dependentScope "display";
+    clp:dependingCondition "aligner";
+    clp:effect "show";
+    clp:hasDependentItem _:matrixname;
+    clp:hasDependingItem _:program .
+
+[] a <http://www.humgen.nl/climate/ontologies/clp#dependency>;
+    clp:dependentScope "display";
+    clp:dependingCondition "aligner";
+    clp:effect "show";
+    clp:hasDependentItem _:mismatchPenalty;
+    clp:hasDependingItem _:program .
+
+[] a <http://www.humgen.nl/climate/ontologies/clp#dependency>;
+    clp:dependentScope "display";
+    clp:dependingCondition "aligner";
+    clp:effect "show";
+    clp:hasDependentItem _:matchScore;
+    clp:hasDependingItem _:program .
+
+_:anyScore_arg a <http://www.isi.edu/ikcap/Wingse/fileOntology.owl#Int>;
+    fo:hasIntValue 2 .
+
+_:gapPenalty_arg a <http://www.isi.edu/ikcap/Wingse/fileOntology.owl#Int>;
+    fo:hasIntValue -5 .
+
+_:highestScore_arg a <http://www.isi.edu/ikcap/Wingse/fileOntology.owl#Int>;
+    fo:hasIntValue 5 .
+
+_:loglevel_arg a <http://www.isi.edu/ikcap/Wingse/fileOntology.owl#String>;
+    clp:hasValueChoices ( "DEBUG" "INFO" "WARNING" "ERROR" "CRITICAL" );
+    fo:hasStringValue "WARNING" .
+
+_:matchScore_arg a <http://www.isi.edu/ikcap/Wingse/fileOntology.owl#Int>;
+    fo:hasIntValue 5 .
+
+_:matrixname_arg a <http://www.isi.edu/ikcap/Wingse/fileOntology.owl#String>;
+    clp:hasValueChoices ( "DNA-RNA" "BASIC" "CUSTOM" );
+    fo:hasStringValue "DNA-RNA" .
+
+_:minimumScore_arg a <http://www.isi.edu/ikcap/Wingse/fileOntology.owl#Int>;
+    fo:hasIntValue 500 .
+
+_:mismatchPenalty_arg co:hasValue "-2" .
+
+_:otherScore_arg a <http://www.isi.edu/ikcap/Wingse/fileOntology.owl#Int>;
+    fo:hasIntValue 1 .
+
+_:program_arg a <http://www.isi.edu/ikcap/Wingse/fileOntology.owl#String>;
+    clp:hasValueChoices ( "aligner" "mapper" );
+    fo:hasStringValue "aligner" .
+
+_:anyScore a <http://www.isi.edu/ikcap/Wingse/componentOntology.owl#ArgumentAndPrefix>;
+    rdfs:label "Any score..";
+    dcterms:title "anyScore";
+    clp:display "show";
+    clp:hasAlternativePrefix "--anyScore";
+    clp:order 10;
+    co:hasArgument _:anyScore_arg .
+
+_:customMatrix a <http://www.isi.edu/ikcap/Wingse/componentOntology.owl#ArgumentAndPrefix>;
+    rdfs:label "Custom matrix that should be used";
+    dcterms:title "customMatrix";
+    clp:display "show";
+    clp:hasAlternativePrefix "--customMatrix";
+    clp:order 5;
+    co:hasArgument _:customMatrix_arg .
+
+_:customMatrix_arg a <http://www.isi.edu/ikcap/Wingse/fileOntology.owl#File>;
+    dcterms:format "tabular" .
+
+_:gapPenalty a <http://www.isi.edu/ikcap/Wingse/componentOntology.owl#ArgumentAndPrefix>;
+    rdfs:label "Penalty for a gap";
+    dcterms:title "gapPenalty";
+    clp:display "show";
+    clp:hasAlternativePrefix "--gap";
+    clp:order 6;
+    co:hasArgument _:gapPenalty_arg .
+
+_:highestScore a <http://www.isi.edu/ikcap/Wingse/componentOntology.owl#ArgumentAndPrefix>;
+    rdfs:label "Sets the highest score that...";
+    dcterms:title "highestScore";
+    clp:display "show";
+    clp:hasAlternativePrefix "--highestScore";
+    clp:order 13;
+    co:hasArgument _:highestScore_arg .
+
+_:input_arg a <http://www.isi.edu/ikcap/Wingse/fileOntology.owl#File>;
+    dcterms:format "FASTA" .
+
+_:llimitMaxScore a <http://www.isi.edu/ikcap/Wingse/componentOntology.owl#ArgumentAndPrefix>;
+    rdfs:label "Sets the lower limit maximum score";
+    dcterms:title "llimitMaxScore";
+    clp:display "show";
+    clp:hasAlternativePrefix "--llimitMaxScore";
+    clp:order 14;
+    co:hasArgument [ ] .
+
+_:logfile a <http://www.isi.edu/ikcap/Wingse/componentOntology.owl#ArgumentAndPrefix>;
+    rdfs:label "File to log events to";
+    dcterms:title "logfile";
+    clp:display "show";
+    clp:hasAlternativePrefix "--loglevel";
+    clp:order 2;
+    co:hasArgument _:logfile_arg;
+    co:hasPrefix "-L" .
+
+_:logfile_arg a <http://www.isi.edu/ikcap/Wingse/fileOntology.owl#File>;
+    dcterms:format "txt" .
+
+_:loglevel a <http://www.isi.edu/ikcap/Wingse/componentOntology.owl#ArgumentAndPrefix>;
+    rdfs:label "Level of events logged to logfile";
+    dcterms:title "loglevel";
+    clp:display "show";
+    clp:hasAlternativePrefix "--loglevel";
+    clp:order 3;
+    co:hasArgument _:loglevel_arg .
+
+_:matchScore a <http://www.isi.edu/ikcap/Wingse/componentOntology.owl#ArgumentAndPrefix>;
+    rdfs:label "Reward for a match";
+    dcterms:title "matchScore";
+    clp:display "show";
+    clp:hasAlternativePrefix "--matchScore";
+    clp:order 9;
+    co:hasArgument _:matchScore_arg;
+    co:hasPrefix "-r" .
+
+_:matrixname a <http://www.isi.edu/ikcap/Wingse/componentOntology.owl#ArgumentAndPrefix>;
+    rdfs:label "The scoring to be used";
+    dcterms:title "matrixname";
+    clp:display "show";
+    clp:hasAlternativePrefix "--matrixname";
+    clp:order 7;
+    co:hasArgument _:matrixname_arg;
+    co:hasPrefix "-M" .
+
+_:minimumScore a <http://www.isi.edu/ikcap/Wingse/componentOntology.owl#ArgumentAndPrefix>;
+    rdfs:label "Minimum score initiating a back trace";
+    dcterms:title "minimumScore";
+    clp:display "show";
+    clp:hasAlternativePrefix "--minimum";
+    clp:order 12;
+    co:hasArgument _:minimumScore_arg .
+
+_:mismatchPenalty a <http://www.isi.edu/ikcap/Wingse/componentOntology.owl#ArgumentAndPrefix>;
+    rdfs:label "Penalty for a mismatch";
+    dcterms:title "mismatchPenalty";
+    clp:display "show";
+    clp:hasAlternativePrefix "--mismatch";
+    clp:order 8;
+    co:hasArgument _:mismatchPenalty_arg;
+    co:hasPrefix "-q" .
+
+_:otherScore a <http://www.isi.edu/ikcap/Wingse/componentOntology.owl#ArgumentAndPrefix>;
+    rdfs:label "Other score..";
+    dcterms:title "otherScore";
+    clp:display "show";
+    clp:hasAlternativePrefix "--otherScore";
+    clp:order 11;
+    co:hasArgument _:otherScore_arg .
+
+_:output_arg a <http://www.isi.edu/ikcap/Wingse/fileOntology.owl#File>;
+    dcterms:format "sam";
+    co:hasValue "./output" .
+
+_:program a <http://www.isi.edu/ikcap/Wingse/componentOntology.owl#ArgumentAndPrefix>;
+    rdfs:label "The program to be executed";
+    dcterms:title "program";
+    clp:display "show";
+    clp:hasAlternativePrefix "--program";
+    clp:order 4;
+    co:hasArgument _:program_arg;
+    co:hasPrefix "-p" .
+

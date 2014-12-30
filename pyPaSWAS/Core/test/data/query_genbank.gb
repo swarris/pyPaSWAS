@@ -1,0 +1,73 @@
+LOCUS       ATBQ01000001            1907 bp    DNA     linear   BCT 10-JUN-2013
+DEFINITION  Lactobacillus delbrueckii subsp. lactis CRL581 sctg_0001_0001,
+            whole genome shotgun sequence.
+ACCESSION   ATBQ01000001 ATBQ01000000
+VERSION     ATBQ01000001.1  GI:511182950
+DBLINK      BioProject: PRJNA183842
+KEYWORDS    WGS.
+SOURCE      Lactobacillus delbrueckii subsp. lactis CRL581
+  ORGANISM  Lactobacillus delbrueckii subsp. lactis CRL581
+            Bacteria; Firmicutes; Bacilli; Lactobacillales; Lactobacillaceae;
+            Lactobacillus.
+REFERENCE   1  (bases 1 to 1907)
+  AUTHORS   Hebert,E.M., Savoy,G., Font de Valdez,G., Brown,L., Raya,R.R. and
+            Taranto,M.P.
+  TITLE     Genome sequence of Lactobacillus delbrueckii subsp. lactis CRL 581
+  JOURNAL   Unpublished
+REFERENCE   2  (bases 1 to 1907)
+  AUTHORS   Hebert,E.M., Savoy,G., Font de Valdez,G., Brown,L., Raya,R.R. and
+            Taranto,M.P.
+  TITLE     Direct Submission
+  JOURNAL   Submitted (20-MAY-2013) CERELA-CONICET, Chacabuco 145, S. M. de
+            Tucuman, Tucuman 4000, Argentina
+COMMENT     ##Genome-Assembly-Data-START##
+            Assembly Method       :: Newbler v. 2.6
+            Assembly Name         :: lla_2.6
+            Genome Coverage       :: 46.0x
+            Sequencing Technology :: 454
+            ##Genome-Assembly-Data-END##
+FEATURES             Location/Qualifiers
+     source          1..1907
+                     /organism="Lactobacillus delbrueckii subsp. lactis CRL581"
+                     /mol_type="genomic DNA"
+                     /strain="CRL581"
+                     /isolation_source="Argentinian hard cheese"
+                     /sub_species="lactis"
+                     /culture_collection="CRL:581"
+                     /db_xref="taxon:1269760"
+                     /country="Argentina: Tucuman"
+ORIGIN      
+        1 cttgcccgtc ttgtcgtcga tgtacgcaac ctttgccttt tgggcgtcgg cagtgtagac
+       61 aactatagta tcttcacctg gatcagttgg aatgaagcca tctggaccta caggtacacc
+      121 attaatcttt ggtgtatatc cttcgtattg aggaatgaca acctttccgg ctttagtcgg
+      181 gtcattagga tcattaggat attgggttgg tgtgttcccc ttaaatggat tattatcctc
+      241 atcaacaagg acagtattcc ctaacttttt atatacatac ctaatatcag ttgtctgtgg
+      301 aacgtaaata cttctcaaat agatattgcc cacgcctgaa tatatgtcac tatctccagg
+      361 tttaataatg atcggcaagt tgacaggagt tctgttgcct tgtcggtctt cacgatacat
+      421 ctgaacagac atatcaccgg cattgttgat ttgcgtaaat tcggcaatgt agccatcgtg
+      481 ccaattcttt tcatacttgc tgccaatctt accataaggt gacattgttc cctgagcatt
+      541 agacggcgct atagcataat aaccatcgat gactttcgta tcagtagttg tatacttttg
+      601 gccgtctaag cctcgctgga caaccgattc gatcttttcc ccgttgttat caatgatgtc
+      661 attaccatct tcatcttgat atgaggttac ttgagtattc agccgcggca caataaaact
+      721 gatcgcatta tatggataat cactcttgcc acctgaaacc tcatatttta gtaccaattt
+      781 ttgtaagccg cctctaacca gtccggcgta ttcgtcgtta aagtatgtga ctcccgtcca
+      841 ttcggacgtg cggttttgat ttttatccaa atcaaatgaa ttgaggacgg tgttgcgccg
+      901 atccaattca aagacgtgaa tttggccatt cccattccta ttagttgaaa ttacagtttg
+      961 gtagccatta cctgtctggc caacccagag gaatgaataa tgttccggat ttggatcgcg
+     1021 atacatttca ctgggatatt ctggatccgt tactgaaaag ccaggaacgg ctgtagtgtc
+     1081 tgcatttgct ttcgccaact tcgttttatt ctcactgata gagtcagcca gacttgacat
+     1141 aaccatcttc ttggtgaccg ttgccacagt agacgtctta aaggcttggc ttacgtcaag
+     1201 ggtagttgat tcgttcttgg caccttccgt cgcagcatca gagctgtttg cttcaggatt
+     1261 tgccgaatcc ttctttgctt tagtagtggc gtcaatggct gcaccggcat ttgcagaact
+     1321 attcgtttga ccttcagtcg ctgcagcaga agcttgacca gcagtttgtt cagcagttga
+     1381 agcttgttct tccgctgacg ctggggctga aacttgagct tgcggagcag tttgctgact
+     1441 ttgagcagca ggttcttgct ttgccacgtc agcttgtgca tcgtttgcag ttgtcgtttg
+     1501 cgcttcagca ttggcgctgt cgccttcttg tgcttgcttg ttttcagcct gatttacatc
+     1561 agccactgct gcttgagctt ccccgtcctg cttttcagca cttgctacgg aagcttggct
+     1621 agttgactcg gcagtctgag cttgcgtttg atccttatgc gtctctgatg gatctaactt
+     1681 atcctcaact tttccggcaa cagttgtgtc gttaatcgta tcagcatgcg ctacagagcc
+     1741 attagcaccc atccacaacg tggttgaaag cagaactgac gctacaccaa cggacagctt
+     1801 tctcaagctg tagtgtggtg tttgatcagc actgtcaacg aacatcttac ttttctttct
+     1861 tagcatcatt gcttgtaact ttcctttcta aaacataact gatttaa
+//
+

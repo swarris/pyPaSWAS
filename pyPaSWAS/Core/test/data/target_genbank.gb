@@ -1,0 +1,44 @@
+LOCUS       ATBQ01000002             180 bp    DNA     linear   BCT 10-JUN-2013
+DEFINITION  Lactobacillus delbrueckii subsp. lactis CRL581 sctg_0001_0001,
+            whole genome shotgun sequence.
+ACCESSION   ATBQ01000002 ATBQ01000000
+VERSION     ATBQ01000002.1  GI:511182950
+DBLINK      BioProject: PRJNA183842
+KEYWORDS    WGS.
+SOURCE      Lactobacillus delbrueckii subsp. lactis CRL581
+  ORGANISM  Lactobacillus delbrueckii subsp. lactis CRL581
+            Bacteria; Firmicutes; Bacilli; Lactobacillales; Lactobacillaceae;
+            Lactobacillus.
+REFERENCE   1  (bases 1 to 1907)
+  AUTHORS   Hebert,E.M., Savoy,G., Font de Valdez,G., Brown,L., Raya,R.R. and
+            Taranto,M.P.
+  TITLE     Genome sequence of Lactobacillus delbrueckii subsp. lactis CRL 581
+  JOURNAL   Unpublished
+REFERENCE   2  (bases 1 to 1907)
+  AUTHORS   Hebert,E.M., Savoy,G., Font de Valdez,G., Brown,L., Raya,R.R. and
+            Taranto,M.P.
+  TITLE     Direct Submission
+  JOURNAL   Submitted (20-MAY-2013) CERELA-CONICET, Chacabuco 145, S. M. de
+            Tucuman, Tucuman 4000, Argentina
+COMMENT     ##Genome-Assembly-Data-START##
+            Assembly Method       :: Newbler v. 2.6
+            Assembly Name         :: lla_2.6
+            Genome Coverage       :: 46.0x
+            Sequencing Technology :: 454
+            ##Genome-Assembly-Data-END##
+FEATURES             Location/Qualifiers
+     source          1..1907
+                     /organism="Lactobacillus delbrueckii subsp. lactis CRL581"
+                     /mol_type="genomic DNA"
+                     /strain="CRL581"
+                     /isolation_source="Argentinian hard cheese"
+                     /sub_species="lactis"
+                     /culture_collection="CRL:581"
+                     /db_xref="taxon:1269760"
+                     /country="Argentina: Tucuman"
+ORIGIN      
+        1 cttgaaagtc ttgtcgtcga tgtacgcaac ctttgccttt tgggcgtcgg cagtgtagac
+       61 aactatagta tcttcacctg gatcagttgg aatgaagcca tctggaccta caggtacacc
+      121 attaatcttt ggtgtatatc cttcgtattg aggaatgaca acctttaagg ctttagtcgg
+//
+

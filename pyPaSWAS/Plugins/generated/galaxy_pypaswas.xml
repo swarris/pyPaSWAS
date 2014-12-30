@@ -1,0 +1,117 @@
+<tool id="pyPaSWAS" name="pyPaSWAS" version="0.1">
+  <description>This program performs a Smith-Waterman alignment of all sequences in the first file against all sequences in the second file</description>
+  <command interpreter="python">
+    pyPaSWAS/pypaswasall.py
+      -o "$output"
+      #if str($advanced) == "True":
+        --device="$advanced.device"
+        --filterfactor="$advanced.filter_factor"
+        --limitlength="$advanced.limit_length"
+        --njobs="$advanced.number_of_jobs"
+        --processID="$advanced.process_id"
+        --maxgenomelength="$advanced.max_genome_length"
+      #end if
+      #if str($logprocess.create_log) == "True":
+        -L "$logfile"
+        --loglevel="$logprocess.loglevel"
+      #end if
+      -p "$program_condition.program"
+      #if str($program_condition.program) == "aligner":
+        --any="$program_condition.any"
+        --other="$program_condition.other"
+        --minimum="$program_condition.minimum"
+        --highest="$program_condition.highest"
+        --llimit="$program_condition.llimit_max"
+	#if str($program_condition.matrix.matrix_name) == "CUSTOM":
+          --custom_matrix="$program_condition.matrix.custom_matrix"
+        #else:
+	  --matrix_name="$program_condition.matrix.matrix_name"
+	#end if
+        -G "$program_condition.gap"
+        -r "$program_condition.match"
+	-q "$program_condition.mismatch"
+      #end if
+      "$input_1"
+      "$input_2"
+  </command>
+  <inputs>
+    <param name="input_1" type="data" label="First input FASTA file" help="" format="FASTA" />
+    <param name="input_2" type="data" label="Second input FASTA file" help="" format="FASTA" />
+    
+    <conditional name="advanced">
+      <param name="show_advanced" type="select" label="Show / hide advanced options">
+	<option value="True">Show</option>
+	<option value="False" selected="true">Hide</option>
+      </param>
+      <when value="True">
+	<param name="filter_factor" type="float" label="The filter factor to be used" help="" optional="true" value="0.7" />
+	<param name="device" type="integer" label="The device to use for computations" help="" optional="true" value="0" />
+	<param name="number_of_jobs" type="integer" label="Sets the number of jobs to run simultaneously" help="" optional="true" />
+	<param name="process_id" type="integer" label="Sets the process ID" help="" optional="true" />
+	<param name="limit_length" type="integer" label="Sets a limit to the maximal length of items to be compared at one time" 
+	       help="" optional="true" value="5000" />
+	<param name="max_genome_length" type="integer" label="Sets the maximum length of (the part of) the sequence that will be processed at one time"
+	       help="Should the length of the sequence exceed this setting, the sequence will be divided and the resulting parts will be processed 
+		     separately" value="200000" />
+      </when>
+      <when value="False" />
+    </conditional>
+
+    <conditional name="program_condition">
+      <param name="program" type="select" label="The program to be executed" help="" optional="true">
+	<option value="aligner" selected="true">aligner</option>
+	<option value="mapper">mapper</option>
+      </param>
+      <when value="aligner">
+	<param name="mismatch" type="integer" label="Penalty for a mismatch" help="" optional="true" />
+	<param name="gap" type="integer" label="Penalty for a gap" help="" optional="true" value="-5" />
+        <param name="any" type="integer" label="Any score.." help="" optional="true" value="2" />
+	<param name="match" type="integer" label="Reward for a match" help="" optional="true" value="5" />
+	<param name="other" type="integer" label="Other score.." help="" optional="true" value="1" />
+	<param name="minimum" type="integer" label="Minimum score initiating a back trace" help="" optional="true" value="500" />
+	<param name="highest" type="integer" label="Sets the highest score that..." help="" optional="true" value="5" />
+	<param name="llimit_max" type="integer" label="Sets the lower limit maximum score" help="" optional="true" />
+
+	<conditional name="matrix">
+	  <param name="matrix_name" type="select" label="The scoring to be used" help="" optional="true">
+	    <option value="DNA-RNA" selected="true">DNA-RNA</option>
+	    <option value="BASIC">BASIC</option>
+	    <option value="CUSTOM">CUSTOM</option>
+	  </param>
+	  <when value="CUSTOM">
+	    <param name="custom_matrix" type="data" label="Custom Matrix" help="" format="tabular" />
+	  </when>
+	</conditional>
+      </when>
+      <when value="mapper">
+	<!-- Mapper is unavailable -->
+      </when>
+    </conditional>
+
+    <conditional name="logprocess">
+      <param name="create_log" type="select" label="Log process to separate file" help="">
+	<option value="True">Yes</option>
+	<option value="False" selected="true">No</option>
+      </param>
+      <when value="True">
+	<param name="loglevel" type="select" label="Level of events logged to logfile" help="" optional="true">
+	  <option value="DEBUG">DEBUG</option>
+	  <option value="INFO">INFO</option>
+	  <option value="WARNING" selected="true">WARNING</option>
+	  <option value="ERROR">ERROR</option>
+	  <option value="CRITICAL">CRITICAL</option>
+	</param>
+      </when>
+    </conditional>
+
+  </inputs>
+  <outputs>
+    <!-- no SAM output support yet -->
+    <data name="output" label="${tool.name} on ${on_string}: Output file to store generated SAM output" format="txt" />
+    <data name="logfile" label="${tool.name} on ${on_string}: File to log events to" format="txt" >
+      <filter>(logprocess['create_log'] == 'True')</filter>
+    </data>
+  </outputs>
+  <help>
+  </help>
+</tool>
