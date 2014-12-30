@@ -46,6 +46,7 @@ Align protein sequences:
 
 Table 1. Key command line options
 | Option	| Long version	| Description|
+| --------- | ------------- | ---------- |
 | -h| --help| This help|  
 |-L	| --logfile	| Path to the log file| 
 |	| --loglevel	| Specify the log level for log file output. Valid options are DEBUG, INFO, WARNING, ERROR and CRITICAL| 
