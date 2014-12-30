@@ -32,10 +32,13 @@ See the github wiki at https://github.com/swarris/pyPaSWAS/wiki for more example
 
 Use a fastq-file:
 - *python -m pyPaSWAS/pypaswasall testSample.fastq adapters.fa -1 fastq -o out.txt --loglevel=DEBUG*
+
 Output results in SAM format:
 - *python -m pyPaSWAS/pypaswasall testSample.fastq adapters.fa -1 fastq -o out.sam --outputformat=SAM --loglevel=DEBUG*
+
 Remove all matches from file 1. Useful from trimming sequences. Sequences with no hits will not be in output
 - *python -m pyPaSWAS/pypaswasall testSample.fastq adapters.fa -1 fastq -o out.fa --outputformat=trimmedFasta -p trimmer -L /tmp/log.txt --loglevel=DEBUG*
+
 Align protein sequences:
 - *python -m pyPaSWAS/pypaswasall myAA.faa product.faa -M BLOSUM62 -o hits.txt -L /tmp/log.txt --loglevel=DEBUG*
 
