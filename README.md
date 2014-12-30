@@ -45,6 +45,7 @@ Align protein sequences:
 
 
 Table 1. Key command line options
+
 | Option	| Long version	| Description|
 | --------- | ------------- | ---------- |
 | -h| --help| This help|  
