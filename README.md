@@ -3,7 +3,13 @@ pyPaSWAS
 
 extented python version of PaSWAS
 
-PaSWAS was developed in C and CUDA. This version only uses the CUDA code and integrates the sequence alignment software with Python.
+PaSWAS was developed in C and CUDA. This version uses only the CUDA code from PaSWAS and integrates the sequence alignment software with Python. It supports:
+- text output
+- SAM output
+- logging
+- command line options and configuration files
+- Several internal programs: aligner (default), trimmer, indexer and mapper
+
 
 Installation
 ------------
