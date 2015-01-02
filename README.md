@@ -23,30 +23,27 @@ Running the software
 
 The key command line options are given in Table 1. The two input files are mandatory. Through the options the user can specify the file types of the input files (default: fasta), an output file and a log file. When requested, PyPaSWAS will terminate if the output file already exists.
 
-Add the source dir to your python path to run the application from any location:
-_export $PYTHONPATH=$PYTHONPATH:/main/source/dir_
-
 Run it by calling:
-- *python -m pyPaSWAS/pypaswasall |options| file1 file2*
+- *python pypaswas.py |options| file1 file2*
 
 Help file:
-- *python -m pyPaSWAS/pypaswasall -help*
+- *python pypaswas.py --help*
 
 Examples
 --------
 See the github wiki at https://github.com/swarris/pyPaSWAS/wiki for more examples.
 
 Use a fastq-file:
-- *python -m pyPaSWAS/pypaswasall testSample.fastq adapters.fa -1 fastq -o out.txt --loglevel=DEBUG*
+- *python pypaswas.py testSample.fastq adapters.fa -1 fastq -o out.txt --loglevel=DEBUG*
 
 Output results in SAM format:
-- *python -m pyPaSWAS/pypaswasall testSample.fastq adapters.fa -1 fastq -o out.sam --outputformat=SAM --loglevel=DEBUG*
+- *python pypaswas.py testSample.fastq adapters.fa -1 fastq -o out.sam --outputformat=SAM --loglevel=DEBUG*
 
 Remove all matches from file 1. Useful from trimming sequences. Sequences with no hits will not be in output
-- *python -m pyPaSWAS/pypaswasall testSample.fastq adapters.fa -1 fastq -o out.fa --outputformat=trimmedFasta -p trimmer -L /tmp/log.txt --loglevel=DEBUG*
+- *python pypaswas.py testSample.fastq adapters.fa -1 fastq -o out.fa --outputformat=trimmedFasta -p trimmer -L /tmp/log.txt --loglevel=DEBUG*
 
 Align protein sequences:
-- *python -m pyPaSWAS/pypaswasall myAA.faa product.faa -M BLOSUM62 -o hits.txt -L /tmp/log.txt --loglevel=DEBUG*
+- *python pypaswas.py myAA.faa product.faa -M BLOSUM62 -o hits.txt -L /tmp/log.txt --loglevel=DEBUG*
 
 
 
