@@ -59,7 +59,7 @@ class Indexer:
     def reverseWindowSize(self, window):
         return int(math.floor(window/(self.stepFactor+1.0)-self.windowStep))
 
-    def createIndex(self, sequence, fileName = None):
+    def createIndex(self, sequence, fileName = None, retainInMemory=True):
         totalElements = 0
         currentTupleSet = {}
         for window in self.wSize:
@@ -79,10 +79,11 @@ class Indexer:
             if fileName != None:
                 self.pickle(fileName, window)
             currentTupleSet.update(self.tupleSet)
-        self.tupleSet = currentTupleSet
+        if retainInMemory:
+            self.tupleSet = currentTupleSet
                     
-    def createIndexAndStore(self, sequence, fileName):
-        self.createIndex(sequence, fileName)
+    def createIndexAndStore(self, sequence, fileName, retainInMemory=True):
+        self.createIndex(sequence, fileName, retainInMemory)
 
     def findIndices(self,seq, start = 0.0, step=False):
         """ finds the seeding locations for the mapping process.

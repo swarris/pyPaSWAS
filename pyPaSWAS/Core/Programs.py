@@ -97,7 +97,7 @@ class ComBaRIndexer(Aligner):
         # step through the targets
         self.logger.debug('ComBaR indexing...')
         indexer = Indexer(self.settings, self.logger, 0.1, records_seqs)
-        indexer.createIndexAndStore(targets, self.arguments[1])
+        indexer.createIndexAndStore(targets, self.arguments[1], retainInMemory=False)
         
 
         self.logger.debug('ComBaR indexing finished.')
