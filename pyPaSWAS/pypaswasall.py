@@ -149,6 +149,7 @@ class Pypaswas(object):
             self.program = ComBaRIndexer(self.logger, self.score, self.settings, self.arguments)
             self.logger.warning("Removing limits on length of sequences for indexing!")
             self.settings.limit_length = 10**20
+            self.settings.query_step = 1
         elif self.settings.program == 'mapper':
             self.program = ComBaRMapper(self.logger, self.score, self.settings, self.arguments)
             self.logger.warning("Removing limits on length of sequences for ComBaR mapping!")

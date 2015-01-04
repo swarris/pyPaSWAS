@@ -1,6 +1,7 @@
 from Bio import  SeqIO
 import math
 import sys
+import os.path
 import cPickle
 import zlib
 from SWSeqRecord import SWSeqRecord
@@ -63,23 +64,27 @@ class Indexer:
         totalElements = 0
         currentTupleSet = {}
         for window in self.wSize:
-            self.tupleSet = {}
-            for seqId in xrange(len(sequence)):
-                self.logger.debug("Creating index of {} with window {}".format(sequence[seqId].id, window))
-                seq = str(sequence[seqId].seq.upper())
-                endIndex = 1 if len(seq)-window < 0 else len(seq)-window+1
-                revWindowSize = int(self.reverseWindowSize(window)*self.stepFactor*self.slideStep) 
-                for index in xrange(endIndex):
-                    if index % revWindowSize == 0:
-                        comp = self.count(seq, window,index,index+int(window))
-                        if comp not in self.tupleSet:
-                            self.tupleSet[comp] = []
-                        self.tupleSet[comp].append((index, seqId))
-                        totalElements += 1
-            if fileName != None:
-                self.pickle(fileName, window)
+            if not os.path.isfile(self.pickleName(fileName, window)): 
+                self.tupleSet = {}
+                for seqId in xrange(len(sequence)):
+                    self.logger.debug("Creating index of {} with window {}".format(sequence[seqId].id, window))
+                    seq = str(sequence[seqId].seq.upper())
+                    endIndex = 1 if len(seq)-window < 0 else len(seq)-window+1
+                    revWindowSize = int(self.reverseWindowSize(window)*self.stepFactor*self.slideStep) 
+                    for index in xrange(endIndex):
+                        if index % revWindowSize == 0:
+                            comp = self.count(seq, window,index,index+int(window))
+                            if comp not in self.tupleSet:
+                                self.tupleSet[comp] = []
+                            self.tupleSet[comp].append((index, seqId))
+                            totalElements += 1
+                if fileName != None:
+                    self.pickle(fileName, window)
+            elif retainInMemory:
+                self.unpickleWindow(fileName, window)
+                
             currentTupleSet.update(self.tupleSet)
-        
+            
         if retainInMemory:
             self.tupleSet = currentTupleSet
         else:
@@ -160,16 +165,21 @@ class Indexer:
         except:
             self.logger.error("Could not open: " + self.pickleName(fileName, self.wSize[0] if window == None else window))
             
+
+    def unpickleWindow(self, fileName, selectedWindow):
+        try:
+            dump = open(self.pickleName(fileName, selectedWindow), "r")
+            self.tupleSet.update(cPickle.loads(zlib.decompress(dump.read())))
+            dump.close()
+        except:
+            self.logger.warning("Could not open pickle file: "+ self.pickleName(fileName, selectedWindow))
+            return False
+        return True
+
+            
     def unpickle(self, fileName):
         self.tupleSet = {}
+        allDone = True
         for window in self.wSize:
-            try:
-                dump = open(self.pickleName(fileName, window), "r")
-                self.tupleSet.update(cPickle.loads(zlib.decompress(dump.read())))
-                dump.close()
-            except:
-                self.logger.warning("Could not open pickle file: "+ self.pickleName(fileName, window))
-                self.logger.warning("Will need to rebuild index")
-                self.tupleSet = {}
-                return False
-        return True
+            allDone = allDone and self.unpickleWindow(fileName, window)
+        return allDone
