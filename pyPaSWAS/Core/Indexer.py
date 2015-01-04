@@ -79,8 +79,11 @@ class Indexer:
             if fileName != None:
                 self.pickle(fileName, window)
             currentTupleSet.update(self.tupleSet)
+        
         if retainInMemory:
             self.tupleSet = currentTupleSet
+        else:
+            self.tupleSet = {}
                     
     def createIndexAndStore(self, sequence, fileName, retainInMemory=True):
         self.createIndex(sequence, fileName, retainInMemory)
