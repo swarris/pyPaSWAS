@@ -1,5 +1,6 @@
 #!/usr/bin/python
 from pyPaSWAS.pypaswasall import Pypaswas
+import logging
 
 if __name__ == '__main__':
     try:
