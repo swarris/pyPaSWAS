@@ -415,10 +415,10 @@ class SmithWaterman(object):
             elif self.settings.recompile == "F":
                 if not self.has_been_compiled:
                     self._clear_memory()
-                self.max_sequences = int(math.floor((self._get_max_number_sequences(length, self.target_block_length, self.number_of_targets))))
-                if self.max_sequences * length / self.shared_x > self.internal_limit:
-                    self.max_sequences = int(self.internal_limit / self.shared_x * length)   
-                self._init_sw(length, self.target_block_length, self.max_sequences, self.number_of_targets)
+                    self.max_sequences = int(math.floor((self._get_max_number_sequences(length, self.target_block_length, self.number_of_targets))))
+                    if self.max_sequences * length / self.shared_x > self.internal_limit:
+                        self.max_sequences = int(self.internal_limit / self.shared_x * length)   
+                    self._init_sw(length, self.target_block_length, self.max_sequences, self.number_of_targets)
 
             # add sequences to the list
             self.added_dummy_seqs = 0
@@ -764,6 +764,11 @@ class SmithWaterman(object):
             local_index = 0
             s_end = block_x * self.shared_x + value_x
             t_end = block_y * self.shared_y + value_y
+            
+            # @TO-DO: this is bugfix for the read mapping algorithm. Should not happen, so fix this where it should be fixed
+            if start_seq + sequence_starting_point >= len(sequences) or start_target + target_starting_point >= len(targets):
+                continue
+ 
             if hasattr(sequences[start_seq + sequence_starting_point], 'start_position'):
                 s_end += sequences[start_seq + sequence_starting_point].start_position
             if hasattr(targets[start_target + target_starting_point], 'start_position'):
