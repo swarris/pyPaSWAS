@@ -314,7 +314,7 @@ class SmithWaterman(object):
             if i+target_index < len(targets):
                 targetStr.append(SWSeq.extentToFillGPU(str(targets[i+target_index].seq), self.target_block_length))
             else:
-                targetStr.append(SWSeq.extentToFillGPU("", self.target_block_length))
+                targetStr.append(SWSeq.extentToFillGPU(SWSeq.SPECIAL_CHAR*self.target_block_length, self.target_block_length))
                 self.added_dummy_targets += 1
         
         self.target_array = numpy.array(''.join(targetStr), dtype=numpy.character)
@@ -430,7 +430,7 @@ class SmithWaterman(object):
                 if i+index < len(records_seqs):
                     sequenceStr.append(SWSeq.extentToFillGPU(str(records_seqs[i+index].seq), length))
                 else:
-                    sequenceStr.append(SWSeq.extentToFillGPU("", length))
+                    sequenceStr.append(SWSeq.extentToFillGPU(SWSeq.SPECIAL_CHAR*length, length))
                     self.added_dummy_seqs += 1
 
                 for tI in range(self.number_of_targets):
@@ -450,7 +450,8 @@ class SmithWaterman(object):
             prev_seq_length = length
             prev_target_length = self.target_block_length
             if self.settings.recompile == "F":
-                self._set_parameters(length, self.target_block_length, self.max_sequences-self.added_dummy_seqs, self.number_of_targets-self.added_dummy_targets)
+                #self._set_parameters(length, self.target_block_length, self.max_sequences-self.added_dummy_seqs, self.number_of_targets-self.added_dummy_targets)
+                self._set_parameters(length, self.target_block_length, self.max_sequences, self.number_of_targets)
             # copy sequences and targets to the device
             self.copy_sequences(sequence_array, self.target_array)
             # initialize index for zero copy of starting points
