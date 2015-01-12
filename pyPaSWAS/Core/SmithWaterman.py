@@ -595,7 +595,9 @@ class SmithWaterman(object):
         driver.memcpy_htod(self.d_targets, h_targets)  #@UndefinedVariable @IgnorePep8
 
     def set_minimum_score(self, index, minScore):
-        self.h_max_possible_score_zero_copy[index] = minScore
+        # @TO-DO: this is bugfix for the read mapping algorithm. Should not happen, so fix this where it should be fixed
+        if index < len(self.h_max_possible_score_zero_copy):
+            self.h_max_possible_score_zero_copy[index] = minScore
 
     def _calculate_score(self):
         """ Calculates the Smith-Waterman scores on the device """
