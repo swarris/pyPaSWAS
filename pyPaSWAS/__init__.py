@@ -179,8 +179,9 @@ def parse_cli(config_file):
     device_options.add_option('--limit_length', help='Length of the longest sequence  in characters to be read'
                               ' from file. Lower this when memory of GPU is low.', dest='limit_length',
                               default=config.get('Device', 'limit_length'))
+    device_options.add_option('--maximum_memory_usage', help='Fraction (<= 1.0) of available GPU memory to use. Useful with --recompile=F and when several pyPaSWAS applications are running.', dest="maximum_memory_usage")
     device_options.add_option('--njobs', help='Sets the number of jobs run simultaneously on the grid. Will read'
-                              ' only part of the sequence file. ', dest='number_of_jobs')
+                              ' only part of the sequence file. (not implemented yet)', dest='number_of_jobs')
     device_options.add_option('--process_id', help='Sets the processID of this job in the grid. ',
                               dest='process_id')
     device_options.add_option('--max_genome_length', help='Deprecated.\nDefaults to 200000',

@@ -147,8 +147,6 @@ class SmithWaterman(object):
         # Don't edit unless you really know what you are doing!
         self.shared_y = 8
 
-        # TODO: Amount of memory used of totally available memory. User should be able to adjust this.
-        self.mem_fill_factor = 0.9
 
         # Filled in later
         self.target_array = numpy.array([], dtype=numpy.character)
@@ -174,6 +172,13 @@ class SmithWaterman(object):
         self._set_filter_factor(self.settings.filter_factor)
         self._set_max_genome_length(self.settings.max_genome_length)
         self._set_internal_limit(self.internal_limit)
+        # set memory usage
+        try: 
+            self.mem_fill_factor = float(settings.maximum_memory_usage)
+        except ValueError:
+            raise InvalidOptionException('maximux_memory_usage is not a float'.format(settings.maximum_memory_usage))
+        if self.mem_fill_factor > 1.0 or self.mem_fill_factor <= 0.0:
+            raise InvalidOptionException('maximux_memory_usage is not a float between 0.0 and 1.0'.format(settings.maximum_memory_usage))
 
     def __del__(self):
         '''Destructor. Removes the current running context'''
