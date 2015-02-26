@@ -167,7 +167,7 @@ class SmithWaterman(object):
         self._initialize_device(self.device)
 
         self.filter_factor = 0.7
-        self.internal_limit = 64000
+        self.internal_limit = 2000
         self.max_genome_length = 10000
         self._set_filter_factor(self.settings.filter_factor)
         self._set_max_genome_length(self.settings.max_genome_length)
@@ -423,6 +423,8 @@ class SmithWaterman(object):
                     self.max_sequences = int(math.floor((self._get_max_number_sequences(length, self.target_block_length, self.number_of_targets))))
                     if self.max_sequences * length / self.shared_x > self.internal_limit:
                         self.max_sequences = int(self.internal_limit / self.shared_x * length)   
+                    if self.max_sequences + index >= len(records_seqs):
+                        self.max_sequences = len(records_seqs) - index
                     self._init_sw(length, self.target_block_length, self.max_sequences, self.number_of_targets)
 
             # add sequences to the list
