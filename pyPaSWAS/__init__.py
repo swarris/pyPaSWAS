@@ -168,6 +168,9 @@ def parse_cli(config_file):
     mapper_options = optparse.OptionGroup(parser, 'Options related to Composition based read mapper (experimental).')
     mapper_options.add_option('--maximum_distance', help='Maximum distance in composition for a position to be considered a seed', dest='maximum_distance',
                               default=config.get('Mapper', 'maximum_distance'))
+    mapper_options.add_option('--qgram', help='QGram number, should be >= 1', dest='qgram',
+                              default=config.get('Mapper', 'qgram'))
+
     parser.add_option_group(mapper_options)
 
 
