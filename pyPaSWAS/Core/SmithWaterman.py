@@ -167,7 +167,7 @@ class SmithWaterman(object):
         self._initialize_device(self.device)
 
         self.filter_factor = 0.7
-        self.internal_limit = 2000
+        self.internal_limit = 64000
         self.max_genome_length = 10000
         self._set_filter_factor(self.settings.filter_factor)
         self._set_max_genome_length(self.settings.max_genome_length)
