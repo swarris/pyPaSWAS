@@ -33,6 +33,9 @@ class Indexer:
         self.wSize = sorted(self.wSize)
 
     def count(self, seq, window, start_index, end_index):
+        self.logger.error("Indexer.count needs to by implemented by subclass. Maybe use QIndexer?")
+        exit()
+        """
         if len(seq) > 0 and end_index - start_index > 0:
             n = seq.count("N", start_index, end_index)
             length = float(end_index - start_index - n)
@@ -53,6 +56,7 @@ class Indexer:
             g = 0
             
         return( (window,a,t,c,g) )
+        """
 
     def windowSize(self,seqLength):
         return int(math.ceil(math.floor(seqLength*(self.stepFactor+1.0)) / self.windowStep) * self.windowStep)
@@ -94,6 +98,9 @@ class Indexer:
         self.createIndex(sequence, fileName, retainInMemory)
 
     def findIndices(self,seq, start = 0.0, step=False):
+        self.logger.error("Indexer.findIndices needs to by implemented by subclass. Maybe use QIndexer?")
+        exit()
+
         """ finds the seeding locations for the mapping process.
         Structure of locations:
         (hit, window, distance), with hit: (location, reference seq id)
@@ -102,6 +109,7 @@ class Indexer:
         :param seq: sequence used for comparison
         :param start: minimum distance. Use default unless you're stepping through distance values
         :param step: set this to True when you're stepping through distance values. Hence: start at 0 <= distance < 0.01, then 0.01 <= distance < 0.02, etc  
+        """
         """
         hits = {}
         #find smallest window:
@@ -121,7 +129,7 @@ class Indexer:
         for hit in hits:    
             hits[hit].sort(cmp=(lambda x,y: -1 if x[0][0] < y[0][0] else 1))
         return hits
-    
+        """
     
     def createSWSeqRecords(self, sequences):
         """ create sequences of all windows based on the list of sequence. Very, very inefficient

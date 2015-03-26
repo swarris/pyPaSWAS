@@ -12,7 +12,7 @@ from Indexer import Indexer
 class QIndexer (Indexer):
     DNA = ['A', 'T', 'C', 'G']
     
-    def __init__(self, settings, logger, stepFactor = 0.1, reads= [], qgram=2):
+    def __init__(self, settings, logger, stepFactor = 0.1, reads= [], qgram=1):
         Indexer.__init__(self, settings, logger, stepFactor, reads)
         self.qgram = qgram
         self.character_list = None
@@ -45,7 +45,7 @@ class QIndexer (Indexer):
         self.createIndex(sequence, fileName, retainInMemory)
 
     def pickleName(self, fileName, length):
-        return fileName + "." + str(length) + ".index" if self.qgram == 1 else fileName + ".Q" + str(self.qgram) + "." + str(length) + ".index"
+        return fileName + ".Q" + str(self.qgram) + "." + str(length) + ".index"
 
 
     def findIndices(self,seq, start = 0.0, step=False):

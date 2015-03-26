@@ -119,10 +119,10 @@ class ComBaRMapper(Aligner):
         '''
         # step through the targets
         self.logger.debug('ComBaR mapping...')
-        if self.settings.qgram == '1':
-            indexer = Indexer(self.settings, self.logger, 0.1, records_seqs)
-        else:
-            indexer = QIndexer(self.settings, self.logger, 0.1, records_seqs, int(self.settings.qgram))
+        #if self.settings.qgram == '1':
+        #    indexer = Indexer(self.settings, self.logger, 0.1, records_seqs)
+        #else:
+        indexer = QIndexer(self.settings, self.logger, 0.1, records_seqs, int(self.settings.qgram))
 
         # does index exists?
         if not indexer.unpickle(self.arguments[1]):
