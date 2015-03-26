@@ -16,7 +16,6 @@ class DefaultFormatter(object):
 
         self._set_name()
         self.logger.debug('Initialized {0}'.format(self.name))
-        self.logger.debug('Initializing formatter OK.')
 
     def _format_hit(self, hit):
         '''This method may be overruled to enable other formats for printed results.'''

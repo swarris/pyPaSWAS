@@ -62,12 +62,12 @@ class Reader(object):
 
     def get_records(self):
         '''Getter for the parsed records'''
-        self.logger.debug('Returning records...')
+        #self.logger.debug('Returning records...')
         return self.records
 
     def complement_records(self):
         '''Appends the reversed complements to the parsed records '''
-        self.logger.debug('Creating complement sequences...')
+        #self.logger.debug('Creating complement sequences...')
         seqIO = lambda seqIO: SWSeqRecord(Seq(str(seqIO.seq.reverse_complement()), seqIO.seq.alphabet),
                                           identifier=(str(seqIO.id) + self.rc_string))
         self.records.extend([seqIO(record) for record in self.records])
@@ -83,12 +83,13 @@ class BioPythonReader(Reader):
         self.records = list(islice(SeqIO.parse(file_elements, self.filetype), start, end))
         file_elements.close()
         if len(self.records) == 0:
-            self.logger.warning('No (more) sequence data found in input file ({}), '
-                                       'of file type {}.'.format(self.path, self.filetype))
+            pass
+            #self.logger.warning('No (more) sequence data found in input file ({}), '
+            #                           'of file type {}.'.format(self.path, self.filetype))
 
         if self.limitlength > 0:
             nrecords = len(self.records)
-            self.logger.debug('Checking sequences length..')
+            #self.logger.debug('Checking sequences length..')
             self.records = [SWSeqRecord(Seq(str(record.seq), record.seq.alphabet),
                                         identifier=record.id) for record in self.records
                             if len(record.seq) <= self.limitlength and len(record.seq) > 0]
@@ -102,5 +103,4 @@ class BioPythonReader(Reader):
             self.records = [SWSeqRecord(Seq(str(record.seq), record.seq.alphabet),
                                         identifier=record.id) for record in self.records]
 
-        self.logger.debug('\t{} sequences read..'.format(len(self.records)))
-        self.logger.debug('Reading from {} file OK.'.format(self.filetype))
+        self.logger.debug('\t{} sequences read.'.format(len(self.records)))

@@ -63,7 +63,7 @@ class Score(object):
         '''
         llscore = float(lower_limit_score)
         if llscore < 1.0:
-            self.logger.warning('Lower limit score is set < 1.0 ({}), this can result in too many hits to properly handle...'.format(llscore))
+            self.logger.warning('Lower limit score is set < 1.0 ({}), this can result in too many hits to properly handle.'.format(llscore))
         self.lower_limit_score = float(llscore)
 
     def set_minimum_score(self, min_score):

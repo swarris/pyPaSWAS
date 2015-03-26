@@ -72,7 +72,7 @@ class Hit(object):
             Both values should be integers.
         '''
         if self._is_a_valid_location(location, self.sequence_info.original_length):
-            self.logger.debug('Set hit.seqlocation to {0}'.format(location))
+            #self.logger.debug('Set hit.seqlocation to {0}'.format(location))
             self.seq_location = location
         else:
             raise CudaException('Invalid sequence location: {0}, length={1}, {2}'.format(location, len(self.sequence_info.seq),self.sequence_info.original_length ))
@@ -83,7 +83,7 @@ class Hit(object):
             alignment begins and ends, respectively. Both values should be integers.
         '''
         if self._is_a_valid_location(location, self.target_info.original_length):
-            self.logger.debug('Set hit.target_location to {0}'.format(location))
+            #self.logger.debug('Set hit.target_location to {0}'.format(location))
             self.target_location = location
         else:
             raise CudaException('Invalid target location: {0}'.format(location))
@@ -95,7 +95,7 @@ class Hit(object):
         if (isinstance(score, float) or isinstance(score, int)) and score >= 0.0:
             self.score = score
         else:
-            self.logger.debug('\tscore type: {0}'.format(type(score)))
+            #self.logger.debug('\tscore type: {0}'.format(type(score)))
             raise CudaException('Score should be a float or an integer, not {0}'.format(score))
 
         if isinstance(matches, int) and matches >= 0:

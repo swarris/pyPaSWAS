@@ -250,9 +250,9 @@ class SmithWaterman(object):
         @param number_sequences: the number of sequences on the len_x axes
         @param number_targets: the number of targets on the len_y axes
         '''
-        self.logger.debug('Setting parameters len_x: {0}, len_y: {1}, '
-                          'number_sequences: {2}, '
-                          'number_targets: {3} '.format(len_x, len_y, number_sequences, number_targets))
+        #self.logger.debug('Setting parameters len_x: {0}, len_y: {1}, '
+        #                  'number_sequences: {2}, '
+        #                  'number_targets: {3} '.format(len_x, len_y, number_sequences, number_targets))
         if len_x % self.shared_x > 0 or len_y % self.shared_y > 0:
             raise InvalidOptionException("Error in _set_parameters: len_x % " + str(self.shared_x) +
                                          " or len_y % " + str(self.shared_y) + " != 0 !")
@@ -405,7 +405,7 @@ class SmithWaterman(object):
                     self.max_sequences = int(math.floor((self._get_max_number_sequences(length, self.target_block_length, self.number_of_targets))))
                     if self.max_sequences * length / self.shared_x > self.internal_limit:
                         self.max_sequences = int(self.internal_limit / self.shared_x * length)   
-                    self.logger.info("Maximum number of seqs in memory: {} {}".format(self.max_sequences, self.number_of_targets))
+                    #self.logger.info("Maximum number of seqs in memory: {} {}".format(self.max_sequences, self.number_of_targets))
                     # set parameters for this run
                     if self.max_sequences + index >= len(records_seqs):
                         self.max_sequences = len(records_seqs) - index
@@ -568,20 +568,20 @@ class SmithWaterman(object):
         :param number_of_targets:
         '''
         if not self.has_been_compiled:
-            self.logger.debug("Setting parameters for CUDA: {} {} {} {}".format(length, target_length, max_sequences, number_of_targets))
+            #self.logger.debug("Setting parameters for CUDA: {} {} {} {}".format(length, target_length, max_sequences, number_of_targets))
             self._set_parameters(length, target_length, max_sequences, number_of_targets)
             self._set_score(self.score)
             # compile the code
-            self.logger.debug('Compiling CUDA code...')
+            #self.logger.debug('Compiling CUDA code...')
             self._compile_cuda_code()
             # initialize memory
-            self.logger.debug('Initializing memory...')
+            #self.logger.debug('Initializing memory...')
             self._init_memory()
             self.has_been_compiled = True
 
     def _init_zero_copy(self):
         ''' Initializes the index used for the 'zero copy' of the found starting points '''
-        self.logger.debug('Initializing zero copy.')
+        #self.logger.debug('Initializing zero copy.')
         self.d_index_increment = driver.mem_alloc(SmithWaterman.int_size)  #@UndefinedVariable @IgnorePep8
         index = numpy.zeros((1), dtype=numpy.int32)  #@UndefinedVariable @IgnorePep8
         driver.memcpy_htod(self.d_index_increment, index)  #@UndefinedVariable @IgnorePep8
@@ -598,7 +598,7 @@ class SmithWaterman(object):
         @param h_sequences: the sequences to be copied. Should be a single string containing all sequences
         @param h_targets: the targets to be copied. Should be a single string containing all sequences
         '''
-        self.logger.debug('Copying sequences to device.')
+        #self.logger.debug('Copying sequences to device.')
         driver.memcpy_htod(self.d_sequences, h_sequences)  #@UndefinedVariable @IgnorePep8
         driver.memcpy_htod(self.d_targets, h_targets)  #@UndefinedVariable @IgnorePep8
 
