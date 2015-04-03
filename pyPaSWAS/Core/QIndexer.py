@@ -32,7 +32,7 @@ class QIndexer (Indexer):
             n = seq.count("N", start_index, end_index)
             length = float(end_index - start_index - n)
             if length > 0 :
-                results = [int(self.compositionScale*seq.count(x, start_index, end_index) / length) for x in self.character_list]
+                results = [int(self.compositionScale*seq.count(x, start_index, end_index) / (length-self.qgram+1)) for x in self.character_list]
             else:
                 results = [0] * len(self.character_list)
         else:

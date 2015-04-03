@@ -65,7 +65,6 @@ class Indexer:
         return int(math.floor(window/(self.stepFactor+1.0)-self.windowStep))
 
     def createIndex(self, sequence, fileName = None, retainInMemory=True):
-        totalElements = 0
         currentTupleSet = {}
         for window in self.wSize:
             if not os.path.isfile(self.pickleName(fileName, window)): 
@@ -81,7 +80,6 @@ class Indexer:
                             if comp not in self.tupleSet:
                                 self.tupleSet[comp] = []
                             self.tupleSet[comp].append((index, seqId))
-                            totalElements += 1
                 if fileName != None:
                     self.pickle(fileName, window)
             elif retainInMemory:
@@ -93,6 +91,7 @@ class Indexer:
             self.tupleSet = currentTupleSet
         else:
             self.tupleSet = {}
+        exit()
                     
     def createIndexAndStore(self, sequence, fileName, retainInMemory=True):
         self.createIndex(sequence, fileName, retainInMemory)
