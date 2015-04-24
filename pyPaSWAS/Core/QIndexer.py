@@ -5,6 +5,7 @@ import os.path
 import cPickle
 import zlib
 import re
+import collections
 
 from SWSeqRecord import SWSeqRecord
 from Bio.Seq import Seq
@@ -20,6 +21,11 @@ class QIndexer (Indexer):
         self.qgram = qgram
         self.character_list = None
         self.generate_character_list(qgram)
+        self.character_index = {}
+        index = 1
+        for c in self.character_list:
+            self.character_index[c] = index
+            index += 1
 
     def generate_character_list(self, level=0):
         if level != 0:
@@ -30,20 +36,21 @@ class QIndexer (Indexer):
             self.generate_character_list(level-1)
 
     def count(self, seq, window, start_index, end_index):
-        results = []
+        results = [0]*(len(self.character_list)+1)
+        results[0] = window
+        
         if len(seq) > 0 and end_index - start_index > 0:
             n = seq.count("N", start_index, end_index)
             length = float(end_index - start_index - n)
+            fraction = self.compositionScale / float(length-self.qgram+1)
             if length > 0 :
                 #results = [int(self.compositionScale*seq.count(x, start_index, end_index) / (length-self.qgram+1)) for x in self.character_list]
-                results = [int(self.compositionScale*len(re.findall(r"(?=" + x + ")", str(seq[start_index: end_index]))) / (length-self.qgram+1)) for x in self.character_list]
-            else:
-                results = [0] * len(self.character_list)
-        else:
-                results = [0] * len(self.character_list)
-        r = [window]
-        r.extend(results)
-        return( tuple(r) )
+                #results = [int(self.compositionScale*len(re.findall(r"(?=" + x + ")", str(seq[start_index: end_index]))) / (length-self.qgram+1)) for x in self.character_list]
+                for qgram_string in range(start_index, end_index-self.qgram, self.qgram):
+                    results[self.character_index[str(seq[qgram_string:qgram_string + self.qgram])]] += fraction 
+                results = map(lambda x: int(x), results)
+
+        return( tuple(results) )
 
     def createIndexAndStore(self, sequence, fileName, retainInMemory=True):
         self.createIndex(sequence, fileName, retainInMemory)
