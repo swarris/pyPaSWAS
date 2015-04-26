@@ -91,7 +91,7 @@ class Indexer:
             self.tupleSet = currentTupleSet
         else:
             self.tupleSet = {}
-        exit()
+
                     
     def createIndexAndStore(self, sequence, fileName, retainInMemory=True):
         self.createIndex(sequence, fileName, retainInMemory)
