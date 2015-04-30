@@ -48,7 +48,7 @@ class QIndexer (Indexer):
                 #results = [int(self.compositionScale*len(re.findall(r"(?=" + x + ")", str(seq[start_index: end_index]))) / (length-self.qgram+1)) for x in self.character_list]
                 for qgram_string in range(start_index, end_index-self.qgram, self.qgram):
                     results[self.character_index[str(seq[qgram_string:qgram_string + self.qgram])]] += fraction 
-                results = map(lambda x: int(x), results)
+                results = map(lambda x: int(self.compositionScale * x), results)
 
         return( tuple(results) )
 
