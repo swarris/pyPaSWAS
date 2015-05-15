@@ -196,8 +196,6 @@ class Pypaswas(object):
                 self.logger.info('Reading target sequences...')
                 target_sequences = self._get_target_sequences(self.arguments[1], start=start_index, end=end_index)
                 self.logger.info('Target sequences OK.')
-                start_index = start_index + int(self.settings.sequence_step)
-                end_index = end_index + int(self.settings.sequence_step)
     
                 if len(target_sequences) == 0:
                     sequencesToProcess = False
@@ -206,6 +204,14 @@ class Pypaswas(object):
                     self.logger.info('Processing {0}- vs {1}-sequences'.format(len(query_sequences),
                                                                             len(target_sequences)))
                     results.extend(self.program.process(query_sequences, target_sequences))
+                
+                if len(target_sequences) <= end_index:
+                    sequencesToProcess = False
+                    self.logger.info('Processing done')
+
+                start_index = start_index + int(self.settings.sequence_step)
+                end_index = end_index + int(self.settings.sequence_step)
+
 
         nhits = len(results.hits)
         # retrieve and print results!

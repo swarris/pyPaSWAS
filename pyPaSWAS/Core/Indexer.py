@@ -19,6 +19,7 @@ class Indexer:
     windowStep = 1.0
     compositionScale = 1000.0
     distanceStep = 0.01
+    indicesStepSize = 300000
     
     def __init__(self, settings, logger, stepFactor = 0.1, reads= []):
         self.sliceDistance= float(settings.maximum_distance)
@@ -31,32 +32,11 @@ class Indexer:
         self.wSize = list(set(map(lambda x : len(x) , reads)))
         self.wSize = map(lambda x : self.windowSize(x), self.wSize)
         self.wSize = sorted(self.wSize)
-
+        self.indicesStep = None
+        self.indexCount = 0
+        
     def count(self, seq, window, start_index, end_index):
         self.logger.error("Indexer.count needs to by implemented by subclass. Maybe use QIndexer?")
-        exit()
-        """
-        if len(seq) > 0 and end_index - start_index > 0:
-            n = seq.count("N", start_index, end_index)
-            length = float(end_index - start_index - n)
-            if length > 0 :
-                a = int(self.compositionScale*seq.count("A", start_index, end_index) / length)
-                t = int(self.compositionScale*seq.count("T", start_index, end_index) / length)
-                c = int(self.compositionScale*seq.count("C", start_index, end_index) / length)
-                g = int(self.compositionScale*seq.count("G", start_index, end_index) / length)
-            else:
-                a = 0
-                t = 0
-                c = 0
-                g = 0
-        else:
-            a = 0
-            t = 0
-            c = 0
-            g = 0
-            
-        return( (window,a,t,c,g) )
-        """
 
     def windowSize(self,seqLength):
         return int(math.ceil(math.floor(seqLength*(self.stepFactor+1.0)) / self.windowStep) * self.windowStep)
@@ -64,8 +44,16 @@ class Indexer:
     def reverseWindowSize(self, window):
         return int(math.floor(window/(self.stepFactor+1.0)-self.windowStep))
 
+    def setIndicesStep(self, indicesStep):
+        self.indicesStep = indicesStep
+
+    def indicesToProcessLeft(self):
+        self.logger.info("At indices: {}, {}, {}".format(self.indexCount, self.indicesStep, self.indicesStepSize))
+        return self.indexCount == self.indicesStep+1 or (self.indexCount == 0 and self.indicesStep == 0)
+
     def createIndex(self, sequence, fileName = None, retainInMemory=True):
         currentTupleSet = {}
+        self.indexCount = 0
         for window in self.wSize:
             if not os.path.isfile(self.pickleName(fileName, window)): 
                 self.tupleSet = {}
@@ -77,9 +65,16 @@ class Indexer:
                     for index in xrange(endIndex):
                         if index % revWindowSize == 0:
                             comp = self.count(seq, window,index,index+int(window))
-                            if comp not in self.tupleSet:
-                                self.tupleSet[comp] = []
-                            self.tupleSet[comp].append((index, seqId))
+                            if self.indicesStep == None or (self.indicesStep < self.indexCount <= self.indicesStep + self.indicesStepSize) :    
+                                if comp not in self.tupleSet:
+                                    self.tupleSet[comp] = []
+                                self.tupleSet[comp].append((index, seqId))
+                            self.indexCount += 1
+                        if self.indexCount > self.indicesStep + self.indicesStepSize:
+                            break
+                    if self.indexCount > self.indicesStep + self.indicesStepSize:
+                        break
+                        
                 if fileName != None:
                     self.pickle(fileName, window)
             elif retainInMemory:
@@ -91,7 +86,7 @@ class Indexer:
             self.tupleSet = currentTupleSet
         else:
             self.tupleSet = {}
-
+        self.indicesStep += self.indicesStepSize
                     
     def createIndexAndStore(self, sequence, fileName, retainInMemory=True):
         self.createIndex(sequence, fileName, retainInMemory)
@@ -99,36 +94,6 @@ class Indexer:
     def findIndices(self,seq, start = 0.0, step=False):
         self.logger.error("Indexer.findIndices needs to by implemented by subclass. Maybe use QIndexer?")
         exit()
-
-        """ finds the seeding locations for the mapping process.
-        Structure of locations:
-        (hit, window, distance), with hit: (location, reference seq id)
-        Full structure:
-        ((location, reference seq id), window, distance)
-        :param seq: sequence used for comparison
-        :param start: minimum distance. Use default unless you're stepping through distance values
-        :param step: set this to True when you're stepping through distance values. Hence: start at 0 <= distance < 0.01, then 0.01 <= distance < 0.02, etc  
-        """
-        """
-        hits = {}
-        #find smallest window:
-        loc = 0
-        while loc < len(self.wSize)-1 and self.windowSize(len(seq)) > self.wSize[loc]:
-            loc += 1
-        comp = self.count(seq.upper(), self.wSize[loc], 0, len(seq))
-        if not step:
-            validComp = filter(lambda x : x[0] == comp[0] and ((x[1] - comp[1])**2 + (x[2] - comp[2])**2 + (x[3] - comp[3])**2 + (x[4] - comp[4])**2 ) < self.sliceDistance, self.tupleSet.keys())
-        else :
-            validComp = filter(lambda x : x[0] == comp[0] and ( start <= math.sqrt((x[1] - comp[1])**2 + (x[2] - comp[2])**2 + (x[3] - comp[3])**2 + (x[4] - comp[4])**2 )/self.compositionScale < start + self.distanceStep), self.tupleSet.keys())
-        for valid in validComp:
-            for hit in self.tupleSet[valid]:
-                if hit[1] not in hits:
-                    hits[hit[1]] = []
-                hits[hit[1]].extend([(hit, self.wSize[loc], math.sqrt(((valid[1] - comp[1])**2 + (valid[2] - comp[2])**2 + (valid[3] - comp[3])**2 + (valid[4] - comp[4])**2))/self.compositionScale)])
-        for hit in hits:    
-            hits[hit].sort(cmp=(lambda x,y: -1 if x[0][0] < y[0][0] else 1))
-        return hits
-        """
     
     def createSWSeqRecords(self, sequences):
         """ create sequences of all windows based on the list of sequence. Very, very inefficient
@@ -189,4 +154,6 @@ class Indexer:
         allDone = True
         for window in self.wSize:
             allDone = allDone and self.unpickleWindow(fileName, window)
+        if allDone:
+            self.indicesStep += self.indicesStepSize
         return allDone

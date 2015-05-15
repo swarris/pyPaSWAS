@@ -6,6 +6,7 @@ import cPickle
 import zlib
 import re
 import collections
+import numpy
 
 from SWSeqRecord import SWSeqRecord
 from Bio.Seq import Seq
@@ -22,6 +23,7 @@ class QIndexer (Indexer):
         self.character_list = None
         self.generate_character_list(qgram)
         self.character_index = {}
+        self.indicesStep = 0
         index = 1
         for c in self.character_list:
             self.character_index[c] = index
@@ -36,19 +38,22 @@ class QIndexer (Indexer):
             self.generate_character_list(level-1)
 
     def count(self, seq, window, start_index, end_index):
-        results = [0]*(len(self.character_list)+1)
+        results = [0]*(len(self.character_list)+1)#numpy.zeros(len(self.character_list)+1)
         results[0] = window
         
         if len(seq) > 0 and end_index - start_index > 0:
             n = seq.count("N", start_index, end_index)
             length = float(end_index - start_index - n)
-            fraction = self.compositionScale / float(length-self.qgram+1)
-            if length > 0 :
+
+            if length-self.qgram+1 > 0 :
+                fraction = self.compositionScale / float(length-self.qgram+1)
                 #results = [int(self.compositionScale*seq.count(x, start_index, end_index) / (length-self.qgram+1)) for x in self.character_list]
                 #results = [int(self.compositionScale*len(re.findall(r"(?=" + x + ")", str(seq[start_index: end_index]))) / (length-self.qgram+1)) for x in self.character_list]
                 for qgram_string in range(start_index, end_index-self.qgram, self.qgram):
-                    results[self.character_index[str(seq[qgram_string:qgram_string + self.qgram])]] += fraction 
-                results = map(lambda x: int(self.compositionScale * x), results)
+                    subStr = str(seq[qgram_string:qgram_string + self.qgram])
+                    if "N" not in subStr:
+                        results[self.character_index[subStr]] += fraction 
+                results = map(lambda x: int(x), results)
 
         return( tuple(results) )
 
@@ -56,7 +61,10 @@ class QIndexer (Indexer):
         self.createIndex(sequence, fileName, retainInMemory)
 
     def pickleName(self, fileName, length):
-        return fileName + ".Q" + str(self.qgram) + "." + str(length) + ".index"
+        if self.indicesStep == None:
+            return fileName + ".Q" + str(self.qgram) + "." + str(length) + ".index"
+        else:
+            return fileName + ".Q" + str(self.qgram) + "." + str(length) + "." + str(self.indicesStep) + ".index"
 
 
     def findIndices(self,seq, start = 0.0, step=False):
