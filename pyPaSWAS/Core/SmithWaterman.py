@@ -385,7 +385,7 @@ class SmithWaterman(object):
         max_length = 0
         if len(records_seqs) > 0:
             max_length = len(records_seqs[0])
-        
+        hitlist=HitList(self.logger)
         while index < len(records_seqs) and cont:
             # make sure length of sequences can be divided by shared_x
             # don't reset when no need to recompile:
@@ -471,7 +471,8 @@ class SmithWaterman(object):
             # TODO: change to returning a value, change _print_alignments to getAlignments in SmithWaterman
             # TODO: move _print_alignments to here? This should be a statement to retrieve the results and
             # put them into a Hitlist (?)
-            hitlist = self._print_alignments(records_seqs, targets, index, target_index)
+            #hitlist = self._print_alignments(records_seqs, targets, index, target_index)
+            self._print_alignments(records_seqs, targets, index, target_index, hitlist)
             index += self.max_sequences
         return hitlist
 
