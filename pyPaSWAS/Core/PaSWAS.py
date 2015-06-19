@@ -2,7 +2,7 @@ from string import Template
 from pyPaSWAS.Core import resource_filename, read_file
 
 
-class Cudacode(object):
+class Code(object):
     '''
     Initializes the CUDA code by setting configuration parameters using the CUDA
     templates located in Core/cuda
@@ -13,11 +13,11 @@ class Cudacode(object):
         self.directions = ''
         self.score_part = ''
         self.variable_part = ''
-        self.variable_source = resource_filename(__name__, 'cuda/default_variable.cu')
-        self.direction_source = resource_filename(__name__, 'cuda/default_direction.cu')
-        self.score_source = resource_filename(__name__, 'cuda/default_score.cu')
-        self.main_source = resource_filename(__name__, 'cuda/default_main.cu')
-
+        self.variable_source = ''
+        self.direction_source = ''
+        self.score_source = ''
+        self.main_source = ''
+    
     def set_shared_xy_code(self, sharedx=8, sharedy=8):
         '''
         Sets the horizontal and the vertical sizes of the smallest alignment matrices in shared memory
@@ -76,3 +76,26 @@ class Cudacode(object):
         self.set_variable_code(number_sequences, number_targets, x_sequence_length, y_sequence_length)
         #self.logger.debug('Formatting the cuda source code OK.')
         return self.variable_part + self.directions + self.score_part + self.shared_xy_code
+
+
+class Cudacode(Code):
+    '''
+    Initializes the CUDA code by setting configuration parameters using the CUDA
+    templates located in Core/cuda
+    '''
+    def __init__(self, logger):
+        self.variable_source = resource_filename(__name__, 'cuda/default_variable.cu')
+        self.direction_source = resource_filename(__name__, 'cuda/default_direction.cu')
+        self.score_source = resource_filename(__name__, 'cuda/default_score.cu')
+        self.main_source = resource_filename(__name__, 'cuda/default_main.cu')
+
+class OCLcode(Code):
+    '''
+    Initializes the OpenCL code by setting configuration parameters using the OpenCL
+    templates located in Core/ocl
+    '''
+    def __init__(self, logger):
+        self.variable_source = resource_filename(__name__, 'ocl/default_variable.cl')
+        self.direction_source = resource_filename(__name__, 'ocl/default_direction.cl')
+        self.score_source = resource_filename(__name__, 'ocl/default_score.cl')
+        self.main_source = resource_filename(__name__, 'ocl/default_main.cl')
