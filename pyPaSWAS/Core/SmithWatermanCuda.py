@@ -18,6 +18,7 @@ class SmithWatermanCuda(SmithWaterman):
     def __init__(self, params):
         
         self.device = 0
+        self.module = None
 
         self.cudacode = Cudacode(self.logger)
         # Compiling part of the CUDA code in advance
@@ -36,14 +37,14 @@ class SmithWatermanCuda(SmithWaterman):
         self.logger.debug('Destructing SmithWaterman.')
         if (driver.Context is not None):  #@UndefinedVariable @IgnorePep8
             driver.Context.pop()  #@UndefinedVariable @IgnorePep8
-            
+
     def _set_device(self, device):
         '''Sets the device number'''
         try:
             self.device = int(device) if device else self.device
         except ValueError:
             raise InvalidOptionException('device should be an int but is {0}'.format(device))
-        
+    
     def _initialize_device(self, device_number):
         '''
         Initalizes the GPU device and verifies its computational abilities.
@@ -61,3 +62,199 @@ class SmithWatermanCuda(SmithWaterman):
         if not ((compute[0] == 1 and compute[1] >= 2) or (compute[0] >= 2)):
             raise HardwareException('Failed to initialize device: '
                                     'need compute capability 1.2 or newer!')  #@UndefinedVariable @IgnorePep8
+    
+    def _get_max_length_xy(self):
+        '''
+        _get_max_length_xy gives the maximum length of both X and Y possible with
+        the currently available total memory.
+        @return: int value of the maximum length of both X and Y.
+        '''
+        return (math.floor(math.sqrt((driver.mem_get_info()[0] * self.mem_fill_factor) /  #@UndefinedVariable
+                                     self._get_mem_size_basic_matrix())))  #@UndefinedVariable @IgnorePep8
+        
+    # TODO: check if driver has been initialized
+    # TODO: add correct docstring
+    def _get_max_number_sequences(self, length_sequences, length_targets, number_of_targets):
+        '''
+        Returns the maximum length of all sequences
+        :param length_sequences:
+        :param length_targets:
+        '''
+        self.logger.debug("Available memory on GPU: {}".format(driver.mem_get_info()[0]/1024/1024))
+        value = 1
+        try:
+            value =  math.floor((driver.mem_get_info()[0] * self.mem_fill_factor) /  #@UndefinedVariable
+                          ((length_sequences * length_targets * (self._get_mem_size_basic_matrix()) +
+                            (length_sequences * length_targets * SmithWaterman.float_size) /
+                            (self.shared_x * self.shared_y)) * number_of_targets))  #@UndefinedVariable @IgnorePep8
+        except:
+            self.logger.warning("Possibly not enough memory for targets")
+            return 1
+        else:
+            return value if value > 0 else 1
+    
+    def _clear_memory(self):
+        '''Clears the claimed memory on the device.'''
+        self.logger.debug('Clearing device memory.')
+        if (self.d_sequences is not None):
+            self.d_sequences.free()
+        if (self.d_targets is not None):
+            self.d_targets.free()
+        if (self.d_matrix is not None):
+            self.d_matrix.free()
+        if (self.d_global_maxima is not None):
+            self.d_global_maxima.free()
+        if (self.d_global_direction is not None):
+            self.d_global_direction.free()
+        if (self.h_starting_points_zero_copy is not None):
+            self.h_starting_points_zero_copy.base.free()
+            self.d_starting_points_zero_copy = None
+        if (self.h_global_direction_zero_copy is not None):
+            self.h_global_direction_zero_copy.base.free()
+            self.d_global_direction_zero_copy = None
+        if (self.h_max_possible_score_zero_copy is not None):
+            self.h_max_possible_score_zero_copy.base.free()
+            self.d_max_possible_score_zero_copy = None
+
+    def _init_memory(self):
+        '''
+        #_init_memory will initialize all required memory on the device based on the current settings.
+        Make sure to initialize these values!
+        '''
+        # TODO: document each memory allocation (purpose / target)
+        # Query sequence device memory
+        #self.logger.debug('Initializing device memory.')
+        memory = self.length_of_x_sequences * self.number_of_sequences
+        self.d_sequences = driver.mem_alloc(memory)  #@UndefinedVariable @IgnorePep8
+        mem_size = memory
+
+        # Target device memory
+        memory = self.length_of_y_sequences * self.number_targets
+        self.d_targets = driver.mem_alloc(memory)  #@UndefinedVariable @IgnorePep8
+        mem_size += memory
+
+        # Input matrix device memory
+        memory = (SmithWaterman.float_size * self.length_of_x_sequences * self.number_of_sequences *
+                  self.length_of_y_sequences * self.number_targets)
+        self.d_matrix = driver.mem_alloc(memory)  #@UndefinedVariable @IgnorePep8
+        mem_size += memory
+
+        # Maximum global device memory
+        memory = (SmithWaterman.float_size * self.x_div_shared_x * self.number_of_sequences *
+                  self.y_div_shared_y * self.number_targets)
+        self.d_global_maxima = driver.mem_alloc(memory)  #@UndefinedVariable @IgnorePep8
+        mem_size += memory
+
+        # Direction device memory
+        memory = (self.length_of_x_sequences * self.number_of_sequences *
+                     self.length_of_y_sequences * self.number_targets)
+        self.d_global_direction = driver.mem_alloc(memory)  #@UndefinedVariable @IgnorePep8
+        mem_size += memory
+
+        # Starting points host memory allocation and device copy
+        memory = (self.size_of_startingpoint * self.maximum_number_starting_points * self.number_of_sequences *
+                  self.number_targets)
+        
+        self.h_starting_points_zero_copy = driver.pagelocked_empty((memory, 1), numpy.byte,  #@UndefinedVariable
+                                                                   mem_flags=driver.host_alloc_flags.DEVICEMAP)  #@UndefinedVariable @IgnorePep8
+        self.d_starting_points_zero_copy = numpy.intp(self.h_starting_points_zero_copy.base.get_device_pointer())
+        mem_size += memory
+
+        # Global directions host memory allocation and device copy
+        memory = (self.length_of_x_sequences * self.number_of_sequences * self.length_of_y_sequences *
+                  self.number_targets)
+        self.h_global_direction_zero_copy = driver.pagelocked_empty((memory, 1), numpy.byte,  #@UndefinedVariable
+                                                                    mem_flags=driver.host_alloc_flags.DEVICEMAP)  #@UndefinedVariable @IgnorePep8
+        self.d_global_direction_zero_copy = numpy.intp(self.h_global_direction_zero_copy.base.get_device_pointer())
+        mem_size += memory
+
+        # Maximum zero copy memory allocation and device copy
+        self.h_max_possible_score_zero_copy = driver.pagelocked_empty((self.number_of_sequences*self.number_of_targets, 1), numpy.float32,  #@UndefinedVariable
+                                                                      mem_flags=driver.host_alloc_flags.DEVICEMAP)  #@UndefinedVariable @IgnorePep8
+        self.d_max_possible_score_zero_copy = numpy.intp(self.h_max_possible_score_zero_copy.base.get_device_pointer())
+        mem_size += self.number_of_sequences *self.number_of_targets * SmithWaterman.float_size
+
+        self.logger.debug('Allocated: {}MB of memory'.format(str(mem_size / 1024.0 / 1024.00)))
+    
+    def _init_zero_copy(self):
+        ''' Initializes the index used for the 'zero copy' of the found starting points '''
+        #self.logger.debug('Initializing zero copy.')
+        self.d_index_increment = driver.mem_alloc(SmithWaterman.int_size)  #@UndefinedVariable @IgnorePep8
+        index = numpy.zeros((1), dtype=numpy.int32)  #@UndefinedVariable @IgnorePep8
+        driver.memcpy_htod(self.d_index_increment, index)  #@UndefinedVariable @IgnorePep8
+
+    def _compile_code(self):
+        """Compile the device code with current settings"""
+        self.logger.debug('Compiling cuda code.')
+        code = self.cudacode.get_code(self.score, self.number_of_sequences, self.number_targets, self.length_of_x_sequences, self.length_of_y_sequences)
+        self.module = SourceModule(code)
+    
+    def copy_sequences(self, h_sequences, h_targets):
+        '''
+        Copy the sequences and targets to the device
+        @param h_sequences: the sequences to be copied. Should be a single string containing all sequences
+        @param h_targets: the targets to be copied. Should be a single string containing all sequences
+        '''
+        #self.logger.debug('Copying sequences to device.')
+        driver.memcpy_htod(self.d_sequences, h_sequences)  #@UndefinedVariable @IgnorePep8
+        driver.memcpy_htod(self.d_targets, h_targets)  #@UndefinedVariable @IgnorePep8
+    
+    def _execute_calculate_score_kernel(self, number_of_blocks, idx, idy):
+        ''' Executes a single run of the calculate score kernel'''
+        dim_grid_sw = (self.number_of_sequences, self.number_targets * number_of_blocks)
+        dim_block = (self.shared_x, self.shared_y, 1)
+
+        try:
+            calculate_score_function = self.module.get_function("calculateScore")
+            calculate_score_function(self.d_matrix, 
+                                     numpy.int32(idx), 
+                                     numpy.int32(idy),
+                                     numpy.int32(number_of_blocks), 
+                                     self.d_sequences, 
+                                     self.d_targets,
+                                     self.d_global_maxima, 
+                                     self.d_global_direction,
+                                     block=dim_block, 
+                                     grid=dim_grid_sw)
+            self._synchronize()
+            # TODO: catch proper exception
+        except Exception as exception:
+            self.logger.warning('Warning: {0}\nContinuing calculation...'.format(exception))
+        
+    
+    def _execute_traceback_kernel(self, number_of_blocks, idx, idy):
+        ''' Executes a single run of the traceback kernel'''
+        dim_grid_sw = (self.number_of_sequences, self.number_targets * number_of_blocks)
+        dim_block = (self.shared_x, self.shared_y, 1)
+        
+        try:
+            traceback_function = self.module.get_function("traceback")
+            traceback_function(self.d_matrix,
+                               numpy.int32(idx),
+                               numpy.int32(idy),
+                               numpy.int32(number_of_blocks),
+                               self.d_global_maxima,
+                               self.d_global_direction,
+                               self.d_global_direction_zero_copy,
+                               self.d_index_increment,
+                               self.d_starting_points_zero_copy,
+                               self.d_max_possible_score_zero_copy,
+                               block=dim_block,
+                               grid=dim_grid_sw)
+            self._synchronize()
+        except Exception as exception:
+            self.logger.error('Something went wrong during traceback: {}...'.format(exception))
+            raise exception
+    
+
+    def _get_number_of_starting_points(self):
+        ''' Returns the number of startingpoints. '''    
+        self.logger.debug('Getting number of starting points.')
+        self.index = numpy.zeros((1), dtype=numpy.int32)
+        driver.memcpy_dtoh(self.index, self.d_index_increment)  #@UndefinedVariable @IgnorePep8
+        return self.index[0]
+    
+    def _synchronize(self):
+        ''' Synchronizes device with host '''
+        driver.Context.synchronize()  #@UndefinedVariable @IgnorePep8
+
