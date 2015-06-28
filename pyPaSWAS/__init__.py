@@ -198,6 +198,14 @@ def parse_cli(config_file):
     device_options.add_option('--short_sequences', help='Set to T(true) when aligning short sequences (trimming?) to maximize memory usage.',
                               dest='short_sequences', default=config.get('Device', 'short_sequences'))
     parser.add_option_group(device_options)
+    
+    
+    ocl_options = optparse.OptionGroup(parser, 'Options for the usage of the OpenCL framework ')
+    ocl_options.add_option('--type', help='Type of device to perform computations on (either CPU, GPU or ACCELARATOR)',
+                           dest='device_type', default=config.get('OpenCL', 'device_type'))
+    ocl_options.add_option('--platform', help='Platform to run computations on (either Intel, NVIDIA or AMD)',
+                           dest='platform_name', default=config.get('OpenCL', 'platform_name'))
+    parser.add_option_group(ocl_options)
 
     (settings, arguments) = parser.parse_args()
 

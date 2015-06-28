@@ -149,6 +149,9 @@ class SmithWaterman(object):
 
         # Filled in later
         self.target_array = numpy.array([], dtype=numpy.character)
+        
+        self.device = 0
+        self._set_device(self.settings.device_number)
 
         self.filter_factor = 0.7
         self.internal_limit = 64000
@@ -168,9 +171,6 @@ class SmithWaterman(object):
         '''Destructor. Removes the current running context'''
         pass
 
-    def _set_device(self, device):
-        '''Sets the device number'''
-        pass
     
     def _initialize_device(self, device_number):
         '''
@@ -236,11 +236,13 @@ class SmithWaterman(object):
         ''' Returns the number of startingpoints. '''
         pass    
     
-    def _synchronize(self):
-        ''' Synchronizes device with host '''
-        pass
+    def _set_device(self, device):
+        '''Sets the device number'''
+        try:
+            self.device = int(device) if device else self.device
+        except ValueError:
+            raise InvalidOptionException('device should be an int but is {0}'.format(device))
 
-    
     def _set_internal_limit(self, limit):
         '''sets the internal limit'''
         try:

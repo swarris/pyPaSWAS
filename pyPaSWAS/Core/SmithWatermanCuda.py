@@ -17,7 +17,6 @@ class SmithWatermanCuda(SmithWaterman):
 
     def __init__(self, params):
         
-        self.device = 0
         self.module = None
 
         self.cudacode = Cudacode(self.logger)
@@ -38,12 +37,6 @@ class SmithWatermanCuda(SmithWaterman):
         if (driver.Context is not None):  #@UndefinedVariable @IgnorePep8
             driver.Context.pop()  #@UndefinedVariable @IgnorePep8
 
-    def _set_device(self, device):
-        '''Sets the device number'''
-        try:
-            self.device = int(device) if device else self.device
-        except ValueError:
-            raise InvalidOptionException('device should be an int but is {0}'.format(device))
     
     def _initialize_device(self, device_number):
         '''
@@ -216,8 +209,8 @@ class SmithWatermanCuda(SmithWaterman):
                                      self.d_global_direction,
                                      block=dim_block, 
                                      grid=dim_grid_sw)
-            self._synchronize()
-            # TODO: catch proper exception
+            driver.Context.synchronize()  #@UndefinedVariable @IgnorePep8            
+        # TODO: catch proper exception
         except Exception as exception:
             self.logger.warning('Warning: {0}\nContinuing calculation...'.format(exception))
         
@@ -241,7 +234,7 @@ class SmithWatermanCuda(SmithWaterman):
                                self.d_max_possible_score_zero_copy,
                                block=dim_block,
                                grid=dim_grid_sw)
-            self._synchronize()
+            driver.Context.synchronize()  #@UndefinedVariable @IgnorePep8
         except Exception as exception:
             self.logger.error('Something went wrong during traceback: {}...'.format(exception))
             raise exception
@@ -254,7 +247,4 @@ class SmithWatermanCuda(SmithWaterman):
         driver.memcpy_dtoh(self.index, self.d_index_increment)  #@UndefinedVariable @IgnorePep8
         return self.index[0]
     
-    def _synchronize(self):
-        ''' Synchronizes device with host '''
-        driver.Context.synchronize()  #@UndefinedVariable @IgnorePep8
 
