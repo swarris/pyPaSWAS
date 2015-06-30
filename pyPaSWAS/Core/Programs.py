@@ -53,7 +53,7 @@ class Aligner(object):
             results = self.smith_waterman.align_sequences(records_seqs, targets, target_index)
             self.hitlist.extend(results)
             target_index = last_target_index
-        self.logger.debug('Aligner processing OK, returning hitlist.')
+        self.logger.debug('Aligner processing OK, returning hitlist ({} + {}).'.format(len(self.hitlist.real_hits), len(results.real_hits)))
         return self.hitlist
     
         
