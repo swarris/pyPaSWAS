@@ -11,10 +11,12 @@ class SmithWatermanOcl(SmithWaterman):
     '''
 
 
-    def __init__(self, params):
+    def __init__(self, logger, score, settings):
         '''
         Constructor
         '''
+        SmithWaterman.__init__(self, logger, score, settings)
+        
         self.oclcode = OCLcode(self.logger)
         
         # platforms: A single ICD on a computer
@@ -35,8 +37,15 @@ class SmithWatermanOcl(SmithWaterman):
     
     def __del__(self):
         '''Destructor. Removes the current running context'''
-        pass
+        del self.program
+        del self.queue
+        del self.ctx
+        del self.device
+        del self.platform
+        
+        self.device_type = 0
 
+        
     def _set_device_type(self, device_type):
         '''Sets the device type'''
         if device_type.upper() == 'ACCELERATOR':
@@ -119,14 +128,88 @@ class SmithWatermanOcl(SmithWaterman):
     
     def _clear_memory(self):
         '''Clears the claimed memory on the device.'''
-        pass
+        self.logger.debug('Clearing device memory.')
+        if (self.d_sequences is not None):
+            self.d_sequences.release() 
+        if (self.d_targets is not None):
+            self.d_targets.release()
+        if (self.d_matrix is not None):
+            self.d_matrix.release()
+        if (self.d_global_maxima is not None):
+            self.d_global_maxima.release()
+        if (self.d_global_direction is not None):
+            self.d_global_direction.release()
+        if (self.d_starting_points_zero_copy is not None):
+            self.d_starting_points_zero_copy.release()
+        if (self.d_global_direction_zero_copy is not None):
+            self.d_global_direction_zero_copy.release()
+        if (self.d_max_possible_score_zero_copy is not None):
+            self.d_max_possible_score_zero_copy.release()
+        
 
-    def _init_memory(self):
+    def _init_normal_memory(self):
         '''
         #_init_memory will initialize all required memory on the device based on the current settings.
         Make sure to initialize these values!
         '''
-        pass
+        self.logger.debug('Initializing normal device memory.')
+        memory = self.length_of_x_sequences * self.number_of_sequences
+        self.d_sequences = cl.Buffer(self.ctx, cl.mem_flags.READ_ONLY, size=memory)
+        mem_size = memory
+        
+        # Target device memory
+        memory = self.length_of_y_sequences * self.number_targets
+        self.d_targets = cl.Buffer(self.ctx, cl.mem_flags.READ_ONLY, size=memory)
+        mem_size += memory
+        
+        # Input matrix device memory
+        memory = (SmithWaterman.float_size * self.length_of_x_sequences * self.number_of_sequences *
+        self.length_of_y_sequences * self.number_targets)
+        self.d_matrix = cl.Buffer(self.ctx, cl.mem_flags.READ_WRITE, size=memory)
+        mem_size += memory
+        
+        # Maximum global device memory
+        memory = (SmithWaterman.float_size * self.x_div_shared_x * self.number_of_sequences *
+        self.y_div_shared_y * self.number_targets)
+        self.d_global_maxima = cl.Buffer(self.ctx, cl.mem_flags.READ_WRITE, size=memory)
+        mem_size += memory
+        
+        # Direction device memory
+        memory = (self.length_of_x_sequences * self.number_of_sequences *
+        self.length_of_y_sequences * self.number_targets)
+        self.d_global_direction = cl.Buffer(self.ctx, cl.mem_flags.READ_WRITE, size=memory)
+        mem_size += memory
+        
+        return mem_size
+        
+    def _init_zero_copy_memory(self):
+        
+        self.logger.debug('Initializing zero-copy memory.')
+        # Starting points host memory allocation and device copy
+        memory = (self.size_of_startingpoint * self.maximum_number_starting_points * self.number_of_sequences *
+        self.number_targets)
+        self.d_starting_points_zero_copy = cl.Buffer(self.ctx, cl.mem_flags.WRITE_ONLY | cl.mem_flags.ALLOC_HOST_PTR, size=memory)
+        mem_size = memory
+        
+        # Global directions host memory allocation and device copy
+        memory = (self.length_of_x_sequences * self.number_of_sequences * self.length_of_y_sequences *
+        self.number_targets)
+        self.d_global_direction_zero_copy = cl.Buffer(self.ctx, cl.mem_flags.WRITE_ONLY | cl.mem_flags.ALLOC_HOST_PTR, size=memory)
+        mem_size += memory
+        
+        # Maximum zero copy memory allocation and device copy
+        memory = (self.number_of_sequences * self.number_of_targets * SmithWaterman.float_size)
+        self.d_max_possible_score_zero_copy = cl.Buffer(self.ctx, cl.mem_flags.READ_ONLY | cl.mem_flags.ALLOC_HOST_PTR, size=memory)
+        mem_size += memory
+        
+        return mem_size
+        
+    def _init_memory(self):
+        mem_size = self._init_normal_memory()
+        mem_size += self._init_zero_copy_memory()
+        
+        self.logger.debug('Allocated: {}MB of memory'.format(str(mem_size / 1024.0 / 1024.00)))
+        
 
     def _init_zero_copy(self):
         ''' Initializes the index used for the 'zero copy' of the found starting points '''
@@ -186,7 +269,55 @@ class SmithWatermanOcl(SmithWaterman):
         self.logger.debug('Getting number of starting points.')
         self.index = numpy.zeros((1), dtype=numpy.int32)
         cl.enqueue_read_buffer(self.queue, self.d_index_increment, self.index)
-        return self.index[0]    
+        return self.index[0]
+    
+    def _set_max_possible_score(self, target_index, targets, i, index, records_seqs):
+        '''fills the max_possible_score datastructure on the host'''
+        self.h_max_possible_score_zero_copy = cl.enqueue_map_buffer(self.queue, self.d_max_possible_score_zero_copy, 
+                                                                    cl.map_flags.WRITE, 0, 
+                                                                    self.number_of_sequences * self.number_of_targets , 
+                                                                    dtype=float)[0]
+        for tI in range(self.number_of_targets):
+            if tI+target_index < len(targets) and i+index < len(records_seqs):
+                self.set_minimum_score(tI*self.max_sequences + i, float(self.score.highest_score) * (len(records_seqs[i+index]) 
+                                                                                                     if len(records_seqs[i+index]) < len(targets[tI+target_index]) 
+                                                                                                     else len(targets[tI+target_index])) * float(self.filter_factor))
+        #Unmap memory object
+        del self.h_max_possible_score_zero_copy
+        
+    def _get_starting_point_byte_array(self):
+        '''
+        Get the resulting starting points
+        @return gives the resulting starting point array as byte array
+        '''
+        self.h_starting_points_zero_copy = cl.enqueue_map_buffer(self.queue, self.d_starting_points_zero_copy, cl.map_flags.READ, 0, 
+                                                                 (self.size_of_startingpoint * 
+                                                                  self.maximum_number_starting_points * 
+                                                                  self.number_of_sequences *
+                                                                  self.number_targets, 1), dtype=numpy.byte)[0]
+        return self.h_starting_points_zero_copy
+    
+    def _get_direction_byte_array(self):
+        '''
+        Get the resulting directions
+        @return gives the resulting direction array as byte array
+        '''
+        self.h_global_direction_zero_copy = cl.enqueue_map_buffer(self.queue, self.d_global_direction_zero_copy, cl.map_flags.READ, 0, 
+                                                                  (self.number_of_sequences,
+                                                                   self.number_targets,
+                                                                   self.x_div_shared_x,
+                                                                   self.y_div_shared_y,
+                                                                   self.shared_x,
+                                                                   self.shared_y), dtype=numpy.byte)[0]
+        return self.h_global_direction_zero_copy
+    
+    def _print_alignments(self, sequences, targets, start_seq, start_target, hit_list=None):
+        SmithWaterman._print_alignments(self, sequences, targets, start_seq, start_target, hit_list)
+        #unmap memory objects
+        del self.h_global_direction_zero_copy
+        del self.h_starting_points_zero_copy
+        
+    
     
 
         

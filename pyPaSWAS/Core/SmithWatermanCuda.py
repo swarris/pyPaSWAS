@@ -15,7 +15,9 @@ class SmithWatermanCuda(SmithWaterman):
     '''
 
 
-    def __init__(self, params):
+    def __init__(self, logger, score, settings):
+        
+        SmithWaterman.__init__(self, logger, score, settings)
         
         self.module = None
 
@@ -246,5 +248,37 @@ class SmithWatermanCuda(SmithWaterman):
         self.index = numpy.zeros((1), dtype=numpy.int32)
         driver.memcpy_dtoh(self.index, self.d_index_increment)  #@UndefinedVariable @IgnorePep8
         return self.index[0]
+    
+    def _set_max_possible_score(self, target_index, targets, i, index, records_seqs):
+        '''fills the max_possible_score datastructure on the host'''
+        for tI in range(self.number_of_targets):
+            if tI+target_index < len(targets) and i+index < len(records_seqs):
+                self.set_minimum_score(tI*self.max_sequences + i, float(self.score.highest_score) * (len(records_seqs[i+index]) 
+                                                                                                     if len(records_seqs[i+index]) < len(targets[tI+target_index]) 
+                                                                                                     else len(targets[tI+target_index])) * float(self.filter_factor))
+                
+    def _get_starting_point_byte_array(self):
+        '''
+        Get the resulting starting points
+        @return gives the resulting starting point array as byte array
+        '''
+        #TODO: change this to return of list of startingpoints??
+        return (numpy.ndarray(buffer=self.h_starting_points_zero_copy,
+                              dtype=numpy.byte, shape=(len(self.h_starting_points_zero_copy), 1)))
+        
+        
+    def _get_direction_byte_array(self):
+        '''
+        Get the resulting directions
+        @return gives the resulting direction array as byte array
+        '''
+        return (numpy.ndarray(buffer=self.h_global_direction_zero_copy,
+                                dtype=numpy.byte, shape=(self.number_of_sequences,
+                                                         self.number_targets,
+                                                         self.x_div_shared_x,
+                                                         self.y_div_shared_y,
+                                                         self.shared_x,
+                                                         self.shared_y)))
+
     
 

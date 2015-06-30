@@ -236,6 +236,24 @@ class SmithWaterman(object):
         ''' Returns the number of startingpoints. '''
         pass    
     
+    def _set_max_possible_score(self, target_index, targets, i, index, records_seqs):
+        '''fills the max_possible_score datastructure on the host'''
+        pass
+    
+    def _get_starting_point_byte_array(self):
+        '''
+        Get the resulting starting points
+        @return gives the resulting starting point array as byte array
+        '''
+        pass
+    
+    def _get_direction_byte_array(self):
+        '''
+        Get the resulting directions
+        @return gives the resulting direction array as byte array
+        '''
+        pass
+    
     def _set_device(self, device):
         '''Sets the device number'''
         try:
@@ -264,8 +282,7 @@ class SmithWaterman(object):
                 self.filter_factor = float(filterfactor) if filterfactor else self.filter_factor
         except ValueError:
             raise InvalidOptionException('Filterfactor should be a float but is {0}'.format(filterfactor))
-
-
+        
 
     def _set_target_block_length(self, targets, target_index):
         '''
@@ -447,10 +464,7 @@ class SmithWaterman(object):
 
                 for tI in range(self.number_of_targets):
                     if tI+target_index < len(targets) and i+index < len(records_seqs):
-                        #if self.userFilter.bestHit and (seqs[i+index].id.strip("_RC"), targets[tI+targetIndex].id.strip("_RC")) in self.hitList.realHits:
-                        #    self.smithWaterman.setMinimumScore(tI*maxSequences + i, self.hitList.realHits[(seqs[i+index].id.strip("_RC"), targets[tI+targetIndex].id.strip("_RC"))].score)
-                        #else: 
-                        self.set_minimum_score(tI*self.max_sequences + i, float(self.score.highest_score) * (len(records_seqs[i+index]) if len(records_seqs[i+index]) < len(targets[tI+target_index]) else len(targets[tI+target_index])) * float(self.filter_factor))
+                        self._set_max_possible_score(target_index, targets, i, index, records_seqs)
             
             # copy sequences and targets to the device
             sequence_array = numpy.array(''.join(sequenceStr), dtype=numpy.character)
@@ -555,14 +569,6 @@ class SmithWaterman(object):
             if (idy > 0):
                 idy -= 1
 
-    def _get_starting_point_byte_array(self):
-        '''
-        Get the resulting starting points
-        @return gives the resulting starting point array as byte array
-        '''
-        #TODO: change this to return of list of startingpoints??
-        return (numpy.ndarray(buffer=self.h_starting_points_zero_copy,
-                              dtype=numpy.byte, shape=(len(self.h_starting_points_zero_copy), 1)))
 
     # TODO: return hitlist!!
     # TODO: finish docstring
@@ -589,13 +595,8 @@ class SmithWaterman(object):
         
         max_score = 0
 
-        direction_array = numpy.ndarray(buffer=self.h_global_direction_zero_copy,
-                                        dtype=numpy.byte, shape=(self.number_of_sequences,
-                                                                 self.number_targets,
-                                                                 self.x_div_shared_x,
-                                                                 self.y_div_shared_y,
-                                                                 self.shared_x,
-                                                                 self.shared_y))
+        direction_array = self._get_direction_byte_array()
+        
         starting_points_list = []
         for i in range(0,number_of_starting_points):
             starting_point = StartingPoint(self.logger)

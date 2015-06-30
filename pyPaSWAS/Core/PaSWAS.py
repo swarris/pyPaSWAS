@@ -84,6 +84,7 @@ class Cudacode(Code):
     templates located in Core/cuda
     '''
     def __init__(self, logger):
+        Code.__init__(self, logger)
         self.variable_source = resource_filename(__name__, 'cuda/default_variable.cu')
         self.direction_source = resource_filename(__name__, 'cuda/default_direction.cu')
         self.score_source = resource_filename(__name__, 'cuda/default_score.cu')
@@ -95,6 +96,7 @@ class OCLcode(Code):
     templates located in Core/ocl
     '''
     def __init__(self, logger):
+        Code.__init__(self, logger)
         self.variable_source = resource_filename(__name__, 'ocl/default_variable.cl')
         self.direction_source = resource_filename(__name__, 'ocl/default_direction.cl')
         self.score_source = resource_filename(__name__, 'ocl/default_score.cl')
