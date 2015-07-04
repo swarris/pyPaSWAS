@@ -1,5 +1,4 @@
 ''' This module contains the programs from the pyPaSWAS suite '''
-from pyPaSWAS.Core.SmithWaterman import SmithWaterman
 from pyPaSWAS.Core.HitList import HitList
 from pyPaSWAS.Core.Indexer import Indexer
 from pyPaSWAS.Core.QIndexer import QIndexer
@@ -33,7 +32,14 @@ class Aligner(object):
         self.hitlist = HitList(self.logger)
         logger.debug('Setting SW...')
         self.settings = settings
-        self.smith_waterman = SmithWaterman(self.logger, self.score, settings)
+        if (self.settings.framework.upper() == 'OPENCL'):
+            from pyPaSWAS.Core.SmithWatermanOcl import SmithWatermanOcl
+            self.smith_waterman = SmithWatermanOcl(self.logger, self.score, settings)
+            self.logger.debug('Using OpenCL framework')
+        else:
+            from pyPaSWAS.Core.SmithWatermanCuda import SmithWatermanCuda
+            self.smith_waterman = SmithWatermanCuda(self.logger, self.score, settings)
+            self.logger.debug('Using CUDA framework')
         self.logger.debug('Aligner initialized.')
 
     def process(self, records_seqs, targets):

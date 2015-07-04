@@ -200,6 +200,9 @@ def parse_cli(config_file):
     parser.add_option_group(device_options)
     
     
+    framework_options = optparse.OptionGroup(parser, 'Determines which parallel computing framework to use for this program ')
+    framework_options.add_option('--framework', help='Choose which parallel computing framework to use, can be either CUDA or OpenCL ', dest='framework',default=config.get('Framework','language'))
+    
     ocl_options = optparse.OptionGroup(parser, 'Options for the usage of the OpenCL framework ')
     ocl_options.add_option('--type', help='Type of device to perform computations on (either CPU, GPU or ACCELARATOR)',
                            dest='device_type', default=config.get('OpenCL', 'device_type'))
