@@ -100,4 +100,22 @@ class OCLcode(Code):
         self.variable_source = resource_filename(__name__, 'ocl/default_variable.cl')
         self.direction_source = resource_filename(__name__, 'ocl/default_direction.cl')
         self.score_source = resource_filename(__name__, 'ocl/default_score.cl')
-        self.main_source = resource_filename(__name__, 'ocl/default_main.cl')
+        self.main_source = resource_filename(__name__, 'ocl/default_main_gpu.cl')
+        
+class GPUcode(OCLcode):
+    '''
+    Initializes the GPU OpenCL code by setting configuration parameters using the OpenCL
+    templates located in Core/ocl
+    '''
+    def __init__(self, logger):
+        OCLcode.__init__(self, logger)
+        self.main_source = resource_filename(__name__, 'ocl/default_main_gpu.cl')
+        
+class CPUcode(OCLcode):
+    '''
+    Initializes the GPU OpenCL code by setting configuration parameters using the OpenCL
+    templates located in Core/ocl
+    '''
+    def __init__(self, logger):
+        OCLcode.__init__(self, logger)
+        self.main_source = resource_filename(__name__, 'ocl/default_main_cpu.cl')
