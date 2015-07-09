@@ -3,7 +3,8 @@ import numpy
 import math
 
 from pyPaSWAS.Core.SmithWaterman import SmithWaterman
-from pyPaSWAS.Core.PaSWAS import OCLcode
+from pyPaSWAS.Core.PaSWAS import CPUcode
+from pyPaSWAS.Core.PaSWAS import GPUcode
 
 class SmithWatermanOcl(SmithWaterman):
     '''
@@ -17,7 +18,7 @@ class SmithWatermanOcl(SmithWaterman):
         '''
         SmithWaterman.__init__(self, logger, score, settings)
         
-        self.oclcode = OCLcode(self.logger)
+        #self.oclcode = OCLcode(self.logger)
         
         # platforms: A single ICD on a computer
         self.platform = None
@@ -152,6 +153,7 @@ class SmithWatermanOcl(SmithWaterman):
         #_init_memory will initialize all required memory on the device based on the current settings.
         Make sure to initialize these values!
         '''
+        # Sequence device memory
         self.logger.debug('Initializing normal device memory.')
         memory = self.length_of_x_sequences * self.number_of_sequences
         self.d_sequences = cl.Buffer(self.ctx, cl.mem_flags.READ_ONLY, size=memory)
@@ -160,18 +162,6 @@ class SmithWatermanOcl(SmithWaterman):
         # Target device memory
         memory = self.length_of_y_sequences * self.number_targets
         self.d_targets = cl.Buffer(self.ctx, cl.mem_flags.READ_ONLY, size=memory)
-        mem_size += memory
-        
-        # Input matrix device memory
-        memory = (SmithWaterman.float_size * self.length_of_x_sequences * self.number_of_sequences *
-        self.length_of_y_sequences * self.number_targets)
-        self.d_matrix = cl.Buffer(self.ctx, cl.mem_flags.READ_WRITE, size=memory)
-        mem_size += memory
-        
-        # Maximum global device memory
-        memory = (SmithWaterman.float_size * self.x_div_shared_x * self.number_of_sequences *
-        self.y_div_shared_y * self.number_targets)
-        self.d_global_maxima = cl.Buffer(self.ctx, cl.mem_flags.READ_WRITE, size=memory)
         mem_size += memory
         
         # Direction device memory
@@ -198,7 +188,7 @@ class SmithWatermanOcl(SmithWaterman):
         mem_size += memory
         
         # Maximum zero copy memory allocation and device copy
-        memory = (self.number_of_sequences * self.number_of_targets * SmithWaterman.float_size)
+        memory = (self.number_of_sequences * self.number_targets * SmithWaterman.float_size)
         self.d_max_possible_score_zero_copy = cl.Buffer(self.ctx, cl.mem_flags.READ_ONLY | cl.mem_flags.ALLOC_HOST_PTR, size=memory)
         mem_size += memory
         
@@ -263,7 +253,7 @@ class SmithWatermanOcl(SmithWaterman):
                                self.d_index_increment,
                                self.d_starting_points_zero_copy,
                                self.d_max_possible_score_zero_copy).wait()
-
+    
     def _get_number_of_starting_points(self):
         ''' Returns the number of startingpoints. '''
         self.logger.debug('Getting number of starting points.')
@@ -275,7 +265,7 @@ class SmithWatermanOcl(SmithWaterman):
         '''fills the max_possible_score datastructure on the host'''
         self.h_max_possible_score_zero_copy = cl.enqueue_map_buffer(self.queue, self.d_max_possible_score_zero_copy, 
                                                                     cl.map_flags.WRITE, 0, 
-                                                                    self.number_of_sequences * self.number_of_targets , 
+                                                                    self.number_of_sequences * self.number_targets , 
                                                                     dtype=float)[0]
         for tI in range(self.number_of_targets):
             if tI+target_index < len(targets) and i+index < len(records_seqs):
@@ -317,7 +307,96 @@ class SmithWatermanOcl(SmithWaterman):
         del self.h_global_direction_zero_copy
         del self.h_starting_points_zero_copy
         
+        
     
+class SmithWatermanCPU(SmithWatermanOcl):
+    '''
+    classdocs
+    '''
+
+
+    def __init__(self, logger, score, settings):
+        '''
+        Constructor
+        '''
+        SmithWatermanOcl.__init__(self, logger, score, settings)
+        
+        self.oclcode = CPUcode(self.logger)
+        self.workload_x = 4
+        self.workload_y = 4
+        
+        self.workgroup_x = self.shared_x // self.workload_x
+        self.workgroup_y = self.shared_y // self.workload_y
+        
+        self.d_semaphores = None
+        
+    def _init_normal_memory(self):
+        mem_size = SmithWatermanOcl._init_normal_memory(self)
+        
+        # Input matrix device memory
+        memory = (SmithWaterman.float_size * self.length_of_x_sequences * self.number_of_sequences *
+        self.length_of_y_sequences * self.number_targets)
+        self.d_matrix = cl.Buffer(self.ctx, cl.mem_flags.READ_WRITE, size=memory)
+        mem_size += memory
+        
+        pattern = numpy.zeros((1),dtype=numpy.float32)
+        cl.enqueue_fill_buffer(self.queue, self.d_matrix, pattern, 0, size = memory)
+        
+        # Maximum global device memory
+        memory = (SmithWaterman.float_size * self.x_div_shared_x * self.number_of_sequences *
+        self.y_div_shared_y * self.number_targets)
+        self.d_global_maxima = cl.Buffer(self.ctx, cl.mem_flags.READ_WRITE, size=memory)
+        mem_size += memory
+        
+        
+        memory = (SmithWaterman.int_size * 
+                  self.length_of_x_sequences * 
+                  self.number_of_sequences * 
+                  self.length_of_y_sequences *
+                  self.number_targets)
+        
+        self.d_semaphores = cl.Buffer(self.ctx, cl.mem_flags.READ_WRITE, size=memory)
+        pattern = numpy.zeros((1),dtype=numpy.int32)
+        cl.enqueue_fill_buffer(self.queue, self.d_semaphores, pattern, 0, size=memory)
+
+        mem_size += memory
+        
+        return mem_size
+    
+class SmithWatermanGPU(SmithWatermanOcl):
+    '''
+    classdocs
+    '''
+
+
+    def __init__(self, logger, score, settings):
+        '''
+        Constructor
+        '''
+        SmithWatermanOcl.__init__(self, logger, score, settings)
+        self.oclcode = GPUcode(self.logger)
+        
+    def _init_normal_memory(self):
+        
+        mem_size = SmithWatermanOcl._init_normal_memory(self)
+        
+        # Input matrix device memory
+        memory = (SmithWaterman.float_size * self.length_of_x_sequences * self.number_of_sequences *
+        self.length_of_y_sequences * self.number_targets)
+        self.d_matrix = cl.Buffer(self.ctx, cl.mem_flags.READ_WRITE, size=memory)
+        mem_size += memory
+        
+        # Maximum global device memory
+        memory = (SmithWaterman.float_size * self.x_div_shared_x * self.number_of_sequences *
+        self.y_div_shared_y * self.number_targets)
+        self.d_global_maxima = cl.Buffer(self.ctx, cl.mem_flags.READ_WRITE, size=memory)
+        mem_size += memory
+
+        return mem_size
+
+        
+    
+        
     
 
         

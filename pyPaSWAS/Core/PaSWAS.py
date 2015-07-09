@@ -119,3 +119,13 @@ class CPUcode(OCLcode):
     def __init__(self, logger):
         OCLcode.__init__(self, logger)
         self.main_source = resource_filename(__name__, 'ocl/default_main_cpu.cl')
+        
+    def set_shared_xy_code(self, sharedx=8, sharedy=8, workloadx=4, workloady=4):
+        '''
+        Sets the horizontal and the vertical sizes of the smallest alignment matrices in shared memory
+        :param sharedx:
+        :param sharedy:
+        '''
+        #self.logger.debug('Setting sharedx to {0}, sharedy to {1}'.format(sharedx, sharedy))
+        code_t = Template(read_file(self.main_source))
+        self.shared_xy_code = code_t.safe_substitute(SHARED_X=sharedx, SHARED_Y=sharedy, WORKLOAD_X=workloadx, WORKLOAD_Y=workloady)

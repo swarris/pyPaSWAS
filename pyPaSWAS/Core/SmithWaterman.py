@@ -17,9 +17,6 @@ from pyPaSWAS.Core.HitList import HitList
 from pyPaSWAS.Core.Hit import Hit
 from pyPaSWAS.Core.SWSeq import SWSeq
 
-from pyPaSWAS.Core.PaSWAS import Cudacode
-from pyPaSWAS.Core.Exceptions import HardwareException, InvalidOptionException
-
 from pyPaSWAS.Core import STOP_DIRECTION, LEFT_DIRECTION, NO_DIRECTION, UPPER_DIRECTION, UPPER_LEFT_DIRECTION, IN_ALIGNMENT
 
 

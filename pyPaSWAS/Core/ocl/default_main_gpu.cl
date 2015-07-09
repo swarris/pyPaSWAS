@@ -77,8 +77,14 @@ typedef struct {
 } StartingPoints;
 
 __kernel void calculateScore(
-		__global GlobalMatrix *matrix, unsigned int x, unsigned int y, unsigned int numberOfBlocks,
-		__global char *sequences, __global char *targets, __global GlobalMaxima *globalMaxima, __global GlobalDirection *globalDirection) {
+		__global GlobalMatrix *matrix, 
+		unsigned int x, 
+		unsigned int y, 
+		unsigned int numberOfBlocks,
+		__global char *sequences, 
+		__global char *targets, 
+		__global GlobalMaxima *globalMaxima, 
+		__global GlobalDirection *globalDirection) {
 	
 	/**
      * shared memory block for calculations. It requires

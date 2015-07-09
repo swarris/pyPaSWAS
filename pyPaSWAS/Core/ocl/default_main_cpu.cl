@@ -91,9 +91,14 @@ typedef struct {
 } GlobalSemaphores;
 
 __kernel void calculateScore(
-		__global GlobalMatrix *matrix, unsigned int x, unsigned int y, unsigned int numberOfBlocks,
-		__global char *sequences, __global char *targets, __global GlobalMaxima *globalMaxima, __global GlobalDirection *globalDirection,
-		__global float *scoringsMatrix) {
+		__global GlobalMatrix *matrix, 
+		unsigned int x, 
+		unsigned int y, 
+		unsigned int numberOfBlocks,
+		__global char *sequences, 
+		__global char *targets, 
+		__global GlobalMaxima *globalMaxima, 
+		__global GlobalDirection *globalDirection) {
 	// calculate indices:
 	//unsigned int yDIVnumSeq = (blockIdx.y/NUMBER_SEQUENCES);
 	unsigned int blockx = x - get_group_id(1)/NUMBER_TARGETS;//0<=(get_group_id(1)/NUMBER_TARGETS)<numberOfBlocks
@@ -136,10 +141,7 @@ __kernel void calculateScore(
 					float innerScore = 0.0;
 					
 					
-					int offset_x = s1-characterOffset;
-					int offset_y = s2-characterOffset;
-					
-					innerScore = s1 == FILL_CHARACTER || s2 == FILL_CHARACTER ? FILL_SCORE : scoringsMatrix[(offset_y*SCORINGS_MAT_SIZE) + offset_x];					
+					innerScore = charS1 == FILL_CHARACTER || charS2 == FILL_CHARACTER ? FILL_SCORE : scoringsMatrix[charS1-characterOffset][charS2-characterOffset];					
 					ulS = (*matrix).metaMatrix[bIDx][bIDy].value[aXM1][aYM1] + innerScore;
 					lS = (*matrix).metaMatrix[bIDx][bIDy].value[aXM1][aIDy] + gapScore;
 					uS = (*matrix).metaMatrix[bIDx][bIDy].value[aIDx][aYM1] + gapScore;
@@ -198,9 +200,18 @@ __kernel void calculateScore(
 }
 
 __kernel void traceback(
-		__global GlobalMatrix *matrix, unsigned int x, unsigned int y, unsigned int numberOfBlocks, __global GlobalMaxima *globalMaxima,
-		__global GlobalDirection *globalDirection, volatile __global unsigned int *indexIncrement,
-		__global StartingPoints *startingPoints, __global float *maxPossibleScore, int inBlock, __global GlobalSemaphores *globalSemaphores) {
+		__global GlobalMatrix *matrix, 
+		unsigned int x, 
+		unsigned int y, 
+		unsigned int numberOfBlocks, 
+		__global GlobalMaxima *globalMaxima,
+		__global GlobalDirection *globalDirection,
+		__global GlobalDirection *globalDirectionZeroCopy, 
+		volatile __global unsigned int *indexIncrement,
+		__global StartingPoints *startingPoints, 
+		__global float *maxPossibleScore, 
+		int inBlock, 
+		__global GlobalSemaphores *globalSemaphores) {
 
 		unsigned int blockx = x - get_group_id(1)/NUMBER_TARGETS;//0<=(get_group_id(1)/NUMBER_TARGETS)<numberOfBlocks
 		unsigned int blocky = y + get_group_id(1)/NUMBER_TARGETS;//0<=(get_group_id(1)/NUMBER_TARGETS)<numberOfBlocks
@@ -213,7 +224,8 @@ __kernel void traceback(
 	
 		
 		if(maximum >= MINIMUM_SCORE) {
-			float mpScore = maxPossibleScore[bIDx+inBlock];
+			//float mpScore = maxPossibleScore[bIDx+inBlock];
+			float mpScore = maxPossibleScore[bIDy*NUMBER_SEQUENCES+bIDx];
 			for(int i=WORKGROUP_X+WORKGROUP_Y-1; i>=0; --i) {
 				if(i==tIDx+tIDy) {
 					for(int j=WORKLOAD_X-1; j>=0; j--){
@@ -253,7 +265,7 @@ __kernel void traceback(
 								score = (*matrix).metaMatrix[bIDx][bIDy].value[aIDx-1][aIDy-1];
 								if (score == 0.0) {
 									direction = STOP_DIRECTION;
-									globalDirection->direction[bIDx][bIDy].value[aXM1][aYM1] = direction;
+									globalDirectionZeroCopy->direction[bIDx][bIDy].value[aXM1][aYM1] = direction;
 								}
 								else {
 									getSemaphore(&((*globalSemaphores).semaphores[bIDx][bIDy].semaphore[aXM1-1][aYM1-1].s[0]));
@@ -269,7 +281,7 @@ __kernel void traceback(
 								score = (*matrix).metaMatrix[bIDx][bIDy].value[aIDx-1][aIDy];
 								if (score == 0.0) {
 									direction = STOP_DIRECTION;
-									globalDirection->direction[bIDx][bIDy].value[aXM1][aYM1] = direction;
+									globalDirectionZeroCopy->direction[bIDx][bIDy].value[aXM1][aYM1] = direction;
 								}
 								else {
 									getSemaphore(&((*globalSemaphores).semaphores[bIDx][bIDy].semaphore[aXM1-1][aYM1].s[0]));
@@ -285,7 +297,7 @@ __kernel void traceback(
 								score = (*matrix).metaMatrix[bIDx][bIDy].value[aIDx][aIDy-1];
 								if (score == 0.0) {
 									direction = STOP_DIRECTION;
-									globalDirection->direction[bIDx][bIDy].value[aXM1][aYM1] = direction;
+									globalDirectionZeroCopy->direction[bIDx][bIDy].value[aXM1][aYM1] = direction;
 								}
 								else {
 									getSemaphore(&((*globalSemaphores).semaphores[bIDx][bIDy].semaphore[aXM1][aYM1-1].s[0]));
