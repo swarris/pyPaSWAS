@@ -210,7 +210,6 @@ __kernel void traceback(
 		volatile __global unsigned int *indexIncrement,
 		__global StartingPoints *startingPoints, 
 		__global float *maxPossibleScore, 
-		int inBlock, 
 		__global GlobalSemaphores *globalSemaphores) {
 
 		unsigned int blockx = x - get_group_id(1)/NUMBER_TARGETS;//0<=(get_group_id(1)/NUMBER_TARGETS)<numberOfBlocks
@@ -247,8 +246,10 @@ __kernel void traceback(
 				                start.target = bIDy;
 				                start.blockX = blockx;
 				                start.blockY = blocky;
-				                start.valueX = tIDx;
-				                start.valueY = tIDy;
+				                start.valueX = tIDx*WORKLOAD_X + j;
+				                start.valueY = tIDy*WORKLOAD_Y + k;
+				                //start.valueX = tIDx;
+				                //start.valueY = tIDy;
 								start.score = (*matrix).metaMatrix[bIDx][bIDy].value[aIDx][aIDy];
 								start.maxScore = maximum;
 								start.posScore = mpScore;
