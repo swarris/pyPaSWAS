@@ -251,6 +251,12 @@ class SmithWaterman(object):
         '''
         pass
     
+    def _get_direction(self, direction_array, sequence, target, block_x, block_y, value_x, value_y):
+        pass
+    
+    def _set_direction(self, direction, direction_array, sequence, target, block_x, block_y, value_x, value_y):
+        pass
+
     def _set_device(self, device):
         '''Sets the device number'''
         try:
@@ -647,7 +653,8 @@ class SmithWaterman(object):
             s_start = s_end + 1
             t_start = t_end + 1
 
-            direction = direction_array[sequence_starting_point][target_starting_point][block_x][block_y][value_x][value_y]
+            #direction = direction_array[sequence_starting_point][target_starting_point][block_x][block_y][value_x][value_y]
+            direction = self._get_direction(sequence_starting_point,target_starting_point,block_x,block_y,value_x,value_y)
             show = True
             # check in 'all to all' when 1 data set is used to filter out hit X vs X (filtered on identical id):
             if sequences[sequence_starting_point + start_seq].id == targets[target_starting_point + start_target].id:
@@ -660,8 +667,8 @@ class SmithWaterman(object):
             
             while (show and block_x >= 0 and block_y >= 0 and value_x >= 0 and value_y >= 0 and
                    direction != STOP_DIRECTION and direction != NO_DIRECTION):
-                direction = direction_array[sequence_starting_point][target_starting_point][block_x][block_y][value_x][value_y]
-                direction_array[sequence_starting_point][target_starting_point][block_x][block_y][value_x][value_y] = IN_ALIGNMENT
+                direction = self._get_direction(direction_array,sequence_starting_point,target_starting_point,block_x,block_y,value_x,value_y)
+                self._set_direction(IN_ALIGNMENT,direction_array,sequence_starting_point,target_starting_point,block_x,block_y,value_x,value_y)
                 
                 alignment_length += 1
                 if (direction == IN_ALIGNMENT):

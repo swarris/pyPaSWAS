@@ -36,6 +36,29 @@ class SmithWatermanOcl(SmithWaterman):
         self._set_device_type(self.settings.device_type)
         self._set_platform(self.settings.platform_name)
     
+    
+    def _execute_calculate_score_kernel(self, number_of_blocks, idx, idy):
+        ''' Executes a single run of the calculate score kernel'''
+        pass
+        
+    def _execute_traceback_kernel(self, number_of_blocks, idx, idy):
+        ''' Executes a single run of the traceback kernel'''
+        pass
+    
+    def _get_direction_byte_array(self):
+        '''
+        Get the resulting directions
+        @return gives the resulting direction array as byte array
+        '''
+        pass
+
+    def _get_direction(self, direction_array, sequence, target, block_x, block_y, value_x, value_y):
+        pass
+    
+    def _set_direction(self, direction, direction_array, sequence, target, block_x, block_y, value_x, value_y):
+        pass
+
+    
     def __del__(self):
         '''Destructor. Removes the current running context'''
         del self.program
@@ -221,39 +244,7 @@ class SmithWatermanOcl(SmithWaterman):
         '''
         cl.enqueue_write_buffer(self.queue, self.d_sequences, h_sequences).wait()
         cl.enqueue_write_buffer(self.queue, self.d_targets, h_targets).wait()
-    
-    def _execute_calculate_score_kernel(self, number_of_blocks, idx, idy):
-        ''' Executes a single run of the calculate score kernel'''
-        dim_block = (self.shared_x, self.shared_y)
-        dim_grid_sw = (self.number_of_sequences * self.shared_x, self.number_targets * number_of_blocks * self.shared_y)
-        self.program.calculateScore(self.queue, 
-                                    dim_grid_sw, 
-                                    dim_block, 
-                                    self.d_matrix, 
-                                    numpy.int32(idx), 
-                                    numpy.int32(idy),
-                                    numpy.int32(number_of_blocks), 
-                                    self.d_sequences, 
-                                    self.d_targets,
-                                    self.d_global_maxima, 
-                                    self.d_global_direction).wait()
-    
-    def _execute_traceback_kernel(self, number_of_blocks, idx, idy):
-        ''' Executes a single run of the traceback kernel'''
-        dim_block = (self.shared_x, self.shared_y)
-        dim_grid_sw = (self.number_of_sequences * self.shared_x, self.number_targets * number_of_blocks * self.shared_y)
-        self.program.traceback(self.queue, dim_grid_sw, dim_block,
-                               self.d_matrix,
-                               numpy.int32(idx),
-                               numpy.int32(idy),
-                               numpy.int32(number_of_blocks),
-                               self.d_global_maxima,
-                               self.d_global_direction,
-                               self.d_global_direction_zero_copy,
-                               self.d_index_increment,
-                               self.d_starting_points_zero_copy,
-                               self.d_max_possible_score_zero_copy).wait()
-    
+        
     def _get_number_of_starting_points(self):
         ''' Returns the number of startingpoints. '''
         self.logger.debug('Getting number of starting points.')
@@ -286,28 +277,13 @@ class SmithWatermanOcl(SmithWaterman):
                                                                   self.number_of_sequences *
                                                                   self.number_targets, 1), dtype=numpy.byte)[0]
         return self.h_starting_points_zero_copy
-    
-    def _get_direction_byte_array(self):
-        '''
-        Get the resulting directions
-        @return gives the resulting direction array as byte array
-        '''
-        self.h_global_direction_zero_copy = cl.enqueue_map_buffer(self.queue, self.d_global_direction_zero_copy, cl.map_flags.READ, 0, 
-                                                                  (self.number_of_sequences,
-                                                                   self.number_targets,
-                                                                   self.x_div_shared_x,
-                                                                   self.y_div_shared_y,
-                                                                   self.shared_x,
-                                                                   self.shared_y), dtype=numpy.byte)[0]
-        return self.h_global_direction_zero_copy
-    
+            
     def _print_alignments(self, sequences, targets, start_seq, start_target, hit_list=None):
         SmithWaterman._print_alignments(self, sequences, targets, start_seq, start_target, hit_list)
         #unmap memory objects
         del self.h_global_direction_zero_copy
         del self.h_starting_points_zero_copy
-        
-        
+                
     
 class SmithWatermanCPU(SmithWatermanOcl):
     '''
@@ -363,6 +339,65 @@ class SmithWatermanCPU(SmithWatermanOcl):
         
         return mem_size
     
+    def _get_direction_byte_array(self):
+        '''
+        Get the resulting directions
+        @return gives the resulting direction array as byte array
+        '''
+        self.h_global_direction_zero_copy = cl.enqueue_map_buffer(self.queue, self.d_global_direction_zero_copy, cl.map_flags.READ, 0, 
+                                                                  (self.number_of_sequences,
+                                                                   self.number_targets,
+                                                                   self.length_of_x_sequences,
+                                                                   self.length_of_y_sequences), dtype=numpy.byte)[0]
+        return self.h_global_direction_zero_copy
+    
+    def _get_direction(self, direction_array, sequence, target, block_x, block_y, value_x, value_y):
+        return direction_array[sequence][target][block_x*self.x_div_shared_x + value_x][block_y*self.y_div_shared_y + value_y]
+    
+    def _set_direction(self, direction, direction_array, sequence, target, block_x, block_y, value_x, value_y):
+        direction_array[sequence][target][block_x*self.x_div_shared_x + value_x][block_y*self.y_div_shared_y + value_y] = direction
+        
+    def _execute_calculate_score_kernel(self, number_of_blocks, idx, idy):
+        ''' Executes a single run of the calculate score kernel'''
+        dim_block = (self.workgroup_x, self.workgroup_y)
+        dim_grid_sw = (self.number_of_sequences * self.workgroup_x, self.number_targets * number_of_blocks * self.workgroup_y)
+        self.program.calculateScore(self.queue, 
+                                    dim_grid_sw, 
+                                    dim_block, 
+                                    self.d_matrix, 
+                                    numpy.int32(idx), 
+                                    numpy.int32(idy),
+                                    numpy.int32(number_of_blocks), 
+                                    self.d_sequences, 
+                                    self.d_targets,
+                                    self.d_global_maxima, 
+                                    self.d_global_direction).wait()
+    
+    def _execute_traceback_kernel(self, number_of_blocks, idx, idy):
+        ''' Executes a single run of the traceback kernel'''
+        dim_block = (self.workgroup_x, self.workgroup_y)
+        dim_grid_sw = (self.number_of_sequences * self.workgroup_x, self.number_targets * number_of_blocks * self.workgroup_y)
+        self.program.traceback(self.queue, dim_grid_sw, dim_block,
+                               self.d_matrix,
+                               numpy.int32(idx),
+                               numpy.int32(idy),
+                               numpy.int32(number_of_blocks),
+                               self.d_global_maxima,
+                               self.d_global_direction,
+                               self.d_global_direction_zero_copy,
+                               self.d_index_increment,
+                               self.d_starting_points_zero_copy,
+                               self.d_max_possible_score_zero_copy,
+                               self.d_semaphores).wait()
+                               
+    def _clear_memory(self):
+        SmithWatermanOcl._clear_memory(self)
+        if (self.d_semaphores is not None):
+            self.d_semaphores.release()
+
+         
+
+    
 class SmithWatermanGPU(SmithWatermanOcl):
     '''
     classdocs
@@ -393,10 +428,56 @@ class SmithWatermanGPU(SmithWatermanOcl):
         mem_size += memory
 
         return mem_size
-
-        
     
+    def _get_direction_byte_array(self):
+        '''
+        Get the resulting directions
+        @return gives the resulting direction array as byte array
+        '''
+        self.h_global_direction_zero_copy = cl.enqueue_map_buffer(self.queue, self.d_global_direction_zero_copy, cl.map_flags.READ, 0, 
+                                                                  (self.number_of_sequences,
+                                                                   self.number_targets,
+                                                                   self.x_div_shared_x,
+                                                                   self.y_div_shared_y,
+                                                                   self.shared_x,
+                                                                   self.shared_y), dtype=numpy.byte)[0]
+        return self.h_global_direction_zero_copy
         
+    def _get_direction(self, direction_array, sequence, target, block_x, block_y, value_x, value_y):
+        return direction_array[sequence][target][block_x][block_y][value_x][value_y]
+        
+    def _set_direction(self, direction, direction_array, sequence, target, block_x, block_y, value_x, value_y):
+        direction_array[sequence][target][block_x][block_y][value_x][value_y] = direction
     
-
+    def _execute_calculate_score_kernel(self, number_of_blocks, idx, idy):
+        ''' Executes a single run of the calculate score kernel'''
+        dim_block = (self.shared_x, self.shared_y)
+        dim_grid_sw = (self.number_of_sequences * self.shared_x, self.number_targets * number_of_blocks * self.shared_y)
+        self.program.calculateScore(self.queue, 
+                                    dim_grid_sw, 
+                                    dim_block, 
+                                    self.d_matrix, 
+                                    numpy.int32(idx), 
+                                    numpy.int32(idy),
+                                    numpy.int32(number_of_blocks), 
+                                    self.d_sequences, 
+                                    self.d_targets,
+                                    self.d_global_maxima, 
+                                    self.d_global_direction).wait()
+    
+    def _execute_traceback_kernel(self, number_of_blocks, idx, idy):
+        ''' Executes a single run of the traceback kernel'''
+        dim_block = (self.shared_x, self.shared_y)
+        dim_grid_sw = (self.number_of_sequences * self.shared_x, self.number_targets * number_of_blocks * self.shared_y)
+        self.program.traceback(self.queue, dim_grid_sw, dim_block,
+                               self.d_matrix,
+                               numpy.int32(idx),
+                               numpy.int32(idy),
+                               numpy.int32(number_of_blocks),
+                               self.d_global_maxima,
+                               self.d_global_direction,
+                               self.d_global_direction_zero_copy,
+                               self.d_index_increment,
+                               self.d_starting_points_zero_copy,
+                               self.d_max_possible_score_zero_copy).wait()    
         
