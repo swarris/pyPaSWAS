@@ -17,6 +17,7 @@ from pyPaSWAS.Core.HitList import HitList
 from pyPaSWAS.Core.Hit import Hit
 from pyPaSWAS.Core.SWSeq import SWSeq
 
+from pyPaSWAS.Core.Exceptions import InvalidOptionException 
 from pyPaSWAS.Core import STOP_DIRECTION, LEFT_DIRECTION, NO_DIRECTION, UPPER_DIRECTION, UPPER_LEFT_DIRECTION, IN_ALIGNMENT
 
 
@@ -252,10 +253,10 @@ class SmithWaterman(object):
         pass
     
     def _get_direction(self, direction_array, sequence, target, block_x, block_y, value_x, value_y):
-        pass
-    
+        return direction_array[sequence][target][block_x][block_y][value_x][value_y]
+        
     def _set_direction(self, direction, direction_array, sequence, target, block_x, block_y, value_x, value_y):
-        pass
+        direction_array[sequence][target][block_x][block_y][value_x][value_y] = direction
 
     def _set_device(self, device):
         '''Sets the device number'''
