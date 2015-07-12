@@ -504,7 +504,7 @@ class SmithWatermanNVIDIA(SmithWatermanGPU):
         self.pinned_global_direction_zero_copy = None
         
     def _init_zero_copy_memory(self):
-        self.logger.debug('Initializing zero-copy memory.')
+        self.logger.debug('Initializing NVIDIA zero-copy memory.')
         # Starting points host memory allocation and device copy
         memory = (self.size_of_startingpoint * self.maximum_number_starting_points * self.number_of_sequences *
         self.number_targets)
@@ -560,6 +560,12 @@ class SmithWatermanNVIDIA(SmithWatermanGPU):
             self.pinned_global_direction_zero_copy.release()
         if (self.pinned_max_possible_score_zero_copy is not None):
             self.pinned_max_possible_score_zero_copy.release()
+            
+    def _compile_ocl_code(self):
+        """Compile the OpenCL code with current settings"""
+        self.logger.debug('Compiling NVIDIA OpenCL code.')
+        code = self.oclcode.get_code(self.score, self.number_of_sequences, self.number_targets, self.length_of_x_sequences, self.length_of_y_sequences)
+        self.program = cl.Program(self.ctx, code).build(options=['-D', 'NVIDIA'])
             
 
         
