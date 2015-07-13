@@ -51,7 +51,8 @@ class QIndexer (Indexer):
                 #results = [int(self.compositionScale*len(re.findall(r"(?=" + x + ")", str(seq[start_index: end_index]))) / (length-self.qgram+1)) for x in self.character_list]
                 for qgram_string in range(start_index, end_index-self.qgram, self.qgram):
                     subStr = str(seq[qgram_string:qgram_string + self.qgram])
-                    if "N" not in subStr:
+                    
+                    if "N" not in subStr and len(subStr.strip()) > 0:
                         results[self.character_index[subStr]] += fraction 
                 results = map(lambda x: int(x), results)
 
