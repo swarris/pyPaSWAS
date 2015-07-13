@@ -1,4 +1,5 @@
 import pyopencl as cl
+import pyopencl.characterize as clCharacterize
 import numpy
 import math
 
@@ -127,10 +128,12 @@ class SmithWatermanOcl(SmithWaterman):
         self.device = self.platform.get_devices(device_type=self.device_type)[device_number]
         self.ctx = cl.Context(devices=[self.device])
         self.queue = cl.CommandQueue(self.ctx)
-        self.logger.debug("context:{}".format(self.ctx) )
+        #self.logger.debug("context:{}".format(self.ctx) )
     
     def _device_global_mem_size(self):
-        return cl.device_info.GLOBAL_MEM_SIZE
+        #return clCharacterize.usable_local_mem_size(self.device)
+        #  GLOBAL_MEM_SIZE
+        return self.device.get_info(cl.device_info.MAX_MEM_ALLOC_SIZE)
     
     
     def _clear_memory(self):
@@ -224,7 +227,7 @@ class SmithWatermanOcl(SmithWaterman):
         """Compile the device code with current settings"""
         self.logger.debug('Compiling OpenCL code.')
         code = self.oclcode.get_code(self.score, self.number_of_sequences, self.number_targets, self.length_of_x_sequences, self.length_of_y_sequences)
-        self.logger.debug('Code: {}'.format(code))
+        #self.logger.debug('Code: {}'.format(code))
         self.program = cl.Program(self.ctx, code).build()
     
     def copy_sequences(self, h_sequences, h_targets):

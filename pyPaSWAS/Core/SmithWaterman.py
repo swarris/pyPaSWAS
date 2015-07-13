@@ -195,7 +195,7 @@ class SmithWaterman(object):
         :param length_sequences:
         :param length_targets:
         '''
-        self.logger.debug("Total memory on Device: {}".format(self._device_global_mem_size()/1024/1024))
+        self.logger.debug("Total memory on Device: {}".format(self._device_global_mem_size()/1024.0/1024.0))
         value = 1
         try:
             value = math.floor((self._device_global_mem_size() * self.mem_fill_factor) / #@UndefinedVariable
