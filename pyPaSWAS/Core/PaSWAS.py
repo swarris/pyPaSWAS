@@ -100,7 +100,6 @@ class OCLcode(Code):
         self.variable_source = resource_filename(__name__, 'ocl/default_variable.cl')
         self.direction_source = resource_filename(__name__, 'ocl/default_direction.cl')
         self.score_source = resource_filename(__name__, 'ocl/default_score.cl')
-        self.main_source = resource_filename(__name__, 'ocl/default_main_gpu.cl')
         
 class GPUcode(OCLcode):
     '''

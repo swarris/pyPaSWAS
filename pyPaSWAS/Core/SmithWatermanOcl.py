@@ -1,8 +1,10 @@
 import pyopencl as cl
+import pyopencl.characterize as clCharacterize
 import numpy
 import math
 
 from pyPaSWAS.Core.SmithWaterman import SmithWaterman
+from pyPaSWAS.Core import STOP_DIRECTION, LEFT_DIRECTION, NO_DIRECTION, UPPER_DIRECTION, UPPER_LEFT_DIRECTION, IN_ALIGNMENT
 from pyPaSWAS.Core.PaSWAS import CPUcode
 from pyPaSWAS.Core.PaSWAS import GPUcode
 
@@ -35,8 +37,15 @@ class SmithWatermanOcl(SmithWaterman):
         self.device_type = 0
         self._set_device_type(self.settings.device_type)
         self._set_platform(self.settings.platform_name)
+        self._initialize_device(int(self.settings.device_number))
     
-    
+    def _init_oclcode(self):
+                # Compiling part of the CUDA code in advance
+        self.oclcode.set_shared_xy_code(self.shared_x, self.shared_y)
+        self.oclcode.set_direction_code(NO_DIRECTION, UPPER_LEFT_DIRECTION,
+                                         UPPER_DIRECTION, LEFT_DIRECTION,
+                                         STOP_DIRECTION)
+
     def _execute_calculate_score_kernel(self, number_of_blocks, idx, idy):
         ''' Executes a single run of the calculate score kernel'''
         pass
@@ -92,7 +101,7 @@ class SmithWatermanOcl(SmithWaterman):
                     found_platform = True
                     break
             if(found_platform):
-                self.logger.debug("Found platform {}", str(self.platform)) 
+                self.logger.debug("Found platform {}".format(str(self.platform))) 
                 break
         
         if not (self.platform):    
@@ -103,7 +112,7 @@ class SmithWatermanOcl(SmithWaterman):
                         found_platform = True
                         break
                 if(found_platform):
-                    self.logger.debug('Found platform {}, however this is not the platform indicated by the user', str(self.platform)) 
+                    self.logger.debug('Found platform {}, however this is not the platform indicated by the user'.format(str(self.platform))) 
                     break
         
         if not (self.platform):
@@ -117,38 +126,15 @@ class SmithWatermanOcl(SmithWaterman):
         self.logger.debug('Initializing device {0}'.format(device_number))
         
         self.device = self.platform.get_devices(device_type=self.device_type)[device_number]
-        self.ctx = cl.Context(devices=self.device)
+        self.ctx = cl.Context(devices=[self.device])
         self.queue = cl.CommandQueue(self.ctx)
+        #self.logger.debug("context:{}".format(self.ctx) )
     
-    def _get_max_length_xy(self):
-        '''
-        _get_max_length_xy gives the maximum length of both X and Y possible based on the total memory.
-        @return: int value of the maximum length of both X and Y.
-        '''
-        return (math.floor(math.sqrt((self.device.global_mem_size * self.mem_fill_factor) / 
-                                    self._get_mem_size_basic_matrix()))) 
-        
-    # TODO: check if driver has been initialized
-    # TODO: add correct docstring
-    def _get_max_number_sequences(self, length_sequences, length_targets, number_of_targets):
-        '''
-        Returns the maximum length of all sequences
-        :param length_sequences:
-        :param length_targets:
-        '''
-        self.logger.debug("Total memory on Device: {}".format(self.device.global_mem_size/1024/1024))
-        value = 1
-        try:
-            value = math.floor((self.device.global_mem_size * self.mem_fill_factor) / #@UndefinedVariable
-                               ((length_sequences * length_targets * (self._get_mem_size_basic_matrix()) +
-                                 (length_sequences * length_targets * SmithWaterman.float_size) /
-                                 (self.shared_x * self.shared_y)) * number_of_targets)) #@UndefinedVariable @IgnorePep8
-        except:
-            self.logger.warning("Possibly not enough memory for targets")
-            return 1
-        else:
-            return value if value > 0 else 1
-
+    def _device_global_mem_size(self):
+        #return clCharacterize.usable_local_mem_size(self.device)
+        #  GLOBAL_MEM_SIZE
+        return self.device.get_info(cl.device_info.MAX_MEM_ALLOC_SIZE)
+    
     
     def _clear_memory(self):
         '''Clears the claimed memory on the device.'''
@@ -241,6 +227,7 @@ class SmithWatermanOcl(SmithWaterman):
         """Compile the device code with current settings"""
         self.logger.debug('Compiling OpenCL code.')
         code = self.oclcode.get_code(self.score, self.number_of_sequences, self.number_targets, self.length_of_x_sequences, self.length_of_y_sequences)
+        #self.logger.debug('Code: {}'.format(code))
         self.program = cl.Program(self.ctx, code).build()
     
     def copy_sequences(self, h_sequences, h_targets):
@@ -273,7 +260,7 @@ class SmithWatermanOcl(SmithWaterman):
                                                                     cl.map_flags.WRITE, 0, 
                                                                     self.number_of_sequences * self.number_targets , 
                                                                     dtype=numpy.float32)[0]
-        self._fill_max_possible_score(self, target_index, targets, i, index, records_seqs)
+        self._fill_max_possible_score(target_index, targets, i, index, records_seqs)
         #Unmap memory object
         del self.h_max_possible_score_zero_copy
         
@@ -316,6 +303,8 @@ class SmithWatermanCPU(SmithWatermanOcl):
         self.workgroup_y = self.shared_y // self.workload_y
         
         self.d_semaphores = None
+        
+        self._init_oclcode()
         
     def _init_normal_memory(self):
         mem_size = SmithWatermanOcl._init_normal_memory(self)
@@ -422,6 +411,7 @@ class SmithWatermanGPU(SmithWatermanOcl):
         '''
         SmithWatermanOcl.__init__(self, logger, score, settings)
         self.oclcode = GPUcode(self.logger)
+        self._init_oclcode()
         
     def _init_normal_memory(self):
         
@@ -502,6 +492,7 @@ class SmithWatermanNVIDIA(SmithWatermanGPU):
         self.pinned_starting_points_zero_copy = None
         self.pinned_max_possible_score_zero_copy = None
         self.pinned_global_direction_zero_copy = None
+        self._init_oclcode()
         
     def _init_zero_copy_memory(self):
         self.logger.debug('Initializing NVIDIA zero-copy memory.')

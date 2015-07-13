@@ -58,36 +58,11 @@ class SmithWatermanCuda(SmithWaterman):
             raise HardwareException('Failed to initialize device: '
                                     'need compute capability 1.2 or newer!')  #@UndefinedVariable @IgnorePep8
     
-    def _get_max_length_xy(self):
-        '''
-        _get_max_length_xy gives the maximum length of both X and Y possible with
-        the currently available total memory.
-        @return: int value of the maximum length of both X and Y.
-        '''
-        return (math.floor(math.sqrt((driver.mem_get_info()[0] * self.mem_fill_factor) /  #@UndefinedVariable
-                                     self._get_mem_size_basic_matrix())))  #@UndefinedVariable @IgnorePep8
-        
-    # TODO: check if driver has been initialized
-    # TODO: add correct docstring
-    def _get_max_number_sequences(self, length_sequences, length_targets, number_of_targets):
-        '''
-        Returns the maximum length of all sequences
-        :param length_sequences:
-        :param length_targets:
-        '''
-        self.logger.debug("Available memory on GPU: {}".format(driver.mem_get_info()[0]/1024/1024))
-        value = 1
-        try:
-            value =  math.floor((driver.mem_get_info()[0] * self.mem_fill_factor) /  #@UndefinedVariable
-                          ((length_sequences * length_targets * (self._get_mem_size_basic_matrix()) +
-                            (length_sequences * length_targets * SmithWaterman.float_size) /
-                            (self.shared_x * self.shared_y)) * number_of_targets))  #@UndefinedVariable @IgnorePep8
-        except:
-            self.logger.warning("Possibly not enough memory for targets")
-            return 1
-        else:
-            return value if value > 0 else 1
+    def _device_global_mem_size(self):
+        '''  defines maximum available mem on device. '''
+        return driver.mem_get_info()[0]
     
+  
     def _clear_memory(self):
         '''Clears the claimed memory on the device.'''
         self.logger.debug('Clearing device memory.')

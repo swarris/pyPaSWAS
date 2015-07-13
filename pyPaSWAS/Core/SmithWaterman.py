@@ -176,24 +176,38 @@ class SmithWaterman(object):
         @param device_number: int value representing the device to use
         '''
         pass
-    
+
+    def _device_global_mem_size(self):
+        '''  defines maximum available mem on device. Should be implemented by subclasses. '''
+        pass
+
     def _get_max_length_xy(self):
         '''
-        _get_max_length_xy gives the maximum length of both X and Y possible with
-        the currently available total memory.
+        _get_max_length_xy gives the maximum length of both X and Y possible based on the total memory.
         @return: int value of the maximum length of both X and Y.
         '''
-        pass
-        
-    # TODO: check if driver has been initialized
-    # TODO: add correct docstring
+        return (math.floor(math.sqrt((self._device_global_mem_size() * self.mem_fill_factor) / 
+                                    self._get_mem_size_basic_matrix()))) 
+    
     def _get_max_number_sequences(self, length_sequences, length_targets, number_of_targets):
         '''
         Returns the maximum length of all sequences
         :param length_sequences:
         :param length_targets:
         '''
-        pass
+        self.logger.debug("Total memory on Device: {}".format(self._device_global_mem_size()/1024.0/1024.0))
+        value = 1
+        try:
+            value = math.floor((self._device_global_mem_size() * self.mem_fill_factor) / #@UndefinedVariable
+                               ((length_sequences * length_targets * (self._get_mem_size_basic_matrix()) +
+                                 (length_sequences * length_targets * SmithWaterman.float_size) /
+                                 (self.shared_x * self.shared_y)) * number_of_targets)) #@UndefinedVariable @IgnorePep8
+        except:
+            self.logger.warning("Possibly not enough memory for targets")
+            return 1
+        else:
+            return value if value > 0 else 1
+        
     
     def _clear_memory(self):
         '''Clears the claimed memory on the device.'''
@@ -566,7 +580,7 @@ class SmithWaterman(object):
             else:
                 number_of_blocks = max_number_of_blocks
             
-            self._execute_traceback_kernel(self, number_of_blocks, idx, idy)
+            self._execute_traceback_kernel(number_of_blocks, idx, idy)
 
             if (idy == 0):
                 idx -= 1
@@ -655,7 +669,7 @@ class SmithWaterman(object):
             t_start = t_end + 1
 
             #direction = direction_array[sequence_starting_point][target_starting_point][block_x][block_y][value_x][value_y]
-            direction = self._get_direction(sequence_starting_point,target_starting_point,block_x,block_y,value_x,value_y)
+            direction = self._get_direction(direction_array, sequence_starting_point,target_starting_point,block_x,block_y,value_x,value_y)
             show = True
             # check in 'all to all' when 1 data set is used to filter out hit X vs X (filtered on identical id):
             if sequences[sequence_starting_point + start_seq].id == targets[target_starting_point + start_target].id:
