@@ -90,6 +90,19 @@ typedef struct {
 	Semaphores semaphores[NUMBER_SEQUENCES][NUMBER_TARGETS];
 } GlobalSemaphores;
 
+void getSemaphore(__global int * semaphore) {
+   int occupied = atom_xchg(semaphore, 1);
+   while(occupied > 0)
+   {
+     occupied = atom_xchg(semaphore, 1);
+   }
+}
+
+void releaseSemaphore(__global int * semaphore)
+{
+   int prevVal = atom_xchg(semaphore, 0);
+}
+
 __kernel void calculateScore(
 		__global GlobalMatrix *matrix, 
 		unsigned int x, 
@@ -99,6 +112,8 @@ __kernel void calculateScore(
 		__global char *targets, 
 		__global GlobalMaxima *globalMaxima, 
 		__global GlobalDirection *globalDirection) {
+		
+		
 	// calculate indices:
 	//unsigned int yDIVnumSeq = (blockIdx.y/NUMBER_SEQUENCES);
 	unsigned int blockx = x - get_group_id(1)/NUMBER_TARGETS;//0<=(get_group_id(1)/NUMBER_TARGETS)<numberOfBlocks
@@ -120,14 +135,14 @@ __kernel void calculateScore(
 				++aIDx; //1<=alignmentIDx<=X
 								
 				int seqIndex1 = tIDx * WORKLOAD_X + j + bIDx * X + blockx * SHARED_X;
-				char s1 = sequences[seqIndex1];
+				char charS1 = sequences[seqIndex1];
 				
 				/** Number of target characters a single work-item is responsible for **/
 				for(int k=0; k<WORKLOAD_Y; k++) {
 					
 					unsigned char direction = NO_DIRECTION;
 					int seqIndex2 = tIDy*WORKLOAD_Y + k + bIDy * Y + blocky * SHARED_Y;
-					char s2 = targets[seqIndex2];
+					char charS2 = targets[seqIndex2];
 
 					unsigned int aIDy = tIDy*WORKLOAD_Y + k + blocky * SHARED_Y; //0<=alignmentIDy<Y
 					unsigned int aYM1 = aIDy;
