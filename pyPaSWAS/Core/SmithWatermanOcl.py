@@ -198,9 +198,9 @@ class SmithWatermanOcl(SmithWaterman):
         mem_size = memory
         
         # Global directions host memory allocation and device copy
-        memory = (self.length_of_x_sequences * self.number_of_sequences * self.length_of_y_sequences *
-        self.number_targets)
+        memory = (self.length_of_x_sequences * self.number_of_sequences * self.length_of_y_sequences * self.number_targets)
         self.d_global_direction_zero_copy = cl.Buffer(self.ctx, cl.mem_flags.WRITE_ONLY | cl.mem_flags.ALLOC_HOST_PTR, size=memory)
+
         mem_size += memory
         
         # Maximum zero copy memory allocation and device copy
@@ -499,7 +499,7 @@ class SmithWatermanNVIDIA(SmithWatermanGPU):
         # Starting points host memory allocation and device copy
         memory = (self.size_of_startingpoint * self.maximum_number_starting_points * self.number_of_sequences *
         self.number_targets)
-        self.pinned_starting_points_zero_copy = cl.Buffer(self.ctx, cl.mem_flags.CL_MEM_READ_WRITE | cl.mem_flags.ALLOC_HOST_PTR, size=memory)
+        self.pinned_starting_points_zero_copy = cl.Buffer(self.ctx, cl.mem_flags.ALLOC_HOST_PTR, size=memory)
         self.d_starting_points_zero_copy = cl.Buffer(self.ctx, cl.mem_flags.WRITE_ONLY, size=memory)
         self.h_starting_points_zero_copy = cl.enqueue_map_buffer(self.queue, self.pinned_starting_points_zero_copy, cl.map_flags.READ, 0, 
                                                                 (memory, 1), dtype=numpy.byte)[0]
@@ -508,7 +508,7 @@ class SmithWatermanNVIDIA(SmithWatermanGPU):
         # Global directions host memory allocation and device copy
         memory = (self.length_of_x_sequences * self.number_of_sequences * self.length_of_y_sequences *
         self.number_targets)
-        self.pinned_global_direction_zero_copy = cl.Buffer(self.ctx, cl.mem_flags.CL_MEM_READ_WRITE | cl.mem_flags.ALLOC_HOST_PTR, size=memory)
+        self.pinned_global_direction_zero_copy = cl.Buffer(self.ctx, cl.mem_flags.ALLOC_HOST_PTR, size=memory)
         self.d_global_direction_zero_copy = cl.Buffer(self.ctx, cl.mem_flags.WRITE_ONLY, size=memory)
         self.h_global_direction_zero_copy = cl.enqueue_map_buffer(self.queue, self.pinned_global_direction_zero_copy, cl.map_flags.READ, 0, 
                                                                     (memory, 1), dtype=numpy.byte)[0] 
@@ -517,7 +517,7 @@ class SmithWatermanNVIDIA(SmithWatermanGPU):
                 
         # Maximum zero copy memory allocation and device copy
         memory = (self.number_of_sequences * self.number_of_targets * SmithWaterman.float_size)
-        self.pinned_max_possible_score_zero_copy = cl.Buffer(self.ctx, cl.mem_flags.CL_MEM_READ_WRITE | cl.mem_flags.ALLOC_HOST_PTR, size=memory)
+        self.pinned_max_possible_score_zero_copy = cl.Buffer(self.ctx, cl.mem_flags.ALLOC_HOST_PTR, size=memory)
         self.d_max_possible_score_zero_copy = cl.Buffer(self.ctx, cl.mem_flags.READ_ONLY, size=memory)
         self.h_max_possible_score_zero_copy = cl.enqueue_map_buffer(self.queue, self.pinned_max_possible_score_zero_copy, cl.map_flags.WRITE, 0, 
                                                                     (self.number_of_sequences * self.number_of_targets, 1), dtype=numpy.float32)[0]

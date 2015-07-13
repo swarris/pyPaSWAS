@@ -34,17 +34,18 @@ class Aligner(object):
         self.settings = settings
         if (self.settings.framework.upper() == 'OPENCL'):
             if(self.settings.device_type.upper() == 'GPU'):
-                self.logger.debug('Using OpenCL GPU implementation')
-                from pyPaSWAS.Core.SmithWatermanOcl import SmithWatermanGPU
-                self.smith_waterman = SmithWatermanGPU(self.logger, self.score, settings)
+                if(self.settings.platform_name.upper() == 'NVIDIA'):
+                    self.logger.debug('Using OpenCL NVIDIA implementation')
+                    from pyPaSWAS.Core.SmithWatermanOcl import SmithWatermanNVIDIA
+                    self.smith_waterman = SmithWatermanNVIDIA(self.logger, self.score, settings)
+                else:
+                    self.logger.debug('Using OpenCL GPU implementation')
+                    from pyPaSWAS.Core.SmithWatermanOcl import SmithWatermanGPU
+                    self.smith_waterman = SmithWatermanGPU(self.logger, self.score, settings)
             elif(self.settings.device_type.upper() == 'CPU'):
                 self.logger.debug('Using OpenCL CPU implementation')
                 from pyPaSWAS.Core.SmithWatermanOcl import SmithWatermanCPU
                 self.smith_waterman = SmithWatermanCPU(self.logger, self.score, settings)
-            elif(self.settings.platform_name.upper() == 'NVIDIA'):
-                self.logger.debug('Using OpenCL NVIDIA implementation')
-                from pyPaSWAS.Core.SmithWatermanOcl import SmithWatermanNVIDIA
-                self.smith_waterman = SmithWatermanNVIDIA(self.logger, self.score, settings)
             else:
                 self.logger.debug('Using default OpenCL implementation')
                 from pyPaSWAS.Core.SmithWatermanOcl import SmithWatermanCPU
