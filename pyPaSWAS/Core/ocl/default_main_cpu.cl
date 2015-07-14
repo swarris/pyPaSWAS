@@ -124,8 +124,7 @@ __kernel void calculateScore(
 	unsigned int bIDy = get_group_id(1)%NUMBER_TARGETS;///numberOfBlocks;
 	
 	float thread_max = 0.0;
-
-		for (int i=0; i < WORKGROUP_X + WORKGROUP_Y; ++i) {
+	for (int i=0; i < WORKGROUP_X + WORKGROUP_Y; ++i) {
 		if(i==tIDx+tIDy) {
 			for(int j=0; j<WORKLOAD_X; j++) {
 				
@@ -135,6 +134,7 @@ __kernel void calculateScore(
 				++aIDx; //1<=alignmentIDx<=X
 								
 				int seqIndex1 = tIDx * WORKLOAD_X + j + bIDx * X + blockx * SHARED_X;
+				
 				char charS1 = sequences[seqIndex1];
 				
 				/** Number of target characters a single work-item is responsible for **/
@@ -173,6 +173,7 @@ __kernel void calculateScore(
 						currentScore = ulS;
 						direction = UPPER_LEFT_DIRECTION;
 					}
+					
 					(*matrix).metaMatrix[bIDx][bIDy].value[aIDx][aIDy] = currentScore;
 					(*globalDirection).direction[bIDx][bIDy].value[aXM1][aYM1] = direction;
 					thread_max = fmax(currentScore, thread_max);
@@ -181,6 +182,7 @@ __kernel void calculateScore(
 			}
 
 		}
+	
 		if(i-1==tIDx+tIDy) { //got a thread_maximum
 			if(i==1) {
 				//get the maximum value of surrounding blocks
@@ -205,6 +207,8 @@ __kernel void calculateScore(
 			}
 			
 		}
+		
+	
 		barrier(CLK_LOCAL_MEM_FENCE);
 		
 	}

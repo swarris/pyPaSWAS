@@ -227,7 +227,7 @@ class SmithWatermanOcl(SmithWaterman):
         """Compile the device code with current settings"""
         self.logger.debug('Compiling OpenCL code.')
         code = self.oclcode.get_code(self.score, self.number_of_sequences, self.number_targets, self.length_of_x_sequences, self.length_of_y_sequences)
-        #self.logger.debug('Code: {}'.format(code))
+        #self.logger.debug('Code: \n{}'.format(code))
         self.program = cl.Program(self.ctx, code).build()
     
     def copy_sequences(self, h_sequences, h_targets):
@@ -320,11 +320,11 @@ class SmithWatermanCPU(SmithWatermanOcl):
         
         # Maximum global device memory
         memory = (SmithWaterman.float_size * self.x_div_shared_x * self.number_of_sequences *
-        self.y_div_shared_y * self.number_targets)
+        self.y_div_shared_y * self.number_targets * self.workload_x * self.workload_y)
         self.d_global_maxima = cl.Buffer(self.ctx, cl.mem_flags.READ_WRITE, size=memory)
         mem_size += memory
         
-        
+
         memory = (SmithWaterman.int_size * 
                   self.length_of_x_sequences * 
                   self.number_of_sequences * 
@@ -362,6 +362,8 @@ class SmithWatermanCPU(SmithWatermanOcl):
         ''' Executes a single run of the calculate score kernel'''
         dim_block = (self.workgroup_x, self.workgroup_y)
         dim_grid_sw = (self.number_of_sequences * self.workgroup_x, self.number_targets * number_of_blocks * self.workgroup_y)
+
+        
         self.program.calculateScore(self.queue, 
                                     dim_grid_sw, 
                                     dim_block, 
@@ -450,6 +452,7 @@ class SmithWatermanGPU(SmithWatermanOcl):
         ''' Executes a single run of the calculate score kernel'''
         dim_block = (self.shared_x, self.shared_y)
         dim_grid_sw = (self.number_of_sequences * self.shared_x, self.number_targets * number_of_blocks * self.shared_y)
+        
         self.program.calculateScore(self.queue, 
                                     dim_grid_sw, 
                                     dim_block, 
