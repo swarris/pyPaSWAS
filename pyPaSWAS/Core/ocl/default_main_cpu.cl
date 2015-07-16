@@ -240,7 +240,7 @@ __kernel void traceback(
 	    
 		float maximum = (*globalMaxima).alignMaxima[bIDx][bIDy].blockMaxima[XdivSHARED_X-1][YdivSHARED_Y-1].value[WORKGROUP_X-1][WORKGROUP_Y-1];
 	
-		
+	
 		if(maximum >= MINIMUM_SCORE) {
 			//float mpScore = maxPossibleScore[bIDx+inBlock];
 			float mpScore = maxPossibleScore[bIDy*NUMBER_SEQUENCES+bIDx];
@@ -256,6 +256,7 @@ __kernel void traceback(
 							++aIDy; //1<=alignmentIDy<=Y
 							float score = (*matrix).metaMatrix[bIDx][bIDy].value[aIDx][aIDy];
 							unsigned char direction = (*globalDirection).direction[bIDx][bIDy].value[aXM1][aYM1];
+
 							if (direction == UPPER_LEFT_DIRECTION && score >= LOWER_LIMIT_SCORE * maximum && score >= mpScore) {
 								// found starting point!
 								unsigned int index = atom_inc(&indexIncrement[0]);
@@ -281,6 +282,7 @@ __kernel void traceback(
 #endif
 							}
 							score = (*matrix).metaMatrix[bIDx][bIDy].value[aIDx][aIDy];
+
 							if (score < 0 && direction == UPPER_LEFT_DIRECTION) {
 								score = (*matrix).metaMatrix[bIDx][bIDy].value[aIDx-1][aIDy-1];
 								if (score == 0.0) {

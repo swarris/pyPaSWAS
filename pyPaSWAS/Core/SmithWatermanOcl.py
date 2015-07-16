@@ -199,7 +199,7 @@ class SmithWatermanOcl(SmithWaterman):
         
         # Global directions host memory allocation and device copy
         memory = (self.length_of_x_sequences * self.number_of_sequences * self.length_of_y_sequences * self.number_targets)
-        self.d_global_direction_zero_copy = cl.Buffer(self.ctx, cl.mem_flags.WRITE_ONLY | cl.mem_flags.ALLOC_HOST_PTR, size=memory)
+        self.d_global_direction_zero_copy = cl.Buffer(self.ctx, cl.mem_flags.READ_WRITE | cl.mem_flags.ALLOC_HOST_PTR, size=memory)
 
         mem_size += memory
         
@@ -344,12 +344,13 @@ class SmithWatermanCPU(SmithWatermanOcl):
         Get the resulting directions
         @return gives the resulting direction array as byte array
         '''
-        self.h_global_direction_zero_copy = cl.enqueue_map_buffer(self.queue, self.d_global_direction_zero_copy, cl.map_flags.READ, 0, 
+
+        return cl.enqueue_map_buffer(self.queue, self.d_global_direction_zero_copy, cl.map_flags.READ, 0, 
                                                                   (self.number_of_sequences,
                                                                    self.number_targets,
                                                                    self.length_of_x_sequences,
                                                                    self.length_of_y_sequences), dtype=numpy.byte)[0]
-        return self.h_global_direction_zero_copy
+
     
     def _get_direction(self, direction_array, sequence, target, block_x, block_y, value_x, value_y):
         return direction_array[sequence][target][block_x*self.x_div_shared_x + value_x][block_y*self.y_div_shared_y + value_y]
@@ -363,7 +364,6 @@ class SmithWatermanCPU(SmithWatermanOcl):
         dim_block = (self.workgroup_x, self.workgroup_y)
         dim_grid_sw = (self.number_of_sequences * self.workgroup_x, self.number_targets * number_of_blocks * self.workgroup_y)
 
-        
         self.program.calculateScore(self.queue, 
                                     dim_grid_sw, 
                                     dim_block, 
@@ -380,6 +380,7 @@ class SmithWatermanCPU(SmithWatermanOcl):
         ''' Executes a single run of the traceback kernel'''
         dim_block = (self.workgroup_x, self.workgroup_y)
         dim_grid_sw = (self.number_of_sequences * self.workgroup_x, self.number_targets * number_of_blocks * self.workgroup_y)
+        
         self.program.traceback(self.queue, dim_grid_sw, dim_block,
                                self.d_matrix,
                                numpy.int32(idx),
@@ -438,14 +439,13 @@ class SmithWatermanGPU(SmithWatermanOcl):
         Get the resulting directions
         @return gives the resulting direction array as byte array
         '''
-        self.h_global_direction_zero_copy = cl.enqueue_map_buffer(self.queue, self.d_global_direction_zero_copy, cl.map_flags.READ, 0, 
+        return cl.enqueue_map_buffer(self.queue, self.h_global_direction_zero_copy, cl.map_flags.READ, 0, 
                                                                   (self.number_of_sequences,
                                                                    self.number_targets,
                                                                    self.x_div_shared_x,
                                                                    self.y_div_shared_y,
                                                                    self.shared_x,
                                                                    self.shared_y), dtype=numpy.byte)[0]
-        return self.h_global_direction_zero_copy
         
 
     def _execute_calculate_score_kernel(self, number_of_blocks, idx, idy):
@@ -534,7 +534,14 @@ class SmithWatermanNVIDIA(SmithWatermanGPU):
         self._fill_max_possible_score(target_index, targets, i, index, records_seqs)
         
     def _get_direction_byte_array(self):
-        cl.enqueue_copy(self.queue, self.h_global_direction_zero_copy, self.d_global_direction_zero_copy).wait()
+        #cl.enqueue_copy(self.queue, self.h_global_direction_zero_copy, self.d_global_direction_zero_copy).wait()
+        return numpy.ndarray(buffer=self.h_global_direction_zero_copy,
+                                dtype=numpy.byte, shape=(self.number_of_sequences,
+                                                         self.number_targets,
+                                                         self.x_div_shared_x,
+                                                         self.y_div_shared_y,
+                                                         self.shared_x,
+                                                         self.shared_y))
         return self.h_global_direction_zero_copy
     
     def _get_starting_point_byte_array(self):

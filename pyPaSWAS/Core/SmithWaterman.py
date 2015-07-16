@@ -684,7 +684,6 @@ class SmithWaterman(object):
                    direction != STOP_DIRECTION and direction != NO_DIRECTION):
                 direction = self._get_direction(direction_array,sequence_starting_point,target_starting_point,block_x,block_y,value_x,value_y)
                 self._set_direction(IN_ALIGNMENT,direction_array,sequence_starting_point,target_starting_point,block_x,block_y,value_x,value_y)
-                
                 alignment_length += 1
                 if (direction == IN_ALIGNMENT):
                     show = False
