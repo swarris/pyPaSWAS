@@ -310,8 +310,8 @@ class SmithWatermanCPU(SmithWatermanOcl):
         mem_size = SmithWatermanOcl._init_normal_memory(self)
         
         # Input matrix device memory
-        memory = (SmithWaterman.float_size * self.length_of_x_sequences * self.number_of_sequences *
-        self.length_of_y_sequences * self.number_targets)
+        memory = (SmithWaterman.float_size * (self.length_of_x_sequences + 1) * self.number_of_sequences *
+        (self.length_of_y_sequences + 1) * self.number_targets)
         self.d_matrix = cl.Buffer(self.ctx, cl.mem_flags.READ_WRITE, size=memory)
         mem_size += memory
         
