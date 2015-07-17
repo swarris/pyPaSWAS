@@ -216,6 +216,7 @@ __kernel void calculateScore(
 	if (tIDx==WORKGROUP_X-1 && tIDy==WORKGROUP_Y-1) {
 		(*globalMaxima).alignMaxima[bIDx][bIDy].blockMaxima[blockx][blocky].value[tIDx][tIDy] = fmax(thread_max, fmax((*globalMaxima).alignMaxima[bIDx][bIDy].blockMaxima[blockx][blocky].value[tIDx-1][tIDy], (*globalMaxima).alignMaxima[bIDx][bIDy].blockMaxima[blockx][blocky].value[tIDx][tIDy-1]));
 	}
+	
 }
 
 __kernel void traceback(
@@ -225,7 +226,6 @@ __kernel void traceback(
 		unsigned int numberOfBlocks, 
 		__global GlobalMaxima *globalMaxima,
 		__global GlobalDirection *globalDirection,
-		__global GlobalDirection *globalDirectionZeroCopy, 
 		volatile __global unsigned int *indexIncrement,
 		__global StartingPoints *startingPoints, 
 		__global float *maxPossibleScore, 
@@ -240,10 +240,10 @@ __kernel void traceback(
 	    
 		float maximum = (*globalMaxima).alignMaxima[bIDx][bIDy].blockMaxima[XdivSHARED_X-1][YdivSHARED_Y-1].value[WORKGROUP_X-1][WORKGROUP_Y-1];
 	
-	
 		if(maximum >= MINIMUM_SCORE) {
 			//float mpScore = maxPossibleScore[bIDx+inBlock];
 			float mpScore = maxPossibleScore[bIDy*NUMBER_SEQUENCES+bIDx];
+						
 			for(int i=WORKGROUP_X+WORKGROUP_Y-1; i>=0; --i) {
 				if(i==tIDx+tIDy) {
 					for(int j=WORKLOAD_X-1; j>=0; j--){
@@ -256,7 +256,7 @@ __kernel void traceback(
 							++aIDy; //1<=alignmentIDy<=Y
 							float score = (*matrix).metaMatrix[bIDx][bIDy].value[aIDx][aIDy];
 							unsigned char direction = (*globalDirection).direction[bIDx][bIDy].value[aXM1][aYM1];
-
+														
 							if (direction == UPPER_LEFT_DIRECTION && score >= LOWER_LIMIT_SCORE * maximum && score >= mpScore) {
 								// found starting point!
 								unsigned int index = atom_inc(&indexIncrement[0]);
@@ -274,6 +274,7 @@ __kernel void traceback(
 								start.maxScore = maximum;
 								start.posScore = mpScore;
 								startingPoints->startingPoint[index] = start;
+								
 								//Mark this value
 #ifdef NVIDIA
 								(*matrix).metaMatrix[bIDx][bIDy].value[aIDx][aIDy] = __int_as_float(SIGN_BIT_MASK | __float_as_int(score);
@@ -287,7 +288,7 @@ __kernel void traceback(
 								score = (*matrix).metaMatrix[bIDx][bIDy].value[aIDx-1][aIDy-1];
 								if (score == 0.0) {
 									direction = STOP_DIRECTION;
-									globalDirectionZeroCopy->direction[bIDx][bIDy].value[aXM1][aYM1] = direction;
+									globalDirection->direction[bIDx][bIDy].value[aXM1][aYM1] = direction;
 								}
 								else {
 									getSemaphore(&((*globalSemaphores).semaphores[bIDx][bIDy].semaphore[aXM1-1][aYM1-1].s[0]));
@@ -303,7 +304,7 @@ __kernel void traceback(
 								score = (*matrix).metaMatrix[bIDx][bIDy].value[aIDx-1][aIDy];
 								if (score == 0.0) {
 									direction = STOP_DIRECTION;
-									globalDirectionZeroCopy->direction[bIDx][bIDy].value[aXM1][aYM1] = direction;
+									globalDirection->direction[bIDx][bIDy].value[aXM1][aYM1] = direction;
 								}
 								else {
 									getSemaphore(&((*globalSemaphores).semaphores[bIDx][bIDy].semaphore[aXM1-1][aYM1].s[0]));
@@ -317,9 +318,9 @@ __kernel void traceback(
 							}
 							if (score < 0 && direction == UPPER_DIRECTION) {
 								score = (*matrix).metaMatrix[bIDx][bIDy].value[aIDx][aIDy-1];
-								if (score == 0.0) {
+								if (score == 0.0) {							
 									direction = STOP_DIRECTION;
-									globalDirectionZeroCopy->direction[bIDx][bIDy].value[aXM1][aYM1] = direction;
+									globalDirection->direction[bIDx][bIDy].value[aXM1][aYM1] = direction;
 								}
 								else {
 									getSemaphore(&((*globalSemaphores).semaphores[bIDx][bIDy].semaphore[aXM1][aYM1-1].s[0]));
@@ -340,4 +341,5 @@ __kernel void traceback(
 				barrier(CLK_LOCAL_MEM_FENCE);
 			}
 		}
+
 }

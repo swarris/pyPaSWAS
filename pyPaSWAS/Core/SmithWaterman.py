@@ -99,8 +99,8 @@ class SmithWaterman(object):
         self.d_matrix = None
         # d_global_maxima holds the maximum values found during the SM calculations
         self.d_global_maxima = None
-        # d_global_direction keeps track of the direction the score came from
-        self.d_global_direction = None
+
+
         # d_index_increment is the 'auto-increment index' used to store the starting points. Hence, after the
         # traceback this attribute holds the number of alignments
         self.d_index_increment = None

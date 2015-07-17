@@ -20,6 +20,10 @@ class SmithWatermanCuda(SmithWaterman):
         SmithWaterman.__init__(self, logger, score, settings)
         
         self.module = None
+        
+        # d_global_direction keeps track of the direction the score came from
+        self.d_global_direction = None
+
 
         self.cudacode = Cudacode(self.logger)
         # Compiling part of the CUDA code in advance
