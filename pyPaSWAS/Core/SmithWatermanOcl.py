@@ -336,10 +336,11 @@ class SmithWatermanCPU(SmithWatermanOcl):
         return self.h_global_direction_zero_copy
     
     def _get_direction(self, direction_array, sequence, target, block_x, block_y, value_x, value_y):
-        return direction_array[sequence][target][block_x*self.x_div_shared_x + value_x][block_y*self.y_div_shared_y + value_y]
+        #self.logger.debug("{}, {}, {}, {}".format(sequence,target,block_x*self.workload_x + value_x,block_y*self.workload_y + value_y))
+        return direction_array[sequence][target][block_x*self.workload_x + value_x][block_y*self.workload_y + value_y]
     
     def _set_direction(self, direction, direction_array, sequence, target, block_x, block_y, value_x, value_y):
-        direction_array[sequence][target][block_x*self.x_div_shared_x + value_x][block_y*self.y_div_shared_y + value_y] = direction
+        direction_array[sequence][target][block_x*self.workload_x + value_x][block_y*self.workload_y + value_y] = direction
 
         
     def _execute_calculate_score_kernel(self, number_of_blocks, idx, idy):
@@ -347,7 +348,6 @@ class SmithWatermanCPU(SmithWatermanOcl):
         dim_block = (self.workgroup_x, self.workgroup_y)
         dim_grid_sw = (self.number_of_sequences * self.workgroup_x, self.number_targets * number_of_blocks * self.workgroup_y)
 
-        
         self.program.calculateScore(self.queue, 
                                     dim_grid_sw, 
                                     dim_block, 
@@ -519,7 +519,15 @@ class SmithWatermanNVIDIA(SmithWatermanGPU):
         self._fill_max_possible_score(target_index, targets, i, index, records_seqs)
         
     def _get_direction_byte_array(self):
-        cl.enqueue_copy(self.queue, self.h_global_direction_zero_copy, self.d_global_direction_zero_copy).wait()
+#        cl.enqueue_copy(self.queue, self.h_global_direction_zero_copy, self.d_global_direction_zero_copy).wait()
+        self.h_global_direction_zero_copy = cl.enqueue_map_buffer(self.queue, self.d_global_direction_zero_copy, cl.map_flags.READ, 0, 
+                                                                  (self.number_of_sequences,
+                                                                   self.number_targets,
+                                                                   self.x_div_shared_x,
+                                                                   self.y_div_shared_y,
+                                                                   self.shared_x,
+                                                                   self.shared_y), dtype=numpy.byte)[0]
+
         return self.h_global_direction_zero_copy
     
     def _get_starting_point_byte_array(self):
@@ -528,11 +536,7 @@ class SmithWatermanNVIDIA(SmithWatermanGPU):
     
     def _clear_zero_copy_memory(self):
         SmithWatermanGPU._clear_zero_copy_memory(self)
-        
-        del self.h_starting_points_zero_copy
-        del self.h_global_direction_zero_copy
-        del self.h_max_possible_score_zero_copy
-        
+                
         if (self.pinned_starting_points_zero_copy is not None):
             self.pinned_starting_points_zero_copy.release()
         if (self.pinned_global_direction_zero_copy is not None):

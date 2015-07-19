@@ -267,6 +267,7 @@ class SmithWaterman(object):
         pass
     
     def _get_direction(self, direction_array, sequence, target, block_x, block_y, value_x, value_y):
+ 
         return direction_array[sequence][target][block_x][block_y][value_x][value_y]
         
     def _set_direction(self, direction, direction_array, sequence, target, block_x, block_y, value_x, value_y):
@@ -562,6 +563,8 @@ class SmithWaterman(object):
                 idy += 1
             if (idx < self.x_div_shared_x - 1):
                 idx += 1
+#        self.logger.debug("{}".format(self._get_direction_byte_array()))
+
 
     def _traceback_host(self):
         ''' Performs the traceback on the device '''
@@ -571,6 +574,8 @@ class SmithWaterman(object):
         number_of_blocks = 0
         idx = self.x_div_shared_x - 1
         idy = self.y_div_shared_y - 1
+
+#        self.logger.debug("{}".format(self._get_direction_byte_array()))
 
         for i in range(1, self.x_div_shared_x + self.y_div_shared_y):
             if (i <= max_number_of_blocks):
@@ -587,6 +592,7 @@ class SmithWaterman(object):
             if (idy > 0):
                 idy -= 1
 
+ #       self.logger.debug("{}".format(self._get_direction_byte_array()))
 
     # TODO: return hitlist!!
     # TODO: finish docstring
@@ -761,6 +767,7 @@ class SmithWaterman(object):
                     hit_list.append(hit)
                 else:
                     self.logger.debug("Hit {0} -vs- {1} does not meet filter requirements".format(sequences[sequence_starting_point + start_seq].id, targets[target_starting_point + start_target].id ))
+
         return hit_list
     
     def _filter_hit(self, hit):
