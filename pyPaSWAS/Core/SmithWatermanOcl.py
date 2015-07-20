@@ -337,10 +337,12 @@ class SmithWatermanCPU(SmithWatermanOcl):
     
     def _get_direction(self, direction_array, sequence, target, block_x, block_y, value_x, value_y):
         #self.logger.debug("{}, {}, {}, {}".format(sequence,target,block_x*self.workload_x + value_x,block_y*self.workload_y + value_y))
-        return direction_array[sequence][target][block_x*self.workload_x + value_x][block_y*self.workload_y + value_y]
+        #return direction_array[sequence][target][block_x*self.workload_x + value_x][block_y*self.workload_y + value_y]
+        return direction_array[sequence][target][block_x*self.shared_x + value_x][block_y*self.shared_y + value_y]
     
     def _set_direction(self, direction, direction_array, sequence, target, block_x, block_y, value_x, value_y):
-        direction_array[sequence][target][block_x*self.workload_x + value_x][block_y*self.workload_y + value_y] = direction
+        #direction_array[sequence][target][block_x*self.workload_x + value_x][block_y*self.workload_y + value_y] = direction
+        direction_array[sequence][target][block_x*self.shared_x + value_x][block_y*self.shared_y + value_y] = direction
 
         
     def _execute_calculate_score_kernel(self, number_of_blocks, idx, idy):
