@@ -98,7 +98,7 @@ def parse_cli(config_file):
                                'generated output.\nAvailable options are TXT and SAM.\nDefaults to txt',
                                dest='out_format', default=config.get('General', 'out_format'))
     general_options.add_option('-p', '--program', help='The program to be executed. Valid options are "aligner"'
-                               ', "trimmer", "indexed" and "mapper" (last two are experimental)', dest='program',
+                               ', "trimmer" and "mapper" (experimental)', dest='program',
                                default=config.get('General', 'program'))
 
     general_options.add_option('-1', '--filetype1', help='File type of the first file. See bioPython IO for'

@@ -131,7 +131,7 @@ class Indexer:
         try:
             self.logger.info("Saving index to file: " + self.pickleName(fileName, self.wSize[0] if window == None else window))
             dump = open(self.pickleName(fileName, self.wSize[0] if window == None else window), "w")
-            dump.write(zlib.compress(cPickle.dumps(self.tupleSet, cPickle.HIGHEST_PROTOCOL),9))
+            dump.write(zlib.compress(cPickle.dumps(self.tupleSet, cPickle.HIGHEST_PROTOCOL),1))
             dump.close()
         except:
             self.logger.error("Could not open: " + self.pickleName(fileName, self.wSize[0] if window == None else window))

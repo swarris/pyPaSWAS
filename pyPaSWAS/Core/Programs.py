@@ -106,28 +106,6 @@ class Trimmer(Aligner):
         self.logger.debug('Aligner processing OK, returning hitlist.')
         return self.hitlist
 
-class ComBaRIndexer(Aligner):
-    
-    def __init__(self, logger, score, settings, arguments):
-        Aligner.__init__(self, logger, score, settings)
-        self.arguments = arguments
-
-    def process(self, records_seqs, targets):
-        '''This methods creates index files for targets based on the length of the records.
-        '''
-        # step through the targets
-        self.logger.debug('ComBaR indexing. Qgram = {qgram}'.format(qgram=self.settings.qgram))
-        if self.settings.qgram == '1':
-            indexer = Indexer(self.settings, self.logger, 0.1, records_seqs)
-        else:
-            indexer = QIndexer(self.settings, self.logger, 0.1, records_seqs, int(self.settings.qgram))
-
-        indexer.createIndexAndStore(targets, self.arguments[1], retainInMemory=False)
-        
-
-        self.logger.debug('ComBaR indexing finished.')
-        return self.hitlist
-
 class ComBaRMapper(Aligner):
     
     def __init__(self, logger, score, settings, arguments):
