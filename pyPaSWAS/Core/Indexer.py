@@ -6,7 +6,6 @@ import cPickle
 import zlib
 from SWSeqRecord import SWSeqRecord
 from Bio.Seq import Seq
-from atk import Window
 
 class Indexer:
 
