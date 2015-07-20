@@ -337,12 +337,23 @@ class SmithWatermanCPU(SmithWatermanOcl):
         return self.h_global_direction_zero_copy
     
     def _get_direction(self, direction_array, sequence, target, block_x, block_y, value_x, value_y):
+<<<<<<< HEAD
         #return direction_array[sequence][target][starting_point.value_x][starting_point.value_y]
+=======
+        #self.logger.debug("{}, {}, {}, {}".format(sequence,target,block_x*self.workload_x + value_x,block_y*self.workload_y + value_y))
+        #return direction_array[sequence][target][block_x*self.workload_x + value_x][block_y*self.workload_y + value_y]
+>>>>>>> branch 'pyopencl' of https://github.com/swarris/pyPaSWAS.git
         return direction_array[sequence][target][block_x*self.shared_x + value_x][block_y*self.shared_y + value_y]
     
     def _set_direction(self, direction, direction_array, sequence, target, block_x, block_y, value_x, value_y):
+<<<<<<< HEAD
         #direction_array[sequence][target][starting_point.value_x][starting_point.value_y] = direction
         direction_array[sequence][target][block_x*self.shared_x + value_x][block_y*self.shared_y + value_y] = direction 
+=======
+        #direction_array[sequence][target][block_x*self.workload_x + value_x][block_y*self.workload_y + value_y] = direction
+        direction_array[sequence][target][block_x*self.shared_x + value_x][block_y*self.shared_y + value_y] = direction
+
+>>>>>>> branch 'pyopencl' of https://github.com/swarris/pyPaSWAS.git
         
     def _execute_calculate_score_kernel(self, number_of_blocks, idx, idy):
         ''' Executes a single run of the calculate score kernel'''
