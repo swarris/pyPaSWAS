@@ -262,10 +262,10 @@ class SmithWatermanOcl(SmithWaterman):
         return self.h_starting_points_zero_copy
             
     def _print_alignments(self, sequences, targets, start_seq, start_target, hit_list=None):
-        SmithWaterman._print_alignments(self, sequences, targets, start_seq, start_target, hit_list)
+        return SmithWaterman._print_alignments(self, sequences, targets, start_seq, start_target, hit_list)
         #unmap memory objects
-        del self.h_global_direction_zero_copy
-        del self.h_starting_points_zero_copy
+        #del self.h_global_direction_zero_copy
+        #del self.h_starting_points_zero_copy
                 
     
 class SmithWatermanCPU(SmithWatermanOcl):
@@ -528,9 +528,9 @@ class SmithWatermanNVIDIA(SmithWatermanGPU):
 
         return self.h_global_direction_zero_copy
     
-    def _get_starting_point_byte_array(self):
-        cl.enqueue_copy(self.queue, self.h_starting_points_zero_copy, self.d_starting_points_zero_copy).wait()
-        return self.h_starting_points_zero_copy
+#    def _get_starting_point_byte_array(self):
+#        cl.enqueue_copy(self.queue, self.h_starting_points_zero_copy, self.d_starting_points_zero_copy).wait()
+#        return self.h_starting_points_zero_copy
     
     def _clear_zero_copy_memory(self):
         SmithWatermanGPU._clear_zero_copy_memory(self)
