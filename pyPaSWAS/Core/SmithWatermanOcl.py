@@ -517,7 +517,6 @@ class SmithWatermanNVIDIA(SmithWatermanGPU):
         self._fill_max_possible_score(target_index, targets, i, index, records_seqs)
         
     def _get_direction_byte_array(self):
-#        cl.enqueue_copy(self.queue, self.h_global_direction_zero_copy, self.d_global_direction_zero_copy).wait()
         self.h_global_direction_zero_copy = cl.enqueue_map_buffer(self.queue, self.d_global_direction_zero_copy, cl.map_flags.READ, 0, 
                                                                   (self.number_of_sequences,
                                                                    self.number_targets,
@@ -528,10 +527,7 @@ class SmithWatermanNVIDIA(SmithWatermanGPU):
 
         return self.h_global_direction_zero_copy
     
-#    def _get_starting_point_byte_array(self):
-#        cl.enqueue_copy(self.queue, self.h_starting_points_zero_copy, self.d_starting_points_zero_copy).wait()
-#        return self.h_starting_points_zero_copy
-    
+
     def _clear_zero_copy_memory(self):
         SmithWatermanGPU._clear_zero_copy_memory(self)
                 
