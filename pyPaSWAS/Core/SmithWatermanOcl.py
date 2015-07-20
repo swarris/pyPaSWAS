@@ -5,6 +5,7 @@ from pyPaSWAS.Core.SmithWaterman import SmithWaterman
 from pyPaSWAS.Core import STOP_DIRECTION, LEFT_DIRECTION, NO_DIRECTION, UPPER_DIRECTION, UPPER_LEFT_DIRECTION
 from pyPaSWAS.Core.PaSWAS import CPUcode
 from pyPaSWAS.Core.PaSWAS import GPUcode
+from pyPaSWAS.Core.StartingPoint import StartingPoint
 
 class SmithWatermanOcl(SmithWaterman):
     '''
@@ -336,12 +337,12 @@ class SmithWatermanCPU(SmithWatermanOcl):
         return self.h_global_direction_zero_copy
     
     def _get_direction(self, direction_array, sequence, target, block_x, block_y, value_x, value_y):
-        #self.logger.debug("{}, {}, {}, {}".format(sequence,target,block_x*self.workload_x + value_x,block_y*self.workload_y + value_y))
-        return direction_array[sequence][target][block_x*self.workload_x + value_x][block_y*self.workload_y + value_y]
+        #return direction_array[sequence][target][starting_point.value_x][starting_point.value_y]
+        return direction_array[sequence][target][block_x*self.shared_x + value_x][block_y*self.shared_y + value_y]
     
     def _set_direction(self, direction, direction_array, sequence, target, block_x, block_y, value_x, value_y):
-        direction_array[sequence][target][block_x*self.workload_x + value_x][block_y*self.workload_y + value_y] = direction
-
+        #direction_array[sequence][target][starting_point.value_x][starting_point.value_y] = direction
+        direction_array[sequence][target][block_x*self.shared_x + value_x][block_y*self.shared_y + value_y] = direction 
         
     def _execute_calculate_score_kernel(self, number_of_blocks, idx, idy):
         ''' Executes a single run of the calculate score kernel'''
@@ -381,9 +382,7 @@ class SmithWatermanCPU(SmithWatermanOcl):
         if (self.d_semaphores is not None):
             self.d_semaphores.release()
 
-         
 
-    
 class SmithWatermanGPU(SmithWatermanOcl):
     '''
     classdocs

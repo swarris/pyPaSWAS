@@ -593,7 +593,13 @@ class SmithWaterman(object):
                 idy -= 1
 
  #       self.logger.debug("{}".format(self._get_direction_byte_array()))
-
+    
+    def _is_in_alignment(self, show, block_x, block_y, value_x, value_y, direction):
+        ''' Checks to see if printing the alignment should continue. This method should be implemented by subclasses
+        when looping through direction matrix has changed (see SmithWatermanCPU (SmithWatermanOCL)) '''
+        return show and block_x >= 0 and block_y >= 0 and value_x >= 0 and value_y >= 0 and direction != STOP_DIRECTION and direction != NO_DIRECTION      
+    
+     
     # TODO: return hitlist!!
     # TODO: finish docstring
     def _print_alignments(self, sequences, targets, start_seq, start_target, hit_list=None):
@@ -686,8 +692,7 @@ class SmithWaterman(object):
             if starting_point.score < float(self.settings.minimum_score):
                 show = False
             
-            while (show and block_x >= 0 and block_y >= 0 and value_x >= 0 and value_y >= 0 and
-                   direction != STOP_DIRECTION and direction != NO_DIRECTION):
+            while (self._is_in_alignment(show, block_x, block_y, value_x, value_y, direction)):
                 direction = self._get_direction(direction_array,sequence_starting_point,target_starting_point,block_x,block_y,value_x,value_y)
                 self._set_direction(IN_ALIGNMENT,direction_array,sequence_starting_point,target_starting_point,block_x,block_y,value_x,value_y)
                 alignment_length += 1
