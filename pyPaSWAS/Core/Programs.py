@@ -132,8 +132,8 @@ class ComBaRMapper(Aligner):
             del records_seqs[0]
             while indexer.indicesToProcessLeft():
 
-                if not indexer.unpickle(self.arguments[1]):
-                    indexer.createIndexAndStore(targets, self.arguments[1])
+                #if not indexer.unpickle(self.arguments[1]):
+                indexer.createIndexAndStore(targets, self.arguments[1])
 
                 locations = indexer.findIndices(firstRead.seq)
 
