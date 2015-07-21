@@ -1,0 +1,6 @@
+# This file adds all non-Python modules to the distribute package
+include config.cfg requirements.txt install.sh makefile
+recursive-include pyPaSWAS/Core/cfg *.cfg
+recursive-include pyPaSWAS/Core/cuda *.cu
+recursive-include pyPaSWAS/Core/test/data *.txt *.faa *.gb *.sam
+recursive-include pyPaSWAS/Core/data *.txt *.dat

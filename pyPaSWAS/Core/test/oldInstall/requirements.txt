@@ -1,0 +1,5 @@
+# The following Python packages will be automatically installed when running:
+# pip install pypaswas.zip -r requirements.txt
+numpy>=1.6
+pycuda>=2012.1
+biopython>=1.58
