@@ -3,19 +3,37 @@ pyPaSWAS
 
 extented python version of PaSWAS
 
-PaSWAS was developed in C and CUDA. This version uses only the CUDA code from PaSWAS and integrates the sequence alignment software with Python. It supports:
+PaSWAS was developed in C and CUDA/OpenCL. This version uses the CUDA/OpenCL code from PaSWAS and integrates the sequence alignment software with Python. It supports:
 - text output
 - SAM output
 - logging
 - command line options and configuration files
-- Several internal programs: aligner (default), trimmer, indexer and mapper
+- Several internal programs: aligner (default), trimmer and mapper
 
+Platforms supported:
+- NVIDIA GPU using CUDA (compute capability 1.3 and higher) 
+- NVIDIA GPU using OpenCL
+- Intel CPU using OpenCL
+- Intel Xeon Phi accelerator using OpenCL
+- Other systems supporting OpenCL (AMD, Intel GPUs, etc) should be able to run the software, but are untested.
+
+More information: https://github.com/swarris/pyPaSWAS/wiki
 
 Installation
 ------------
-In most cases it is enough to clone the repository. Make sure CUDA, pyCuda, numpy and bioPython are installed.
+In most cases it is enough to clone the repository. After that, please install:
+- pip (https://docs.python.org/2.7/installing/)
+- numpy: sudo pip install numpy (or pip install --user numpy)
+- BioPython: sudo pip install Biopython (or pip install --user Biopython)
+- in some cases, the python development packages are required (sudo apt-get install python-devel) 
 
-The application also contains a Python script setup.py. This script only requires to have Python installed. The automated procedure will scan the computer for the other packages and install them if needed. When automatic installation fails, the script will report a possible solution.
+Making use of the CUDA version (also recommended when using the OpenCL version on a NVIDIA GPU):
+- Download CUDA sdk: https://developer.nvidia.com/cuda-downloads
+- pip install pyCuda (http://mathema.tician.de/software/pycuda/)
+
+Making use of the OpenCL version:
+- check dependencies or downloads for your system. See this wiki for some great pointers: http://wiki.tiker.net/OpenCLHowTo
+- pip install pyOpenCL
 
 
 Running the software
@@ -28,6 +46,19 @@ Run it by calling:
 
 Help file:
 - *python pypaswas.py --help*
+
+Selection your device
+---------------------
+By default, pypaswas will use the first CPU device. This can be changed by using:
+- *--device_type=[CPU|GPU]*
+- *--platform_name=[Intel|NVIDIA]*
+- *--framework=[opencl|CUDA]*
+- *--device=[int]*
+
+For example, this will select the CPU: --device_type=CPU --platform_name=Intel --framework=opencl
+
+This will select the second NVIDIA GPU: --device_type=GPU --platform_name=NVIDIA --framework=CUDA --device=1
+
 
 Examples
 --------
