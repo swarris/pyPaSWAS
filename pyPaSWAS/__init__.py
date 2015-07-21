@@ -98,7 +98,7 @@ def parse_cli(config_file):
                                'generated output.\nAvailable options are TXT and SAM.\nDefaults to txt',
                                dest='out_format', default=config.get('General', 'out_format'))
     general_options.add_option('-p', '--program', help='The program to be executed. Valid options are "aligner"'
-                               ', "trimmer", "indexed" and "mapper" (last two are experimental)', dest='program',
+                               ', "trimmer" and "mapper" (experimental)', dest='program',
                                default=config.get('General', 'program'))
 
     general_options.add_option('-1', '--filetype1', help='File type of the first file. See bioPython IO for'
@@ -198,6 +198,18 @@ def parse_cli(config_file):
     device_options.add_option('--short_sequences', help='Set to T(true) when aligning short sequences (trimming?) to maximize memory usage.',
                               dest='short_sequences', default=config.get('Device', 'short_sequences'))
     parser.add_option_group(device_options)
+    
+    
+    framework_options = optparse.OptionGroup(parser, 'Determines which parallel computing framework to use for this program ')
+    framework_options.add_option('--framework', help='Choose which parallel computing framework to use, can be either CUDA or OpenCL ', dest='framework',default=config.get('Framework','language'))
+    parser.add_option_group(framework_options)
+    
+    ocl_options = optparse.OptionGroup(parser, 'Options for the usage of the OpenCL framework ')
+    ocl_options.add_option('--device_type', help='Type of device to perform computations on (either CPU, GPU or ACCELARATOR)',
+                           dest='device_type', default=config.get('OpenCL', 'device_type'))
+    ocl_options.add_option('--platform_name', help='Platform to run computations on (either Intel, NVIDIA or AMD)',
+                           dest='platform_name', default=config.get('OpenCL', 'platform_name'))
+    parser.add_option_group(ocl_options)
 
     (settings, arguments) = parser.parse_args()
 

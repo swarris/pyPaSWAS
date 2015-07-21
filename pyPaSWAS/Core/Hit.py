@@ -26,7 +26,6 @@ class Hit(object):
                                     matching part of full_target
         '''
         self.logger = logger
-        #self.logger.debug('Initializing hit: \n{} \n{} \n{} \n{}'. format(sequence_info.id, target_info.id, sequence_location, target_location))
 
         self.sequence_info = sequence_info
         self.target_info = target_info

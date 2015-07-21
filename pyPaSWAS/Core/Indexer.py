@@ -6,7 +6,6 @@ import cPickle
 import zlib
 from SWSeqRecord import SWSeqRecord
 from Bio.Seq import Seq
-from atk import Window
 
 class Indexer:
 
@@ -132,19 +131,25 @@ class Indexer:
         try:
             self.logger.info("Saving index to file: " + self.pickleName(fileName, self.wSize[0] if window == None else window))
             dump = open(self.pickleName(fileName, self.wSize[0] if window == None else window), "w")
-            dump.write(zlib.compress(cPickle.dumps(self.tupleSet, cPickle.HIGHEST_PROTOCOL),9))
+            dump.write(zlib.compress(cPickle.dumps(self.tupleSet, cPickle.HIGHEST_PROTOCOL),1))
             dump.close()
         except:
             self.logger.error("Could not open: " + self.pickleName(fileName, self.wSize[0] if window == None else window))
             
 
     def unpickleWindow(self, fileName, selectedWindow):
+        self.logger.debug("unpickle file: "+ self.pickleName(fileName, selectedWindow))
         try:
             dump = open(self.pickleName(fileName, selectedWindow), "r")
-            self.tupleSet.update(cPickle.loads(zlib.decompress(dump.read())))
+            tSet = cPickle.loads(zlib.decompress(dump.read()))
+            for t in tSet:
+                self.indexCount+= len(tSet[t])
+            self.indexCount += 1 + self.prevCount if self.prevCount == 0 else self.prevCount     
+            self.tupleSet.update(tSet)
             dump.close()
         except:
             self.logger.warning("Could not open pickle file: "+ self.pickleName(fileName, selectedWindow))
+            self.logger.warning("Error: " +  str(sys.exc_info()[0]))
             return False
         return True
 

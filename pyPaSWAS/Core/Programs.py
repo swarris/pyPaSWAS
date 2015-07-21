@@ -1,5 +1,4 @@
 ''' This module contains the programs from the pyPaSWAS suite '''
-from pyPaSWAS.Core.SmithWaterman import SmithWaterman
 from pyPaSWAS.Core.HitList import HitList
 from pyPaSWAS.Core.Indexer import Indexer
 from pyPaSWAS.Core.QIndexer import QIndexer
@@ -33,7 +32,28 @@ class Aligner(object):
         self.hitlist = HitList(self.logger)
         logger.debug('Setting SW...')
         self.settings = settings
-        self.smith_waterman = SmithWaterman(self.logger, self.score, settings)
+        if (self.settings.framework.upper() == 'OPENCL'):
+            if(self.settings.device_type.upper() == 'GPU'):
+                if(self.settings.platform_name.upper() == 'NVIDIA'):
+                    self.logger.debug('Using OpenCL NVIDIA implementation')
+                    from pyPaSWAS.Core.SmithWatermanOcl import SmithWatermanNVIDIA
+                    self.smith_waterman = SmithWatermanNVIDIA(self.logger, self.score, settings)
+                else:
+                    self.logger.debug('Using OpenCL GPU implementation')
+                    from pyPaSWAS.Core.SmithWatermanOcl import SmithWatermanGPU
+                    self.smith_waterman = SmithWatermanGPU(self.logger, self.score, settings)
+            elif(self.settings.device_type.upper() == 'CPU'):
+                self.logger.debug('Using OpenCL CPU implementation')
+                from pyPaSWAS.Core.SmithWatermanOcl import SmithWatermanCPU
+                self.smith_waterman = SmithWatermanCPU(self.logger, self.score, settings)
+            else:
+                self.logger.debug('Using default OpenCL implementation')
+                from pyPaSWAS.Core.SmithWatermanOcl import SmithWatermanCPU
+                self.smith_waterman = SmithWatermanCPU(self.logger, self.score, settings)
+        else:
+            self.logger.debug('Using CUDA implemetation')
+            from pyPaSWAS.Core.SmithWatermanCuda import SmithWatermanCuda
+            self.smith_waterman = SmithWatermanCuda(self.logger, self.score, settings)
         self.logger.debug('Aligner initialized.')
 
     def process(self, records_seqs, targets):
@@ -86,28 +106,6 @@ class Trimmer(Aligner):
         self.logger.debug('Aligner processing OK, returning hitlist.')
         return self.hitlist
 
-class ComBaRIndexer(Aligner):
-    
-    def __init__(self, logger, score, settings, arguments):
-        Aligner.__init__(self, logger, score, settings)
-        self.arguments = arguments
-
-    def process(self, records_seqs, targets):
-        '''This methods creates index files for targets based on the length of the records.
-        '''
-        # step through the targets
-        self.logger.debug('ComBaR indexing. Qgram = {qgram}'.format(qgram=self.settings.qgram))
-        if self.settings.qgram == '1':
-            indexer = Indexer(self.settings, self.logger, 0.1, records_seqs)
-        else:
-            indexer = QIndexer(self.settings, self.logger, 0.1, records_seqs, int(self.settings.qgram))
-
-        indexer.createIndexAndStore(targets, self.arguments[1], retainInMemory=False)
-        
-
-        self.logger.debug('ComBaR indexing finished.')
-        return self.hitlist
-
 class ComBaRMapper(Aligner):
     
     def __init__(self, logger, score, settings, arguments):
@@ -134,8 +132,8 @@ class ComBaRMapper(Aligner):
             del records_seqs[0]
             while indexer.indicesToProcessLeft():
 
-                if not indexer.unpickle(self.arguments[1]):
-                    indexer.createIndexAndStore(targets, self.arguments[1])
+                #if not indexer.unpickle(self.arguments[1]):
+                indexer.createIndexAndStore(targets, self.arguments[1])
 
                 locations = indexer.findIndices(firstRead.seq)
 
