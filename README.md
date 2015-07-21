@@ -25,7 +25,7 @@ In most cases it is enough to clone the repository. After that, please install:
 - pip (https://docs.python.org/2.7/installing/)
 - numpy: sudo pip install numpy (or pip install --user numpy)
 - BioPython: sudo pip install Biopython (or pip install --user Biopython)
-- in some cases, the python development packages are required (sudo apt-get install python-devel) 
+- in some cases, the python development packages are required (Ubuntu: sudo apt-get install python-dev) 
 
 Making use of the CUDA version (also recommended when using the OpenCL version on a NVIDIA GPU):
 - Download CUDA sdk: https://developer.nvidia.com/cuda-downloads
