@@ -52,6 +52,7 @@ class Indexer:
 
     def createIndex(self, sequence, fileName = None, retainInMemory=True):
         currentTupleSet = {}
+        self.prevCount = self.indexCount
         self.indexCount = 0
         for window in self.wSize:
             if not os.path.isfile(self.pickleName(fileName, window)): 
@@ -139,7 +140,7 @@ class Indexer:
 
     def unpickleWindow(self, fileName, selectedWindow):
         self.logger.debug("unpickle file: "+ self.pickleName(fileName, selectedWindow))
-        try:
+        if True:#try:
             dump = open(self.pickleName(fileName, selectedWindow), "r")
             tSet = cPickle.loads(zlib.decompress(dump.read()))
             for t in tSet:
@@ -147,7 +148,7 @@ class Indexer:
             self.indexCount += 1 + self.prevCount if self.prevCount == 0 else self.prevCount     
             self.tupleSet.update(tSet)
             dump.close()
-        except:
+        else: #except:
             self.logger.warning("Could not open pickle file: "+ self.pickleName(fileName, selectedWindow))
             self.logger.warning("Error: " +  str(sys.exc_info()[0]))
             return False
