@@ -25,7 +25,7 @@ class Indexer:
         self.settings = settings
         self.logger = logger
         self.stepFactor = stepFactor
-        self.sliceDistance = self.sliceDistance*self.sliceDistance*self.compositionScale*self.compositionScale
+        self.sliceDistance = self.sliceDistance#*self.sliceDistance*self.compositionScale*self.compositionScale
 
         
         self.wSize = list(set(map(lambda x : len(x) , reads)))
@@ -53,6 +53,7 @@ class Indexer:
     def createIndex(self, sequence, fileName = None, retainInMemory=True):
         currentTupleSet = {}
         self.indexCount = 0
+        self.prevCount = self.indexCount
         for window in self.wSize:
             if not os.path.isfile(self.pickleName(fileName, window)): 
                 self.tupleSet = {}
@@ -63,7 +64,7 @@ class Indexer:
                     revWindowSize = int(self.reverseWindowSize(window)*self.stepFactor*self.slideStep) 
                     for index in xrange(endIndex):
                         if index % revWindowSize == 0:
-                            comp = self.count(seq, window,index,index+int(window))
+                            comp = tuple(self.count(seq, window,index,index+int(window)))
                             if self.indicesStep == None or (self.indicesStep < self.indexCount <= self.indicesStep + self.indicesStepSize) :    
                                 if comp not in self.tupleSet:
                                     self.tupleSet[comp] = []

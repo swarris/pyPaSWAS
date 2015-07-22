@@ -38,7 +38,7 @@ class QIndexer (Indexer):
             self.generate_character_list(level-1)
 
     def count(self, seq, window, start_index, end_index):
-        results = [0]*(len(self.character_list)+1)#numpy.zeros(len(self.character_list)+1)
+        results = numpy.zeros(len(self.character_list)+1)
         results[0] = window
         
         if len(seq) > 0 and end_index - start_index > 0:
@@ -54,9 +54,10 @@ class QIndexer (Indexer):
                     
                     if "N" not in subStr and len(subStr.strip()) > 0:
                         results[self.character_index[subStr]] += fraction 
-                results = map(lambda x: int(x), results)
+        r = results.view(int)
+        r[:] = results
 
-        return( tuple(results) )
+        return(r)
 
     def createIndexAndStore(self, sequence, fileName, retainInMemory=True):
         self.createIndex(sequence, fileName, retainInMemory)
@@ -84,15 +85,22 @@ class QIndexer (Indexer):
         while loc < len(self.wSize)-1 and self.windowSize(len(seq)) > self.wSize[loc]:
             loc += 1
         comp = self.count(seq.upper(), self.wSize[loc], 0, len(seq))
-        if not step:
-            validComp = filter(lambda x : x[0] == comp[0] and reduce(lambda x,y: x+y, [(x[i] -comp[i])**2 for i in range(1,len(self.character_list))]) < self.sliceDistance, self.tupleSet.keys())
-        else :
-            validComp = filter(lambda x : x[0] == comp[0] and ( start <= math.sqrt(reduce(lambda x,y: x+y, [(x[i] -comp[i])**2 for i in range(1,len(self.character_list))]))/self.compositionScale < start + self.distanceStep), self.tupleSet.keys())
+        keys = self.tupleSet.keys()
+        compAll = numpy.asarray(keys)
+        
+        distances = numpy.linalg.norm(compAll - comp, axis=1)
+
+        validComp = [keys[x] for x in range(len(keys)) if keys[x][0] == comp[0] and distances[x]  < self.sliceDistance]
+        
         for valid in validComp:
             for hit in self.tupleSet[valid]:
                 if hit[1] not in hits:
                     hits[hit[1]] = []
-                hits[hit[1]].extend([(hit, self.wSize[loc], math.sqrt(reduce(lambda x,y: x+y, [(valid[i] -comp[i])**2 for i in range(1,len(self.character_list))]))/self.compositionScale)])
-        for hit in hits:    
-            hits[hit].sort(cmp=(lambda x,y: -1 if x[0][0] < y[0][0] else 1))
+                hits[hit[1]].extend([(hit, self.wSize[loc], numpy.linalg.norm(valid - comp))])
+        #for hit in hits:    
+        #    hits[hit].sort(cmp=(lambda x,y: -1 if x[0][0] < y[0][0] else 1))
         return hits
+    
+
+
+    
