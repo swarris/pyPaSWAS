@@ -90,7 +90,7 @@ class QIndexer (Indexer):
         
         distances = numpy.linalg.norm(compAll - comp, axis=1)
 
-        validComp = [keys[x] for x in range(len(keys)) if keys[x][0] == comp[0] and distances[x]  < self.sliceDistance]
+        validComp = [keys[x] for x in xrange(len(keys)) if keys[x][0] == comp[0] and distances[x]  < self.sliceDistance]
         
         for valid in validComp:
             for hit in self.tupleSet[valid]:
