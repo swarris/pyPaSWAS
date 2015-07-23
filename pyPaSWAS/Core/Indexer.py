@@ -64,7 +64,7 @@ class Indexer:
                     revWindowSize = int(self.reverseWindowSize(window)*self.stepFactor*self.slideStep) 
                     for index in xrange(endIndex):
                         if index % revWindowSize == 0:
-                            comp = tuple(self.count(seq, window,index,index+int(window)))
+                            comp = self.count(seq, window,index,index+int(window))
                             if self.indicesStep == None or (self.indicesStep < self.indexCount <= self.indicesStep + self.indicesStepSize) :    
                                 if comp not in self.tupleSet:
                                     self.tupleSet[comp] = []
@@ -132,7 +132,7 @@ class Indexer:
         try:
             self.logger.info("Saving index to file: " + self.pickleName(fileName, self.wSize[0] if window == None else window))
             dump = open(self.pickleName(fileName, self.wSize[0] if window == None else window), "w")
-            dump.write(zlib.compress(cPickle.dumps(self.tupleSet, cPickle.HIGHEST_PROTOCOL),1))
+            dump.write(zlib.compress(cPickle.dumps(self.tupleSet, cPickle.HIGHEST_PROTOCOL),9))
             dump.close()
             self.logger.info("Done saving index to file.")
         except:

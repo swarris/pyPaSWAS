@@ -7,6 +7,9 @@ import zlib
 import re
 import collections
 import numpy
+import scipy
+from scipy.sparse import csc_matrix
+
 
 from SWSeqRecord import SWSeqRecord
 from Bio.Seq import Seq
@@ -57,7 +60,7 @@ class QIndexer (Indexer):
         r = results.view(int)
         r[:] = results
 
-        return(r)
+        return(csc_matrix(r))
 
     def createIndexAndStore(self, sequence, fileName, retainInMemory=True):
         self.createIndex(sequence, fileName, retainInMemory)
@@ -68,6 +71,9 @@ class QIndexer (Indexer):
         else:
             return fileName + ".Q" + str(self.qgram) + "." + str(length) + "." + str(self.indicesStep) + ".index"
 
+    def distance_calc(self,x,y):
+        z = x-y
+        return math.sqrt((z).multiply(z).sum())/self.compositionScale
 
     def findIndices(self,seq, start = 0.0, step=False):
         """ finds the seeding locations for the mapping process.
@@ -84,19 +90,21 @@ class QIndexer (Indexer):
         loc = 0
         while loc < len(self.wSize)-1 and self.windowSize(len(seq)) > self.wSize[loc]:
             loc += 1
+
         comp = self.count(seq.upper(), self.wSize[loc], 0, len(seq))
         keys = self.tupleSet.keys()
-        compAll = numpy.asarray(keys)
+        compAll = keys
         
-        distances = numpy.linalg.norm(compAll - comp, axis=1)
+        
+        distances = [self.distance_calc(a, comp) for a in compAll] 
 
-        validComp = [keys[x] for x in xrange(len(keys)) if keys[x][0] == comp[0] and distances[x]  < self.sliceDistance]
+        validComp = [keys[x] for x in xrange(len(keys)) if keys[x].data[0] == comp.data[0] and distances[x]  < self.sliceDistance]
         
         for valid in validComp:
             for hit in self.tupleSet[valid]:
                 if hit[1] not in hits:
                     hits[hit[1]] = []
-                hits[hit[1]].extend([(hit, self.wSize[loc], numpy.linalg.norm(valid - comp))])
+                hits[hit[1]].extend([(hit, self.wSize[loc], self.distance_calc((valid - comp)))])
         #for hit in hits:    
         #    hits[hit].sort(cmp=(lambda x,y: -1 if x[0][0] < y[0][0] else 1))
         return hits
