@@ -8,6 +8,7 @@ import re
 import collections
 import numpy
 import scipy
+import gc
 from scipy.sparse import csc_matrix
 
 
@@ -72,8 +73,9 @@ class QIndexer (Indexer):
             return fileName + ".Q" + str(self.qgram) + "." + str(length) + "." + str(self.indicesStep) + ".index"
 
     def distance_calc(self,x,y):
-        z = x-y
-        return math.sqrt((z).multiply(z).sum())/self.compositionScale
+        return numpy.linalg.norm(x.toarray() - y.toarray())/self.compositionScale
+        #z = x-y
+        #return math.sqrt((z).multiply(z).sum())/self.compositionScale
 
     def findIndices(self,seq, start = 0.0, step=False):
         """ finds the seeding locations for the mapping process.
@@ -104,9 +106,10 @@ class QIndexer (Indexer):
             for hit in self.tupleSet[valid]:
                 if hit[1] not in hits:
                     hits[hit[1]] = []
-                hits[hit[1]].extend([(hit, self.wSize[loc], self.distance_calc((valid - comp)))])
+                hits[hit[1]].extend([(hit, self.wSize[loc], self.distance_calc(valid, comp))])
         #for hit in hits:    
         #    hits[hit].sort(cmp=(lambda x,y: -1 if x[0][0] < y[0][0] else 1))
+        self.logger.debug("Unreleased objects: {}".format(gc.collect()))
         return hits
     
 
