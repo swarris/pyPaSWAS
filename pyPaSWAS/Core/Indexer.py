@@ -52,8 +52,9 @@ class Indexer:
 
     def createIndex(self, sequence, fileName = None, retainInMemory=True):
         currentTupleSet = {}
-        self.indexCount = 0
         self.prevCount = self.indexCount
+        self.indexCount = 0
+
         for window in self.wSize:
             if not os.path.isfile(self.pickleName(fileName, window)): 
                 self.tupleSet = {}
