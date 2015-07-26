@@ -473,7 +473,7 @@ class SmithWaterman(object):
 
             sequenceStr = []
             self.added_dummy_seqs = 0
-             
+
             for i in range(self.max_sequences):
                 if i+index < len(records_seqs):
                     sequenceStr.append(SWSeq.extentToFillGPU(str(records_seqs[i+index].seq), length))
@@ -484,10 +484,9 @@ class SmithWaterman(object):
                 for tI in range(self.number_of_targets):
                     if tI+target_index < len(targets) and i+index < len(records_seqs):
                         self._set_max_possible_score(target_index, targets, i, index, records_seqs)
-            
+
             # copy sequences and targets to the device
             sequence_array = numpy.array(''.join(sequenceStr), dtype=numpy.character)
-
 
             self.logger.debug("At sequence: {0} of {1}, length = {2}".format(index, len(records_seqs), self.max_sequences))
 
