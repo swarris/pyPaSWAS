@@ -149,8 +149,8 @@ class Pypaswas(object):
             self.program = ComBaRMapper(self.logger, self.score, self.settings, self.arguments)
             self.logger.warning("Removing limits on length of sequences for ComBaR mapping!")
             self.settings.limit_length = 10**20
-            self.logger.warning("Setting query_step to 1 for ComBaR mapping")
-            self.settings.query_step = 1
+            #self.logger.warning("Setting query_step to 1 for ComBaR mapping")
+            #self.settings.query_step = 1
         else:
             raise InvalidOptionException('Invalid program selected {0}'.format(self.settings.program))
 

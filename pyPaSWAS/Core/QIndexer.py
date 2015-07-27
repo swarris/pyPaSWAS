@@ -73,9 +73,9 @@ class QIndexer (Indexer):
             return fileName + ".Q" + str(self.qgram) + "." + str(length) + "." + str(self.indicesStep) + ".index"
 
     def distance_calc(self,x,y):
-        #return numpy.linalg.norm(x.toarray() - y.toarray())/self.compositionScale
-        self.z = x-y
-        return math.sqrt((self.z).multiply(self.z).sum())/self.compositionScale
+        return numpy.linalg.norm(x.toarray() - y.toarray())/self.compositionScale
+        #self.z = x-y
+        #return math.sqrt((self.z).multiply(self.z).sum())/self.compositionScale
 
     def findIndices(self,seq, start = 0.0, step=False):
         """ finds the seeding locations for the mapping process.
