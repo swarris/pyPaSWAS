@@ -539,7 +539,7 @@ class SmithWaterman(object):
 
     def set_minimum_score(self, index, minScore):
         # @TO-DO: this is bugfix for the read mapping algorithm. Should not happen, so fix this where it should be fixed
-        if index < len(self.h_max_possible_score_zero_copy):
+        if index < len(self.min_score_np):
             #self.h_max_possible_score_zero_copy[index] = minScore
             self.min_score_np[index] = minScore
 
