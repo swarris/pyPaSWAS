@@ -173,6 +173,11 @@ class SmithWatermanCuda(SmithWaterman):
         driver.memcpy_htod(self.d_sequences, h_sequences)  #@UndefinedVariable @IgnorePep8
         driver.memcpy_htod(self.d_targets, h_targets)  #@UndefinedVariable @IgnorePep8
     
+    def _copy_min_score(self):
+        driver.memcpy_htod(self.d_max_possible_score_zero_copy, self.min_score_np)
+ 
+
+    
     def _execute_calculate_score_kernel(self, number_of_blocks, idx, idy):
         ''' Executes a single run of the calculate score kernel'''
         dim_grid_sw = (self.number_of_sequences, self.number_targets * number_of_blocks)

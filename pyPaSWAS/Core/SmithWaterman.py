@@ -116,7 +116,7 @@ class SmithWaterman(object):
         # h_max_possible_score_zero_copy holds the maximum possible score a sequence (X) can have (for each sequence).
         self.h_max_possible_score_zero_copy = None
         self.d_max_possible_score_zero_copy = None
-
+        self.min_score_np = None
         self.max_length = None
         self.has_been_compiled = False
         self.max_sequences = 0
@@ -469,12 +469,13 @@ class SmithWaterman(object):
                     self._init_sw(length, self.target_block_length, self.max_sequences, self.number_of_targets)
 
             # add sequences to the list
-            self.logger.debug("here 1")
+            
             self.added_dummy_seqs = 0
 
             sequenceStr = []
             self.added_dummy_seqs = 0
 
+            self.min_score_np = numpy.zeros(self.max_sequences* self.number_of_targets, dtype=numpy.float32)
             for i in range(self.max_sequences):
                 if i+index < len(records_seqs):
                     sequenceStr.append(SWSeq.extentToFillGPU(str(records_seqs[i+index].seq), length))
@@ -482,11 +483,8 @@ class SmithWaterman(object):
                     sequenceStr.append(SWSeq.extentToFillGPU(SWSeq.SPECIAL_CHAR*length, length))
                     self.added_dummy_seqs += 1
 
-
-                #for tI in range(self.number_of_targets):
-                #    if tI+target_index < len(targets) and i+index < len(records_seqs):
                 self._set_max_possible_score(target_index, targets, i, index, records_seqs)
-
+            self._copy_min_score()
             # copy sequences and targets to the device
             sequence_array = numpy.array(''.join(sequenceStr), dtype=numpy.character)
 
@@ -536,10 +534,14 @@ class SmithWaterman(object):
             self._init_memory()
             self.has_been_compiled = True
 
+    def _copy_min_score(self):
+        pass
+
     def set_minimum_score(self, index, minScore):
         # @TO-DO: this is bugfix for the read mapping algorithm. Should not happen, so fix this where it should be fixed
         if index < len(self.h_max_possible_score_zero_copy):
-            self.h_max_possible_score_zero_copy[index] = minScore
+            #self.h_max_possible_score_zero_copy[index] = minScore
+            self.min_score_np[index] = minScore
 
     def _calculate_score(self):
         """ Calculates the Smith-Waterman scores on the device """

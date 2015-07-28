@@ -270,16 +270,18 @@ class SmithWatermanOcl(SmithWaterman):
                                                                                                      if len(records_seqs[i+index]) < len(targets[tI+target_index]) 
                                                                                                      else len(targets[tI+target_index])) * float(self.filter_factor))
 
-    
+    def _copy_min_score(self):
+        cl.enqueue_copy(self.queue, self.d_max_possible_score_zero_copy, self.min_score_np)
+        
     def _set_max_possible_score(self, target_index, targets, i, index, records_seqs):
         '''fills the max_possible_score datastructure on the host'''
-        self.h_max_possible_score_zero_copy = cl.enqueue_map_buffer(self.queue, self.d_max_possible_score_zero_copy, 
-                                                                    cl.map_flags.WRITE, 0, 
-                                                                    self.number_of_sequences * self.number_targets , 
-                                                                    dtype=numpy.float32)[0]
+#        self.h_max_possible_score_zero_copy = cl.enqueue_map_buffer(self.queue, self.d_max_possible_score_zero_copy, 
+#                                                                    cl.map_flags.WRITE, 0, 
+#                                                                    self.number_of_sequences * self.number_targets , 
+#                                                                    dtype=numpy.float32)[0]
         self._fill_max_possible_score(target_index, targets, i, index, records_seqs)
         #Unmap memory object
-        del self.h_max_possible_score_zero_copy
+#        del self.h_max_possible_score_zero_copy
         
     def _get_starting_point_byte_array(self):
         '''
@@ -549,7 +551,7 @@ class SmithWatermanNVIDIA(SmithWatermanGPU):
         return 2*mem_size
     
     def _set_max_possible_score(self, target_index, targets, i, index, records_seqs):
-        cl.enqueue_copy(self.queue, self.d_max_possible_score_zero_copy, self.h_max_possible_score_zero_copy)
+        #cl.enqueue_copy(self.queue, self.d_max_possible_score_zero_copy, self.h_max_possible_score_zero_copy)
         self._fill_max_possible_score(target_index, targets, i, index, records_seqs)
         
     def _get_direction_byte_array(self):
