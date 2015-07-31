@@ -134,25 +134,57 @@ class SmithWatermanOcl(SmithWaterman):
         self.logger.debug('Clearing device memory.')
         self._clear_normal_memory()
         self._clear_zero_copy_memory()
+        try: 
+            self.queue.finish()
+        except:
+            pass
         
     def _clear_normal_memory(self):
         self.logger.debug('Clearing normal device memory.')
         if (self.d_sequences is not None):
+            try: 
+                self.d_sequences.finish()
+            except:
+                pass
             self.d_sequences.release() 
         if (self.d_targets is not None):
+            try:
+                self.d_targets.finish()
+            except:
+                pass
             self.d_targets.release()
         if (self.d_matrix is not None):
+            try:
+                self.d_matrix.finish()
+            except:
+                pass
             self.d_matrix.release()
         if (self.d_global_maxima is not None):
+            try: 
+                self.d_global_maxima.finish()
+            except:
+                pass
             self.d_global_maxima.release()
             
     def _clear_zero_copy_memory(self):
         self.logger.debug('Clearing zero-copy device memory.')
         if (self.d_starting_points_zero_copy is not None):
+            try:
+                self.d_starting_points_zero_copy.finish()
+            except:
+                pass
             self.d_starting_points_zero_copy.release()
         if (self.d_global_direction_zero_copy is not None):
+            try:
+                self.d_global_direction_zero_copy.finish()
+            except:
+                pass
             self.d_global_direction_zero_copy.release()
         if (self.d_max_possible_score_zero_copy is not None):
+            try:
+                self.d_max_possible_score_zero_copy.finish()
+            except:
+                pass
             self.d_max_possible_score_zero_copy.release()
 
     def _init_normal_memory(self):
@@ -190,7 +222,7 @@ class SmithWatermanOcl(SmithWaterman):
         
         # Maximum zero copy memory allocation and device copy
         memory = (self.number_of_sequences * self.number_of_targets * SmithWaterman.float_size)
-        self.d_max_possible_score_zero_copy = cl.Buffer(self.ctx, cl.mem_flags.READ_ONLY | cl.mem_flags.ALLOC_HOST_PTR, size=memory)
+        #self.d_max_possible_score_zero_copy = cl.Buffer(self.ctx, cl.mem_flags.READ_ONLY | cl.mem_flags.ALLOC_HOST_PTR, size=memory)
         mem_size += memory
         
         return mem_size
@@ -206,7 +238,7 @@ class SmithWatermanOcl(SmithWaterman):
         ''' Initializes the index used for the 'zero copy' of the found starting points '''
         self.d_index_increment = cl.Buffer(self.ctx, cl.mem_flags.WRITE_ONLY, size=SmithWaterman.int_size)
         index = numpy.zeros((1), dtype=numpy.int32)
-        cl.enqueue_write_buffer(self.queue, self.d_index_increment, index).wait()
+        cl.enqueue_write_buffer(self.queue, self.d_index_increment, index)
 
     def _compile_code(self):
         """Compile the device code with current settings"""
@@ -221,8 +253,8 @@ class SmithWatermanOcl(SmithWaterman):
         @param h_sequences: the sequences to be copied. Should be a single string containing all sequences
         @param h_targets: the targets to be copied. Should be a single string containing all sequences
         '''
-        cl.enqueue_copy(self.queue, self.d_sequences, h_sequences).wait()
-        cl.enqueue_copy(self.queue, self.d_targets, h_targets).wait()
+        cl.enqueue_copy(self.queue, self.d_sequences, h_sequences)
+        cl.enqueue_copy(self.queue, self.d_targets, h_targets)
         
     def _get_number_of_starting_points(self):
         ''' Returns the number of startingpoints. '''
@@ -238,16 +270,20 @@ class SmithWatermanOcl(SmithWaterman):
                                                                                                      if len(records_seqs[i+index]) < len(targets[tI+target_index]) 
                                                                                                      else len(targets[tI+target_index])) * float(self.filter_factor))
 
-    
+    def _copy_min_score(self):
+        self.d_max_possible_score_zero_copy = cl.Buffer(self.ctx, cl.mem_flags.READ_ONLY | cl.mem_flags.ALLOC_HOST_PTR| cl.mem_flags.COPY_HOST_PTR, hostbuf=self.min_score_np\
+)
+        #cl.enqueue_copy(self.queue, self.d_max_possible_score_zero_copy, self.min_score_np)
+        
     def _set_max_possible_score(self, target_index, targets, i, index, records_seqs):
         '''fills the max_possible_score datastructure on the host'''
-        self.h_max_possible_score_zero_copy = cl.enqueue_map_buffer(self.queue, self.d_max_possible_score_zero_copy, 
-                                                                    cl.map_flags.WRITE, 0, 
-                                                                    self.number_of_sequences * self.number_targets , 
-                                                                    dtype=numpy.float32)[0]
+#        self.h_max_possible_score_zero_copy = cl.enqueue_map_buffer(self.queue, self.d_max_possible_score_zero_copy, 
+#                                                                    cl.map_flags.WRITE, 0, 
+#                                                                    self.number_of_sequences * self.number_targets , 
+#                                                                    dtype=numpy.float32)[0]
         self._fill_max_possible_score(target_index, targets, i, index, records_seqs)
         #Unmap memory object
-        del self.h_max_possible_score_zero_copy
+#        del self.h_max_possible_score_zero_copy
         
     def _get_starting_point_byte_array(self):
         '''
@@ -358,7 +394,7 @@ class SmithWatermanCPU(SmithWatermanOcl):
                                     self.d_sequences, 
                                     self.d_targets,
                                     self.d_global_maxima, 
-                                    self.d_global_direction_zero_copy).wait()
+                                    self.d_global_direction_zero_copy)
     
     def _execute_traceback_kernel(self, number_of_blocks, idx, idy):
         ''' Executes a single run of the traceback kernel'''
@@ -374,11 +410,15 @@ class SmithWatermanCPU(SmithWatermanOcl):
                                self.d_index_increment,
                                self.d_starting_points_zero_copy,
                                self.d_max_possible_score_zero_copy,
-                               self.d_semaphores).wait()
+                               self.d_semaphores)
                                
     def _clear_memory(self):
         SmithWatermanOcl._clear_memory(self)
         if (self.d_semaphores is not None):
+            try:
+                self.d_semaphores.finish()
+            except:
+                pass
             self.d_semaphores.release()
 
 
@@ -444,7 +484,7 @@ class SmithWatermanGPU(SmithWatermanOcl):
                                     self.d_sequences, 
                                     self.d_targets,
                                     self.d_global_maxima, 
-                                    self.d_global_direction_zero_copy).wait()
+                                    self.d_global_direction_zero_copy)
                                     
                                     
     
@@ -461,7 +501,7 @@ class SmithWatermanGPU(SmithWatermanOcl):
                                self.d_global_direction_zero_copy,
                                self.d_index_increment,
                                self.d_starting_points_zero_copy,
-                               self.d_max_possible_score_zero_copy).wait()
+                               self.d_max_possible_score_zero_copy)
                             
     
 class SmithWatermanNVIDIA(SmithWatermanGPU):
@@ -503,17 +543,20 @@ class SmithWatermanNVIDIA(SmithWatermanGPU):
                 
         # Maximum zero copy memory allocation and device copy
         memory = (self.number_of_sequences * self.number_of_targets * SmithWaterman.float_size)
-        self.pinned_max_possible_score_zero_copy = cl.Buffer(self.ctx, cl.mem_flags.ALLOC_HOST_PTR, size=memory)
-        self.d_max_possible_score_zero_copy = cl.Buffer(self.ctx, cl.mem_flags.READ_ONLY, size=memory)
-        self.h_max_possible_score_zero_copy = cl.enqueue_map_buffer(self.queue, self.pinned_max_possible_score_zero_copy, cl.map_flags.WRITE, 0, 
-                                                                    (self.number_of_sequences * self.number_of_targets, 1), dtype=numpy.float32)[0]
+#        self.pinned_max_possible_score_zero_copy = cl.Buffer(self.ctx, cl.mem_flags.ALLOC_HOST_PTR, size=memory)
+#        self.d_max_possible_score_zero_copy = cl.Buffer(self.ctx, cl.mem_flags.READ_ONLY, size=memory)
+#        self.h_max_possible_score_zero_copy = cl.enqueue_map_buffer(self.queue, self.pinned_max_possible_score_zero_copy, cl.map_flags.WRITE, 0, 
+#                                                                    (self.number_of_sequences * self.number_of_targets, 1), dtype=numpy.float32)[0]
         mem_size += memory
         
         # Zero copy buffers are allocated twice in NVIDIA        
         return 2*mem_size
     
+#    def _copy_min_score(self):
+#        self.d_max_possible_score_zero_copy = cl.Buffer(self.ctx, cl.mem_flags.READ_ONLY | cl.mem_flags.ALLOC_HOST_PTR| cl.mem_flags.COPY_HOST_PTR, hostbuf=self.min_score_np\
+
     def _set_max_possible_score(self, target_index, targets, i, index, records_seqs):
-        cl.enqueue_copy(self.queue, self.d_max_possible_score_zero_copy, self.h_max_possible_score_zero_copy).wait()
+        #cl.enqueue_copy(self.queue, self.d_max_possible_score_zero_copy, self.h_max_possible_score_zero_copy)
         self._fill_max_possible_score(target_index, targets, i, index, records_seqs)
         
     def _get_direction_byte_array(self):
@@ -532,10 +575,22 @@ class SmithWatermanNVIDIA(SmithWatermanGPU):
         SmithWatermanGPU._clear_zero_copy_memory(self)
                 
         if (self.pinned_starting_points_zero_copy is not None):
+            try:
+                self.pinned_starting_points_zero_copy.finish()
+            except:
+                pass
             self.pinned_starting_points_zero_copy.release()
         if (self.pinned_global_direction_zero_copy is not None):
+            try:
+                self.pinned_global_direction_zero_copy.finish()
+            except:
+                pass
             self.pinned_global_direction_zero_copy.release()
         if (self.pinned_max_possible_score_zero_copy is not None):
+            try:
+                self.pinned_max_possible_score_zero_copy.finish()
+            except:
+                pass
             self.pinned_max_possible_score_zero_copy.release()
             
     def _compile_ocl_code(self):

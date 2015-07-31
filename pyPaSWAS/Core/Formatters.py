@@ -80,7 +80,7 @@ class SamFormatter(DefaultFormatter):
 
     def print_results(self):
         '''sets, formats and prints the results to a file.'''
-        self.logger.debug('formatting results...')
+        self.logger.info('formatting results...')
         #format header and hit lines
         for hit in self.hitlist.real_hits.itervalues():
             self._format_hit(hit)
@@ -94,7 +94,7 @@ class SamFormatter(DefaultFormatter):
         for header_line in self.sq_lines:
             output.write(self.sq_lines[header_line] + '\n')
         #program information header line
-        output.write('@PG\tID:0\tPN:paswas\tVN:1.1\n')
+        output.write('@PG\tID:0\tPN:paswas\tVN:2.1\n')
         #write the hit lines to the output file
         for line in self.record_lines:
             output.write(line + '\n')
@@ -129,7 +129,7 @@ class TrimmerFormatter(DefaultFormatter):
 
     def print_results(self):
         '''sets, formats and prints the results to a file.'''
-        self.logger.debug('formatting results...')
+        self.logger.info('formatting results...')
         #format header and hit lines
         for hit in self.hitlist.real_hits.itervalues():
             self._format_hit(hit)

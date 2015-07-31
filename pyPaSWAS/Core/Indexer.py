@@ -25,7 +25,7 @@ class Indexer:
         self.settings = settings
         self.logger = logger
         self.stepFactor = stepFactor
-        self.sliceDistance = self.sliceDistance*self.sliceDistance*self.compositionScale*self.compositionScale
+        self.sliceDistance = self.sliceDistance#*self.sliceDistance*self.compositionScale*self.compositionScale
 
         
         self.wSize = list(set(map(lambda x : len(x) , reads)))
@@ -54,6 +54,7 @@ class Indexer:
         currentTupleSet = {}
         self.prevCount = self.indexCount
         self.indexCount = 0
+
         for window in self.wSize:
             if not os.path.isfile(self.pickleName(fileName, window)): 
                 self.tupleSet = {}
@@ -132,8 +133,9 @@ class Indexer:
         try:
             self.logger.info("Saving index to file: " + self.pickleName(fileName, self.wSize[0] if window == None else window))
             dump = open(self.pickleName(fileName, self.wSize[0] if window == None else window), "w")
-            dump.write(zlib.compress(cPickle.dumps(self.tupleSet, cPickle.HIGHEST_PROTOCOL),1))
+            dump.write(zlib.compress(cPickle.dumps(self.tupleSet, cPickle.HIGHEST_PROTOCOL),9))
             dump.close()
+            self.logger.info("Done saving index to file.")
         except:
             self.logger.error("Could not open: " + self.pickleName(fileName, self.wSize[0] if window == None else window))
             

@@ -95,9 +95,9 @@ class BioPythonReader(Reader):
                             if len(record.seq) <= self.limitlength and len(record.seq) > 0]
             diff = nrecords - len(self.records)
             if diff > 0:
-                self.logger.warning('{} sequence(s) removed with length > limit_length ({}bp)'.format(diff, self.limitlength))
+                self.logger.info('{} sequence(s) removed with length > limit_length ({}bp)'.format(diff, self.limitlength))
             if end==None and len(self.records) == 0:
-                self.logger.warning('No sequences remaining after filtering on length for {}.'
+                self.logger.info('No sequences remaining after filtering on length for {}.'
                                            ' Please adjust using the limit_length parameter.'.format(self.path))
         else:
             self.records = [SWSeqRecord(Seq(str(record.seq), record.seq.alphabet),

@@ -118,7 +118,7 @@ def parse_cli(config_file):
     aligner_options.add_option('-G', help='Float. Penalty for a gap', dest='gap_score',
                                default=config.get('Aligner', 'gap_score'))
     aligner_options.add_option('-M', '--matrixname', help='The scoring to be used. Valid options are '
-                               '"DNA-RNA", "BASIC" and "CUSTOM"', dest='matrix_name',
+                               '"DNA-RNA", "BASIC", "Blosum62", "Blosum80" and "CUSTOM"', dest='matrix_name',
                                default=config.get('Aligner', 'matrix_name'))
     aligner_options.add_option('-q', '--mismatch_score', help='Float. Penalty for mismatch', dest='mismatch_score',
                                default=config.get('Aligner', 'mismatch_score'))
