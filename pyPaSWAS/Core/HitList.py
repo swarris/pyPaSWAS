@@ -37,7 +37,7 @@ class HitList(object):
                 self.hits[keys[0]] = hit
                 self.hits[keys[1]] = hit
                 self.real_hits[keys[2]] = hit
-                self.logger.debug('Added hit (query ID: {}, target ID: {}) to hitlist'.format(hit.get_seq_id(),
+                self.logger.info('Added hit (query ID: {}, target ID: {}) to hitlist'.format(hit.get_seq_id(),
                                                                                    hit.get_target_id()))
                                            
             else:

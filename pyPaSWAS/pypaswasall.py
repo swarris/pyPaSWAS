@@ -120,6 +120,8 @@ class Pypaswas(object):
             score = BasicScore(self.logger, self.settings)
         elif matrix_name == 'BLOSUM62':
             score = Blosum62Score(self.logger, self.settings)
+        elif matrix_name == 'BLOSUM80':
+            score = Blosum80Score(self.logger, self.settings)
         elif matrix_name == 'CUSTOM':
             score = CustomScore(self.logger, self.settings)
         else:
