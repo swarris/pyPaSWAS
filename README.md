@@ -1,7 +1,7 @@
 pyPaSWAS
 ========
 
-extented python version of PaSWAS
+extented python version of PaSWAS. Original paper in PLOS ONE: http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0122524
 
 PaSWAS was developed in C and CUDA/OpenCL. This version uses the CUDA/OpenCL code from PaSWAS and integrates the sequence alignment software with Python. It supports:
 - text output
