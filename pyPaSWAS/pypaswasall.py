@@ -11,7 +11,7 @@ from pyPaSWAS.Core.Exceptions import InvalidOptionException
 from pyPaSWAS.Core.Formatters import DefaultFormatter, SamFormatter,TrimmerFormatter
 from pyPaSWAS.Core.Programs import Aligner,Trimmer, ComBaRMapper
 from pyPaSWAS.Core.Readers import BioPythonReader
-from pyPaSWAS.Core.Scores import BasicScore, CustomScore, DnaRnaScore, Blosum62Score
+from pyPaSWAS.Core.Scores import BasicScore, CustomScore, DnaRnaScore, Blosum62Score, Blosum80Score
 from pyPaSWAS.Core.HitList import HitList
 import logging
 import os.path
