@@ -81,8 +81,8 @@ class SmithWatermanOcl(SmithWaterman):
         elif device_type.upper() == 'CPU':
             self.device_type = cl.device_type.CPU
         else:
-            self.logger.debug("Warning: device type is set to default: CPU")
-            self.device_type = cl.device_type.CPU
+            self.logger.warning("Warning: device type is set to default: GPU")
+            self.device_type = cl.device_type.GPU
     
     def _set_platform(self, platform_name):
         found_platform = False

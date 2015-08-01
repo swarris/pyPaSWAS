@@ -46,14 +46,23 @@ class Aligner(object):
                 self.logger.debug('Using OpenCL CPU implementation')
                 from pyPaSWAS.Core.SmithWatermanOcl import SmithWatermanCPU
                 self.smith_waterman = SmithWatermanCPU(self.logger, self.score, settings)
+            elif(self.settings.device_type.upper() == 'ACCELERATOR'):
+                self.logger.debug('Using OpenCL Accelerator implementation')
+                from pyPaSWAS.Core.SmithWatermanOcl import SmithWatermanGPU
+                self.smith_waterman = SmithWatermanGPU(self.logger, self.score, settings)
             else:
-                self.logger.debug('Using default OpenCL implementation')
-                from pyPaSWAS.Core.SmithWatermanOcl import SmithWatermanCPU
-                self.smith_waterman = SmithWatermanCPU(self.logger, self.score, settings)
-        else:
+                self.logger.debug('Unknown settings for device. Using default OpenCL GPU implementation')
+                from pyPaSWAS.Core.SmithWatermanOcl import SmithWatermanGPU
+                self.smith_waterman = SmithWatermanGPU(self.logger, self.score, settings)
+        elif self.settings.framework.upper() == 'CUDA':
             self.logger.debug('Using CUDA implemetation')
             from pyPaSWAS.Core.SmithWatermanCuda import SmithWatermanCuda
             self.smith_waterman = SmithWatermanCuda(self.logger, self.score, settings)
+        else:
+            self.logger.info('Unknown settings for framework. Using OpenCL GPU implementation as default')
+            from pyPaSWAS.Core.SmithWatermanOcl import SmithWatermanGPU
+            self.smith_waterman = SmithWatermanGPU(self.logger, self.score, settings)
+            
         self.logger.debug('Aligner initialized.')
 
     def process(self, records_seqs, targets):
