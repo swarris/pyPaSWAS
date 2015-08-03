@@ -133,8 +133,12 @@ class Indexer:
         try:
             self.logger.info("Saving index to file: " + self.pickleName(fileName, self.wSize[0] if window == None else window))
             dump = open(self.pickleName(fileName, self.wSize[0] if window == None else window), "w")
-            dump.write(zlib.compress(cPickle.dumps(self.tupleSet, cPickle.HIGHEST_PROTOCOL),9))
+            if self.settings.compressed_index.upper() == "T":
+                dump.write(zlib.compress(cPickle.dumps(self.tupleSet, cPickle.HIGHEST_PROTOCOL),9))
+            else:
+                cPickle.dump(self.tupleSet, dump, cPickle.HIGHEST_PROTOCOL)
             dump.close()
+                
             self.logger.info("Done saving index to file.")
         except:
             self.logger.error("Could not open: " + self.pickleName(fileName, self.wSize[0] if window == None else window))
@@ -142,15 +146,18 @@ class Indexer:
 
     def unpickleWindow(self, fileName, selectedWindow):
         self.logger.debug("unpickle file: "+ self.pickleName(fileName, selectedWindow))
-        if True:#try:
+        try:
             dump = open(self.pickleName(fileName, selectedWindow), "r")
-            tSet = cPickle.loads(zlib.decompress(dump.read()))
+            if self.settings.compressed_index.upper() == "T":
+                tSet = cPickle.loads(zlib.decompress(dump.read()))
+            else:
+                tSet = cPickle.load(dump)
             for t in tSet:
                 self.indexCount+= len(tSet[t])
             self.indexCount += 1 + self.prevCount if self.prevCount == 0 else self.prevCount     
             self.tupleSet.update(tSet)
             dump.close()
-        else: #except:
+        except:
             self.logger.warning("Could not open pickle file: "+ self.pickleName(fileName, selectedWindow))
             self.logger.warning("Error: " +  str(sys.exc_info()[0]))
             return False

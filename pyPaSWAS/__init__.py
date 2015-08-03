@@ -171,6 +171,9 @@ def parse_cli(config_file):
     mapper_options.add_option('--qgram', help='QGram number, should be >= 1', dest='qgram',
                               default=config.get('Mapper', 'qgram'))
 
+    mapper_options.add_option('--compressed_index', help='Used compressed index. Compressing an index saves disk space, but creates a memory leak.', dest='compressed_index',
+                              default=config.get('Mapper', 'compressed_index'))
+
     parser.add_option_group(mapper_options)
 
 
