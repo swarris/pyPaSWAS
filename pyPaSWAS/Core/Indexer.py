@@ -52,6 +52,7 @@ class Indexer:
 
     def createIndex(self, sequence, fileName = None, retainInMemory=True):
         currentTupleSet = {}
+        self.tupleSet = {}
         self.prevCount = self.indexCount
         self.indexCount = 0
 
