@@ -77,18 +77,21 @@ class Indexer:
                     if self.indexCount > self.indicesStep + self.indicesStepSize:
                         break
                         
-                if fileName != None:
+                if fileName != None and len(self.tupleSet) > 0:
                     self.pickle(fileName, window)
             elif retainInMemory:
                 self.unpickleWindow(fileName, window)
                 
             currentTupleSet.update(self.tupleSet)
+
+        self.indicesStep += self.indicesStepSize
             
         if retainInMemory:
             self.tupleSet = currentTupleSet
         else:
             self.tupleSet = {}
-        self.indicesStep += self.indicesStepSize
+            self.indexCount = self.indicesStep+1 if self.indexCount == 0 else self.indexCount
+            
                     
     def createIndexAndStore(self, sequence, fileName, retainInMemory=True):
         self.createIndex(sequence, fileName, retainInMemory)

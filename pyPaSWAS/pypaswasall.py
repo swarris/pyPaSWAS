@@ -9,7 +9,7 @@ from pyPaSWAS import parse_cli, set_logger, normalize_file_path
 from pyPaSWAS.Core import resource_filename
 from pyPaSWAS.Core.Exceptions import InvalidOptionException
 from pyPaSWAS.Core.Formatters import DefaultFormatter, SamFormatter,TrimmerFormatter
-from pyPaSWAS.Core.Programs import Aligner,Trimmer, ComBaRMapper
+from pyPaSWAS.Core.Programs import Aligner,Trimmer, ComBaRMapper,  ComBaRIndexer
 from pyPaSWAS.Core.Readers import BioPythonReader
 from pyPaSWAS.Core.Scores import BasicScore, CustomScore, DnaRnaScore, Blosum62Score, Blosum80Score
 from pyPaSWAS.Core.HitList import HitList
@@ -153,6 +153,10 @@ class Pypaswas(object):
             self.settings.limit_length = 10**20
             #self.logger.warning("Setting query_step to 1 for ComBaR mapping")
             #self.settings.query_step = 1
+        elif self.settings.program == "indexer":
+            self.program = ComBaRIndexer(self.logger, self.score, self.settings, self.arguments)
+            self.logger.warning("Removing limits on length of sequences for ComBaR mapping!")
+            self.settings.limit_length = 10**20
         else:
             raise InvalidOptionException('Invalid program selected {0}'.format(self.settings.program))
 

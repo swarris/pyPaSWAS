@@ -188,5 +188,49 @@ class ComBaRMapper(Aligner):
         self.logger.debug('ComBaR mapping finished.')
         return self.hitlist
 
+class ComBaRIndexer(Aligner):
+    
+    def __init__(self, logger, score, settings, arguments):
+        Aligner.__init__(self, logger, score, settings)
+        self.arguments = arguments
+
+    def process(self, records_seqs, targets):
+        '''This methods creates index files for targets based on the length of the records.
+        '''
+        
+        
+        # step through the targets                                                                                                                                                                           
+        self.logger.debug('ComBaR indexer...')
+
+        keepRecords = []
+        
+        while len(records_seqs) > 0:
+            prevLength = len(records_seqs[0])
+            #create indexer
+            indexer = QIndexer(self.settings, self.logger, 0.1, records_seqs[0:1], int(self.settings.qgram))
+
+            #while indices to process, process all reads with same length
+            # when done, remove these reads
+            while indexer.indicesToProcessLeft():
+                currentRead = 0
+                # only create index with first read of same length 
+                if currentRead == 0:
+                    indexer.createIndexAndStore(targets, self.arguments[1], False)
+
+                while currentRead < len(records_seqs) and len(records_seqs[currentRead]) == prevLength:
+                    self.logger.info("Processing seq: " + records_seqs[currentRead].id)
+                    currentRead += 1
+            
+            #filter out reads already processed:
+            currentRead = 0
+            while currentRead < len(records_seqs) and len(records_seqs[currentRead]) == prevLength:
+                currentRead += 1
+                keepRecords.append(records_seqs[0])
+            records_seqs = records_seqs[currentRead:]
+                                     
+        self.logger.debug('ComBaR indexer finished.')
+        return self.hitlist
+
+        
         
         
