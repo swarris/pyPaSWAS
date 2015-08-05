@@ -160,7 +160,7 @@ class ComBaRMapper(Aligner):
                         for i in range(0, len(locs), 15000000) :
                             splittedTargets = []
     
-                            for loc in locs[1:i+15000000]:
+                            for loc in locs[i:i+15000000]:
                                 swSeqRecord = indexer.getSWSeqRecord(loc, targets)
                                 swSeqRecord.distance = loc[2]
                                 swSeqRecord.id = targets[loc[0][1]].id
