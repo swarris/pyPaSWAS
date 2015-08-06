@@ -66,8 +66,8 @@ class Indexer:
                     revWindowSize = int(self.reverseWindowSize(window)*self.stepFactor*self.slideStep) 
                     for index in xrange(endIndex):
                         if index % revWindowSize == 0:
-                            comp = self.count(seq, window,index,index+int(window))
                             if self.indicesStep == None or (self.indicesStep < self.indexCount <= self.indicesStep + self.indicesStepSize) :    
+                                comp = self.count(seq, window,index,index+int(window))
                                 if comp not in self.tupleSet:
                                     self.tupleSet[comp] = []
                                 self.tupleSet[comp].append((index, seqId))
