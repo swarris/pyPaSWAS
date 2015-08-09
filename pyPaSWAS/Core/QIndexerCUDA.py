@@ -67,7 +67,17 @@ class QIndexerCUDA(QIndexer):
 
         self.h_distances = driver.pagelocked_empty(( self.indicesStepSize, 1), numpy.float32, mem_flags=driver.host_alloc_flags.DEVICEMAP)
         self.d_distances = numpy.intp(self.h_distances.base.get_device_pointer())
+    
+    def _copy_index(self, compAll):
+        driver.memcpy_htod(self.d_compAll, numpy.concatenate(compAll))
 
+    def createIndex(self, sequence, fileName = None, retainInMemory=True):
+        QIndexer.createIndex(self, sequence, fileName, retainInMemory)
+        self.logger.info("Copying index to GPU")
+        keys = self.tupleSet.keys()
+        compAll = [k.toarray() for k in keys]
+        self._copy_index(compAll)
+        
     def findIndices(self,seq, start = 0.0, step=False):
         """ finds the seeding locations for the mapping process.
         Structure of locations:
@@ -85,21 +95,17 @@ class QIndexerCUDA(QIndexer):
             loc += 1
 
         comp = self.count(seq.upper(), self.wSize[loc], 0, len(seq))
-        keys = self.tupleSet.keys()
-        compAll = [k.toarray() for k in keys]
         
         driver.memcpy_htod(self.d_comp, comp.toarray())
-        driver.memcpy_htod(self.d_compAll, numpy.concatenate(compAll))
       
         self.calculate_distance_function(self.d_compAll, self.d_comp, self.d_distances, numpy.float32(self.compositionScale), 
                                      block=self.dim_block, 
                                      grid=self.dim_grid)
         
         driver.Context.synchronize() 
-        
-        
         distances = numpy.ndarray(buffer=self.h_distances, dtype=numpy.float32, shape=(len(self.h_distances), 1))
 
+        keys = self.tupleSet.keys()
         validComp = [keys[x] for x in xrange(len(keys)) if keys[x].data[0] == comp.data[0] and distances[x]  < self.sliceDistance]
         
         for valid in validComp:
