@@ -32,6 +32,7 @@ class Aligner(object):
         self.hitlist = HitList(self.logger)
         logger.debug('Setting SW...')
         self.settings = settings
+        self.qindexerParallel = False
         if (self.settings.framework.upper() == 'OPENCL'):
             if(self.settings.device_type.upper() == 'GPU'):
                 if(self.settings.platform_name.upper() == 'NVIDIA'):
@@ -58,6 +59,7 @@ class Aligner(object):
             self.logger.debug('Using CUDA implemetation')
             from pyPaSWAS.Core.SmithWatermanCuda import SmithWatermanCuda
             self.smith_waterman = SmithWatermanCuda(self.logger, self.score, settings)
+            self.qindexerParallel = True
         else:
             self.logger.info('Unknown settings for framework. Using OpenCL GPU implementation as default')
             from pyPaSWAS.Core.SmithWatermanOcl import SmithWatermanGPU
@@ -134,7 +136,11 @@ class ComBaRMapper(Aligner):
         while len(records_seqs) > 0:
             prevLength = len(records_seqs[0])
             #create indexer
-            indexer = QIndexer(self.settings, self.logger, 0.1, records_seqs[0:1], int(self.settings.qgram))
+            if self.qindexerParallel:
+                from pyPaSWAS.Core.QIndexerCUDA import QIndexerCUDA
+                indexer = QIndexerCUDA(self.settings, self.logger, 0.1, records_seqs[0:1], int(self.settings.qgram))
+            else:
+                indexer = QIndexer(self.settings, self.logger, 0.1, records_seqs[0:1], int(self.settings.qgram))
 
             #while indices to process, process all reads with same length
             # when done, remove these reads
