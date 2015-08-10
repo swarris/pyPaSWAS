@@ -1,5 +1,3 @@
-#include <math.h>
-#include <builtin_types.h>
 
 #define INDEX_SIZE ${size}
 #define BLOCK_SIZE ${block}

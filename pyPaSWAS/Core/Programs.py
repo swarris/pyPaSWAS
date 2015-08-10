@@ -32,8 +32,10 @@ class Aligner(object):
         self.hitlist = HitList(self.logger)
         logger.debug('Setting SW...')
         self.settings = settings
-        self.qindexerParallel = False
+        self.qindexerCUDA = False
+        self.qindexerOCL = False
         if (self.settings.framework.upper() == 'OPENCL'):
+            self.qindexerOCL = True
             if(self.settings.device_type.upper() == 'GPU'):
                 if(self.settings.platform_name.upper() == 'NVIDIA'):
                     self.logger.debug('Using OpenCL NVIDIA implementation')
@@ -59,7 +61,7 @@ class Aligner(object):
             self.logger.debug('Using CUDA implemetation')
             from pyPaSWAS.Core.SmithWatermanCuda import SmithWatermanCuda
             self.smith_waterman = SmithWatermanCuda(self.logger, self.score, settings)
-            self.qindexerParallel = True
+            self.qindexerCUDA = True
         else:
             self.logger.info('Unknown settings for framework. Using OpenCL GPU implementation as default')
             from pyPaSWAS.Core.SmithWatermanOcl import SmithWatermanGPU
@@ -136,9 +138,12 @@ class ComBaRMapper(Aligner):
         while len(records_seqs) > 0:
             prevLength = len(records_seqs[0])
             #create indexer
-            if self.qindexerParallel:
+            if self.qindexerOCL:
+                from pyPaSWAS.Core.QIndexerOCL import QIndexerOCL
+                indexer = QIndexerOCL(self.settings, self.logger, 0.1, records_seqs[0:1], int(self.settings.qgram))
+            elif self.qindexerCUDA:
                 from pyPaSWAS.Core.QIndexerCUDA import QIndexerCUDA
-                indexer = QIndexerCUDA(self.settings, self.logger, 0.1, records_seqs[0:1], int(self.settings.qgram))
+                indexer = QIndexerCUDA(self.settings, self.logger, 0.1, records_seqs[0:1], int(self.settings.qgram))                
             else:
                 indexer = QIndexer(self.settings, self.logger, 0.1, records_seqs[0:1], int(self.settings.qgram))
 
