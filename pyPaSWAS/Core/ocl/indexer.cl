@@ -7,7 +7,7 @@ __kernel void calculateDistance(__global int *index, __global int *query, __glob
 
 	__local float s_distances[INDEX_SIZE];
 
-	unsigned int block = get_group_id(0) * BLOCK_SIZE + get_group_id(1);
+	unsigned int block = (get_group_id(0) * BLOCK_SIZE + get_group_id(1))*(INDEX_SIZE+1);
 	unsigned int threadPlus1 = get_local_id(0)+1;
 	unsigned int thread = get_local_id(0);
 	s_distances[thread] = (float) index[block+threadPlus1] - (float)query[threadPlus1];
@@ -26,6 +26,6 @@ __kernel void calculateDistance(__global int *index, __global int *query, __glob
 		offset *= 2;
 	}
 	if (thread == 0){
-		distances[block] =  sqrt(s_distances[INDEX_SIZE-1])/scale;
+		distances[get_group_id(0) * BLOCK_SIZE + get_group_id(1)] =  sqrt(s_distances[INDEX_SIZE-1])/scale;
 	}
 }

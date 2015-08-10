@@ -78,7 +78,8 @@ class QIndexerOCL(QIndexer):
 
 
     def _init_memory(self):
-        self.d_distances = cl.Buffer(self.ctx, cl.mem_flags.WRITE_ONLY | cl.mem_flags.ALLOC_HOST_PTR, size=self.indicesStepSize*4)
+        self.h_distances = numpy.empty(self.indicesStepSize).astype(numpy.float32)
+        self.d_distances = cl.Buffer(self.ctx, cl.mem_flags.WRITE_ONLY| cl.mem_flags.ALLOC_HOST_PTR| cl.mem_flags.COPY_HOST_PTR, hostbuf=self.h_distances)
 
     def _copy_index(self, compAll):
         compAll = numpy.concatenate(compAll)
@@ -87,7 +88,7 @@ class QIndexerOCL(QIndexer):
 
     def createIndex(self, sequence, fileName = None, retainInMemory=True):
         QIndexer.createIndex(self, sequence, fileName, retainInMemory)
-        self.logger.info("Copying index to OpenCL Device")
+        self.logger.info("Preparing index for OpenCL Device")
         keys = self.tupleSet.keys()
         compAll = [k.toarray() for k in keys]
         self._copy_index(compAll)
@@ -114,12 +115,17 @@ class QIndexerOCL(QIndexer):
         keys = self.tupleSet.keys()
 
         self.d_comp = cl.Buffer(self.ctx, cl.mem_flags.READ_ONLY | cl.mem_flags.ALLOC_HOST_PTR| cl.mem_flags.COPY_HOST_PTR, hostbuf=comp.toarray())
-
+        self.logger.debug("Starting device")
         self.program.calculateDistance(self.queue, self.dim_grid,self.dim_block, self.d_compAll, self.d_comp, self.d_distances, numpy.float32(self.compositionScale))
-
-        distances = cl.enqueue_map_buffer(self.queue, self.d_distances, cl.map_flags.READ, 0, (self.indicesStepSize, 1), dtype=numpy.float32)[0]
-
+        self.logger.debug("Getting results")
+        self.h_distances = cl.enqueue_map_buffer(self.queue, self.d_distances, cl.map_flags.READ, 0, (self.indicesStepSize*4, 1), dtype=numpy.byte)[0]
+        
+        #self.h_distances = numpy.array([0]*self.indicesStepSize, dtype=numpy.float32) 
+        #cl.enqueue_copy(self.queue, self.d_distances, self.h_distances)
+        distances = self.h_distances
+        self.logger.debug("distance: ".format(len(self.h_distances)))
         validComp = [keys[x] for x in xrange(len(keys)) if keys[x].data[0] == comp.data[0] and distances[x]  < self.sliceDistance]
+        exit()
         
         for valid in validComp:
             for hit in self.tupleSet[valid]:

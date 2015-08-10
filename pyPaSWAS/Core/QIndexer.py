@@ -83,7 +83,7 @@ class QIndexer (Indexer):
         
         
         distances = [self.distance_calc(a, comp) for a in compAll] 
-
+        self.logger.debug("Distances:\n{}".format(distances))
         validComp = [keys[x] for x in xrange(len(keys)) if keys[x].data[0] == comp.data[0] and distances[x]  < self.sliceDistance]
         
         for valid in validComp:

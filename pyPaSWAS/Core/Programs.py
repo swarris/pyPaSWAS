@@ -138,6 +138,7 @@ class ComBaRMapper(Aligner):
         while len(records_seqs) > 0:
             prevLength = len(records_seqs[0])
             #create indexer
+            
             if self.qindexerOCL:
                 from pyPaSWAS.Core.QIndexerOCL import QIndexerOCL
                 indexer = QIndexerOCL(self.settings, self.logger, 0.1, records_seqs[0:1], int(self.settings.qgram))
@@ -146,7 +147,9 @@ class ComBaRMapper(Aligner):
                 indexer = QIndexerCUDA(self.settings, self.logger, 0.1, records_seqs[0:1], int(self.settings.qgram))                
             else:
                 indexer = QIndexer(self.settings, self.logger, 0.1, records_seqs[0:1], int(self.settings.qgram))
-
+            """
+            indexer = QIndexer(self.settings, self.logger, 0.1, records_seqs[0:1], int(self.settings.qgram))
+            """
             #while indices to process, process all reads with same length
             # when done, remove these reads
             while indexer.indicesToProcessLeft():

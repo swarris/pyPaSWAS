@@ -12,7 +12,7 @@ __global__ void calculateDistance(int *index, int *query, float *distances, floa
 
 	__shared__ float s_distances[INDEX_SIZE];
 
-	unsigned int block = blockIdx.x * BLOCK_SIZE + blockIdx.y;
+	unsigned int block = (blockIdx.x * BLOCK_SIZE + blockIdx.y)*(INDEX_SIZE+1);
 	unsigned int threadPlus1 = threadIdx.x+1;
 	unsigned int thread = threadIdx.x;
 	s_distances[thread] = (float) index[block+threadPlus1] - (float)query[threadPlus1];
@@ -31,6 +31,6 @@ __global__ void calculateDistance(int *index, int *query, float *distances, floa
 		offset *= 2;
 	}
 	if (thread == 0){
-		distances[block] =  sqrt(s_distances[INDEX_SIZE-1])/scale;
+		distances[blockIdx.x*BLOCK_SIZE+blockIdx.y] =  sqrt(s_distances[INDEX_SIZE-1])/scale;
 	}
 }
