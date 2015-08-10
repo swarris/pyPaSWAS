@@ -115,18 +115,13 @@ class QIndexerOCL(QIndexer):
         keys = self.tupleSet.keys()
 
         self.d_comp = cl.Buffer(self.ctx, cl.mem_flags.READ_ONLY | cl.mem_flags.ALLOC_HOST_PTR| cl.mem_flags.COPY_HOST_PTR, hostbuf=comp.toarray())
-        self.logger.debug("Starting device")
-        self.program.calculateDistance(self.queue, self.dim_grid,self.dim_block, self.d_compAll, self.d_comp, self.d_distances, numpy.float32(self.compositionScale))
-        self.logger.debug("Getting results")
-        self.h_distances = cl.enqueue_map_buffer(self.queue, self.d_distances, cl.map_flags.READ, 0, (self.indicesStepSize*4, 1), dtype=numpy.byte)[0]
+        self.program.calculateDistance(self.queue, self.dim_grid,self.dim_block, self.d_compAll, self.d_comp, self.d_distances, numpy.float32(self.compositionScale), numpy.int32(len(keys)))
         
-        #self.h_distances = numpy.array([0]*self.indicesStepSize, dtype=numpy.float32) 
-        #cl.enqueue_copy(self.queue, self.d_distances, self.h_distances)
+        self.h_distances = numpy.array([0]*self.indicesStepSize, dtype=numpy.float32) 
+        cl.enqueue_copy(self.queue, self.h_distances, self.d_distances)
         distances = self.h_distances
-        self.logger.debug("distance: ".format(len(self.h_distances)))
+
         validComp = [keys[x] for x in xrange(len(keys)) if keys[x].data[0] == comp.data[0] and distances[x]  < self.sliceDistance]
-        exit()
-        
         for valid in validComp:
             for hit in self.tupleSet[valid]:
                 if hit[1] not in hits:
