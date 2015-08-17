@@ -205,7 +205,11 @@ class ComBaRMapper(Aligner):
 class ComBaRIndexer(Aligner):
     
     def __init__(self, logger, score, settings, arguments):
-        Aligner.__init__(self, logger, score, settings)
+        logger.debug('Initializing indexer...')
+        self.logger = logger
+        self.score = score
+        self.hitlist = HitList(self.logger)
+        self.settings = settings
         self.arguments = arguments
 
     def process(self, records_seqs, targets):
