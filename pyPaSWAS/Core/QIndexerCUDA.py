@@ -22,7 +22,7 @@ class QIndexerCUDA(QIndexer):
         self._initialize_device(self.settings.device_number)
         self._init_memory()
     
-    def __del__(self):
+    def pop_context(self):
         '''Destructor. Removes the current running context'''
         self.logger.debug('Destructing QIndexerCUDA.')
         if (driver.Context is not None): 

@@ -134,7 +134,7 @@ class ComBaRMapper(Aligner):
         self.logger.debug('ComBaR mapping...')
 
         keepRecords = []
-        
+        indexer = None
         while len(records_seqs) > 0:
             prevLength = len(records_seqs[0])
             #create indexer
@@ -198,7 +198,9 @@ class ComBaRMapper(Aligner):
                 currentRead += 1
                 keepRecords.append(records_seqs[0])
             records_seqs = records_seqs[currentRead:]
-                                     
+        
+        if indexer != None and self.qindexerCUDA:
+            indexer.pop_context()                             
         self.logger.debug('ComBaR mapping finished.')
         return self.hitlist
 
