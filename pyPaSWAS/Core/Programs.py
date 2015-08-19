@@ -58,7 +58,7 @@ class Aligner(object):
                 from pyPaSWAS.Core.SmithWatermanOcl import SmithWatermanGPU
                 self.smith_waterman = SmithWatermanGPU(self.logger, self.score, settings)
         elif self.settings.framework.upper() == 'CUDA':
-            self.logger.debug('Using CUDA implemetation')
+            self.logger.debug('Using CUDA implementation')
             from pyPaSWAS.Core.SmithWatermanCuda import SmithWatermanCuda
             self.smith_waterman = SmithWatermanCuda(self.logger, self.score, settings)
             self.qindexerCUDA = True
