@@ -319,3 +319,43 @@ class DnaRnaScore(Score):
                     self.matrix[row][col] = self.any_score
                 elif row in dna_rna_ord or col in dna_rna_ord:
                     self.matrix[row][col] = self.mismatch_score
+
+
+class IrysScore(Score):
+    '''
+    DNA / RNA Scorings class
+    '''
+    def __init__(self, logger, settings):
+        '''
+        Constructor
+        In settings object (from optparse module) with:
+            match_score:        score for matching nucleotides in subject and query
+            mismatch_score:     score for different nucleotides in subject and query
+            gap_score:          score for a missing nucleotide in either subject or query
+            other_score:        score for a character which is neither in the nucleotide list ('ACGTU'), nor equal to the anyNucleotide character ('N')
+            any_score:          score if the anyNucleotide character ('N') is present in either query or subject
+        '''
+        Score.__init__(self, logger, settings)
+        self.logger.debug('Initializing IrysScore...')
+
+        self.match_score = settings.match_score
+        self.mismatch_score = settings.mismatch_score
+        self.other_score = settings.other_score
+        self.any_score = settings.any_score
+        self._create_matrix()
+        self.logger.debug('Initializing IrysScore finished.')
+
+    def _set_score_type(self):
+        self.score_type = 'IRYS'
+
+    def _create_matrix(self):
+
+        self.matrix = [[self.other_score for _i in range(self.dimensions)] for _j in range(self.dimensions)]
+        self.highest_score = self.match_score
+
+        for row in range(0, self.dimensions):
+            for col in range(0, self.dimensions):
+                if row == col:
+                    self.matrix[row][col] = self.match_score
+                else:
+                    self.matrix[row][col] = str(float(self.mismatch_score) * abs(row-col))

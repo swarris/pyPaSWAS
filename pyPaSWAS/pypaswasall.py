@@ -11,7 +11,7 @@ from pyPaSWAS.Core.Exceptions import InvalidOptionException
 from pyPaSWAS.Core.Formatters import DefaultFormatter, SamFormatter,TrimmerFormatter
 from pyPaSWAS.Core.Programs import Aligner,Trimmer, ComBaRMapper,  ComBaRIndexer
 from pyPaSWAS.Core.Readers import BioPythonReader
-from pyPaSWAS.Core.Scores import BasicScore, CustomScore, DnaRnaScore, Blosum62Score, Blosum80Score
+from pyPaSWAS.Core.Scores import BasicScore, CustomScore, DnaRnaScore, Blosum62Score, Blosum80Score, IrysScore
 from pyPaSWAS.Core.HitList import HitList
 import logging
 import os.path
@@ -124,6 +124,8 @@ class Pypaswas(object):
             score = Blosum80Score(self.logger, self.settings)
         elif matrix_name == 'CUSTOM':
             score = CustomScore(self.logger, self.settings)
+        elif matrix_name == "IRYS":
+            score = IrysScore(self.logger, self.settings)
         else:
             raise InvalidOptionException(matrix_name + ' is not a valid substitution matrix')
         self.score = score
