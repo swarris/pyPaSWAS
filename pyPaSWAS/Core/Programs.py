@@ -1,7 +1,5 @@
 ''' This module contains the programs from the pyPaSWAS suite '''
 from pyPaSWAS.Core.HitList import HitList
-from pyPaSWAS.Core.Indexer import Indexer
-from pyPaSWAS.Core.QIndexer import QIndexer
 from operator import itemgetter
 
 
@@ -61,7 +59,7 @@ class Aligner(object):
             self.logger.debug('Using CUDA implementation')
             from pyPaSWAS.Core.SmithWatermanCuda import SmithWatermanCuda
             self.smith_waterman = SmithWatermanCuda(self.logger, self.score, settings)
-            self.qindexerCUDA = True
+            self.qindexerCUDA = False
         else:
             self.logger.info('Unknown settings for framework. Using OpenCL GPU implementation as default')
             from pyPaSWAS.Core.SmithWatermanOcl import SmithWatermanGPU
@@ -146,6 +144,7 @@ class ComBaRMapper(Aligner):
                 from pyPaSWAS.Core.QIndexerCUDA import QIndexerCUDA
                 indexer = QIndexerCUDA(self.settings, self.logger, 0.1, records_seqs[0:1], int(self.settings.qgram))                
             else:
+                from pyPaSWAS.Core.QIndexer import QIndexer
                 indexer = QIndexer(self.settings, self.logger, 0.1, records_seqs[0:1], int(self.settings.qgram))
             """
             indexer = QIndexer(self.settings, self.logger, 0.1, records_seqs[0:1], int(self.settings.qgram))
@@ -221,6 +220,7 @@ class ComBaRIndexer(Aligner):
         
         # step through the targets                                                                                                                                                                           
         self.logger.debug('ComBaR indexer...')
+        from pyPaSWAS.Core.QIndexer import QIndexer
 
         keepRecords = []
         

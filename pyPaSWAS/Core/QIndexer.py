@@ -33,16 +33,18 @@ class QIndexer (Indexer):
         results = numpy.zeros(len(self.character_list)+1)
         results[0] = window
         
+        # make sure end_index never exceeds length of sequence:
+        if end_index >= len(seq):
+            end_index = len(seq)
         if len(seq) > 0 and end_index - start_index > 0:
             n = seq.count("N", start_index, end_index)
             length = float(end_index - start_index - n)
-
             if length-self.qgram+1 > 0 :
                 fraction = self.compositionScale / float(length-self.qgram+1)
                 for qgram_string in range(start_index, end_index-self.qgram):
                     subStr = str(seq[qgram_string:qgram_string + self.qgram])
                     
-                    if "N" not in subStr and len(subStr.strip()) > 0:
+                    if "N" not in subStr and len(subStr.strip()) == len(self.character_list[0]):
                         results[self.character_index[subStr]] += fraction 
         r = results.view(int)
         r[:] = results
@@ -83,7 +85,6 @@ class QIndexer (Indexer):
         
         
         distances = [self.distance_calc(a, comp) for a in compAll] 
-        self.logger.debug("Distances:\n{}".format(distances))
         validComp = [keys[x] for x in xrange(len(keys)) if keys[x].data[0] == comp.data[0] and distances[x]  < self.sliceDistance]
         
         for valid in validComp:
