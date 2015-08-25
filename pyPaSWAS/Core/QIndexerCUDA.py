@@ -104,6 +104,7 @@ class QIndexerCUDA(QIndexer):
         
         driver.Context.synchronize() 
         distances = numpy.ndarray(buffer=self.h_distances, dtype=numpy.float32, shape=(len(self.h_distances), 1))
+        self.logger.debug("Distances: {}".format(distances))
         keys = self.tupleSet.keys()
         validComp = [keys[x] for x in xrange(len(keys)) if keys[x].data[0] == comp.data[0] and distances[x]  < self.sliceDistance]
         

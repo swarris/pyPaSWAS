@@ -62,7 +62,7 @@ class Indexer:
                 for seqId in xrange(len(sequence)):
                     self.logger.debug("Creating index of {} with window {}".format(sequence[seqId].id, window))
                     seq = str(sequence[seqId].seq.upper())
-                    endIndex = 1 if len(seq)-window < 0 else len(seq)-window+1
+                    endIndex = window if len(seq)-window < 0 else len(seq)-window+1
                     revWindowSize = int(self.reverseWindowSize(window)*self.stepFactor*self.slideStep) 
                     for index in xrange(endIndex):
                         if index % revWindowSize == 0:

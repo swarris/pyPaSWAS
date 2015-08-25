@@ -59,7 +59,7 @@ class Aligner(object):
             self.logger.debug('Using CUDA implementation')
             from pyPaSWAS.Core.SmithWatermanCuda import SmithWatermanCuda
             self.smith_waterman = SmithWatermanCuda(self.logger, self.score, settings)
-            self.qindexerCUDA = True
+            self.qindexerCUDA = False
         else:
             self.logger.info('Unknown settings for framework. Using OpenCL GPU implementation as default')
             from pyPaSWAS.Core.SmithWatermanOcl import SmithWatermanGPU
@@ -220,6 +220,7 @@ class ComBaRIndexer(Aligner):
         
         # step through the targets                                                                                                                                                                           
         self.logger.debug('ComBaR indexer...')
+        from pyPaSWAS.Core.QIndexer import QIndexer
 
         keepRecords = []
         

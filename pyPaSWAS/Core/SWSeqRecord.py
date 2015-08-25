@@ -14,13 +14,6 @@ class SWSeqRecord(SeqRecord):
 
     def __init__(self, seq, identifier, start_position=0, original_length = None, distance = 0, refID = None):
         super(SWSeqRecord, self).__init__(seq.upper(), identifier)
-        adenine_count = self.seq.count("A") / float(len(seq))
-        thymine_count = self.seq.count("T") / float(len(seq))
-        cytosine_count = self.seq.count("C") / float(len(seq))
-        guanine_count = self.seq.count("G") / float(len(seq))
-        unknown_count = self.seq.count("N") / float(len(seq))
-
-        self.count = (adenine_count, thymine_count, cytosine_count, guanine_count, unknown_count)
         self.start_position = start_position
         if original_length ==None:
             self.original_length = len(seq)
