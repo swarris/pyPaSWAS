@@ -1,7 +1,5 @@
 ''' This module contains the programs from the pyPaSWAS suite '''
 from pyPaSWAS.Core.HitList import HitList
-from pyPaSWAS.Core.Indexer import Indexer
-from pyPaSWAS.Core.QIndexer import QIndexer
 from operator import itemgetter
 
 
@@ -128,7 +126,7 @@ class ComBaRMapper(Aligner):
     def process(self, records_seqs, targets):
         '''This methods creates index files for targets based on the length of the records.
         '''
-        
+
         
         # step through the targets                                                                                                                                                                           
         self.logger.debug('ComBaR mapping...')
@@ -146,6 +144,7 @@ class ComBaRMapper(Aligner):
                 from pyPaSWAS.Core.QIndexerCUDA import QIndexerCUDA
                 indexer = QIndexerCUDA(self.settings, self.logger, 0.1, records_seqs[0:1], int(self.settings.qgram))                
             else:
+                from pyPaSWAS.Core.QIndexer import QIndexer
                 indexer = QIndexer(self.settings, self.logger, 0.1, records_seqs[0:1], int(self.settings.qgram))
             """
             indexer = QIndexer(self.settings, self.logger, 0.1, records_seqs[0:1], int(self.settings.qgram))
@@ -217,7 +216,7 @@ class ComBaRIndexer(Aligner):
     def process(self, records_seqs, targets):
         '''This methods creates index files for targets based on the length of the records.
         '''
-        
+        from pyPaSWAS.Core.QIndexer import QIndexer
         
         # step through the targets                                                                                                                                                                           
         self.logger.debug('ComBaR indexer...')
