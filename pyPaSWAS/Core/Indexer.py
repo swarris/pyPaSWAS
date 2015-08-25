@@ -96,7 +96,7 @@ class Indexer:
     def createIndexAndStore(self, sequence, fileName, retainInMemory=True):
         self.createIndex(sequence, fileName, retainInMemory)
 
-    def findIndices(self,seq, start = 0.0, step=False):
+    def findIndices(self,seqs, start = 0.0, step=False):
         self.logger.error("Indexer.findIndices needs to by implemented by subclass. Maybe use QIndexer?")
         exit()
     

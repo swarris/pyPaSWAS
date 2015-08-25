@@ -131,7 +131,6 @@ class ComBaRMapper(Aligner):
         # step through the targets                                                                                                                                                                           
         self.logger.debug('ComBaR mapping...')
 
-        keepRecords = []
         indexer = None
         while len(records_seqs) > 0:
             prevLength = len(records_seqs[0])
@@ -158,12 +157,18 @@ class ComBaRMapper(Aligner):
                     indexer.createIndexAndStore(targets, self.arguments[1])
 
                 while currentRead < len(records_seqs) and len(records_seqs[currentRead]) == prevLength:
-                    self.logger.info("Processing seq: " + records_seqs[currentRead].id)
-                    firstRead = records_seqs[currentRead]
-                    filteredRecordsSeqs = [firstRead]
                     currentRead += 1
-                    locations = indexer.findIndices(firstRead.seq)
+
+
+                allLocations = indexer.findIndices(records_seq[:currentRead])
+                
+                for read in xrange(currentRead):
+                    
+                    firstRead = records_seqs[read]
+                    filteredRecordsSeqs = [read]
+                    self.logger.info("Processing seq: " + records_seqs[read].id)
     
+                    locations = allLocations[read]
                     locs = []
     
                     if (len(locations) > 0):
@@ -195,7 +200,6 @@ class ComBaRMapper(Aligner):
             currentRead = 0
             while currentRead < len(records_seqs) and len(records_seqs[currentRead]) == prevLength:
                 currentRead += 1
-                keepRecords.append(records_seqs[0])
             records_seqs = records_seqs[currentRead:]
         
         if indexer != None and self.qindexerCUDA:

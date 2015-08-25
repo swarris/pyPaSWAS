@@ -20,7 +20,6 @@ class QIndexerCUDA(QIndexer):
         self.block = 10000
 
         self._initialize_device(self.settings.device_number)
-        self._init_memory()
     
     def pop_context(self):
         '''Destructor. Removes the current running context'''
@@ -54,18 +53,16 @@ class QIndexerCUDA(QIndexer):
         self.module = SourceModule(code)
         
         self.calculate_distance_function = self.module.get_function("calculateDistance")
-        self.dim_grid = (self.indicesStepSize/self.block, self.block)
-        self.dim_block = (len(self.character_list), 1,1)
 
 
     def _init_memory(self):
-        self.h_comp = driver.pagelocked_empty(((len(self.character_list)+1), 1), numpy.int32, mem_flags=driver.host_alloc_flags.DEVICEMAP)
+        self.h_comp = driver.pagelocked_empty(( len(self.seqs) * (len(self.character_list)+1), 1), numpy.int32, mem_flags=driver.host_alloc_flags.DEVICEMAP)
         self.d_comp = numpy.intp(self.h_comp.base.get_device_pointer())
 
         self.h_compAll = driver.pagelocked_empty(( self.indicesStepSize * (len(self.character_list)+1), 1), numpy.int32, mem_flags=driver.host_alloc_flags.DEVICEMAP)
         self.d_compAll = numpy.intp(self.h_compAll.base.get_device_pointer())
 
-        self.h_distances = driver.pagelocked_empty(( self.indicesStepSize, 1), numpy.float32, mem_flags=driver.host_alloc_flags.DEVICEMAP)
+        self.h_distances = driver.pagelocked_empty(( len(self.seqs) * self.indicesStepSize, 1), numpy.float32, mem_flags=driver.host_alloc_flags.DEVICEMAP)
         self.d_distances = numpy.intp(self.h_distances.base.get_device_pointer())
     
     def _copy_index(self, compAll):
@@ -78,7 +75,7 @@ class QIndexerCUDA(QIndexer):
         compAll = [k.toarray() for k in keys]
         self._copy_index(compAll)
         
-    def findIndices(self,seq, start = 0.0, step=False):
+    def findIndices(self,seqs, start = 0.0, step=False):
         """ finds the seeding locations for the mapping process.
         Structure of locations:
         (hit, window, distance), with hit: (location, reference seq id)
@@ -88,13 +85,20 @@ class QIndexerCUDA(QIndexer):
         :param start: minimum distance. Use default unless you're stepping through distance values
         :param step: set this to True when you're stepping through distance values. Hence: start at 0 <= distance < 0.01, then 0.01 <= distance < 0.02, etc  
         """
-        hits = {}
+        self.seqs = seqs
+        self._init_memory()
+        self.dim_grid = (self.indicesStepSize/self.block, self.block)
+        self.dim_block = (len(self.character_list), len(self.seqs),1)
+
+
         #find smallest window:
         loc = 0
         while loc < len(self.wSize)-1 and self.windowSize(len(seq)) > self.wSize[loc]:
             loc += 1
 
-        comp = self.count(seq.upper(), self.wSize[loc], 0, len(seq))
+        comp = []
+        for seq in seqs:
+            comp.extend(self.count(seq.upper(), self.wSize[loc], 0, len(seq)))
         
         driver.memcpy_htod(self.d_comp, comp.toarray())
       
@@ -103,14 +107,18 @@ class QIndexerCUDA(QIndexer):
                                      grid=self.dim_grid)
         
         driver.Context.synchronize() 
-        distances = numpy.ndarray(buffer=self.h_distances, dtype=numpy.float32, shape=(len(self.h_distances), 1))
-        self.logger.debug("Distances: {}".format(distances))
-        keys = self.tupleSet.keys()
-        validComp = [keys[x] for x in xrange(len(keys)) if keys[x].data[0] == comp.data[0] and distances[x]  < self.sliceDistance]
-        
-        for valid in validComp:
-            for hit in self.tupleSet[valid]:
-                if hit[1] not in hits:
-                    hits[hit[1]] = []
-                hits[hit[1]].extend([(hit, self.wSize[loc], self.distance_calc(valid, comp))])
+        distances = numpy.ndarray(buffer=self.h_distances, dtype=numpy.float32, shape=(len(seqs) * len(self.h_distances), 1))
+        #self.logger.debug("Distances: {}".format(distances))
+
+        hits = []
+        for s in xrange(len(seqs)):
+            hits.append({})
+            keys = self.tupleSet.keys()
+            validComp = [keys[x] for x in xrange(len(keys)) if keys[x].data[0] == comp[s].data[0] and distances[x+s]  < self.sliceDistance]
+            
+            for valid in validComp:
+                for hit in self.tupleSet[valid]:
+                    if hit[1] not in hits:
+                        hits[hit[1]] = []
+                    hits[hit[1]].extend([(hit, self.wSize[loc], self.distance_calc(valid, comp[s]))])
         return hits

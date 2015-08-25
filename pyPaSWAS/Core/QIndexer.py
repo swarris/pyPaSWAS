@@ -63,7 +63,7 @@ class QIndexer (Indexer):
     def distance_calc(self,x,y):
         return numpy.linalg.norm(x.toarray() - y.toarray())/self.compositionScale
  
-    def findIndices(self,seq, start = 0.0, step=False):
+    def findIndices(self,seqs, start = 0.0, step=False):
         """ finds the seeding locations for the mapping process.
         Structure of locations:
         (hit, window, distance), with hit: (location, reference seq id)
@@ -73,24 +73,26 @@ class QIndexer (Indexer):
         :param start: minimum distance. Use default unless you're stepping through distance values
         :param step: set this to True when you're stepping through distance values. Hence: start at 0 <= distance < 0.01, then 0.01 <= distance < 0.02, etc  
         """
-        hits = {}
-        #find smallest window:
-        loc = 0
-        while loc < len(self.wSize)-1 and self.windowSize(len(seq)) > self.wSize[loc]:
-            loc += 1
-
-        comp = self.count(seq.upper(), self.wSize[loc], 0, len(seq))
-        keys = self.tupleSet.keys()
-        compAll = keys
-        
-        
-        distances = [self.distance_calc(a, comp) for a in compAll] 
-        validComp = [keys[x] for x in xrange(len(keys)) if keys[x].data[0] == comp.data[0] and distances[x]  < self.sliceDistance]
-        
-        for valid in validComp:
-            for hit in self.tupleSet[valid]:
-                if hit[1] not in hits:
-                    hits[hit[1]] = []
-                hits[hit[1]].extend([(hit, self.wSize[loc], self.distance_calc(valid, comp))])
+        hits = []
+        for seq in seqs:
+            hits.append({})
+            #find smallest window:
+            loc = 0
+            while loc < len(self.wSize)-1 and self.windowSize(len(seq)) > self.wSize[loc]:
+                loc += 1
+    
+            comp = self.count(seq.upper(), self.wSize[loc], 0, len(seq))
+            keys = self.tupleSet.keys()
+            compAll = keys
+            
+            
+            distances = [self.distance_calc(a, comp) for a in compAll] 
+            validComp = [keys[x] for x in xrange(len(keys)) if keys[x].data[0] == comp.data[0] and distances[x]  < self.sliceDistance]
+            
+            for valid in validComp:
+                for hit in self.tupleSet[valid]:
+                    if hit[1] not in hits[-1]:
+                        hits[-1][hit[1]] = []
+                    hits[-1][hit[1]].extend([(hit, self.wSize[loc], self.distance_calc(valid, comp))])
         return hits
     
