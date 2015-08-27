@@ -81,12 +81,13 @@ class QIndexer (Indexer):
             while loc < len(self.wSize)-1 and self.windowSize(len(seq)) > self.wSize[loc]:
                 loc += 1
     
-            comp = self.count(seq.upper(), self.wSize[loc], 0, len(seq))
+            comp = self.count(seq.seq.upper(), self.wSize[loc], 0, len(seq))
             keys = self.tupleSet.keys()
             compAll = keys
             
             
             distances = [self.distance_calc(a, comp) for a in compAll] 
+            #self.logger.debug("Distances: {}".format(distances))
             validComp = [keys[x] for x in xrange(len(keys)) if keys[x].data[0] == comp.data[0] and distances[x]  < self.sliceDistance]
             
             for valid in validComp:

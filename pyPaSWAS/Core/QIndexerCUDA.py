@@ -11,15 +11,17 @@ from pyPaSWAS.Core import resource_filename, read_file
 from pyPaSWAS.Core.Exceptions import HardwareException, InvalidOptionException
 
 from QIndexer import QIndexer
+from numpy import int32
 
 class QIndexerCUDA(QIndexer):
     
     def __init__(self, settings, logger, stepFactor = 0.1, reads= [], qgram=1):
         QIndexer.__init__(self, settings, logger, stepFactor, reads, qgram)
         
-        self.block = 10000
+        self.block = 1000
 
         self._initialize_device(self.settings.device_number)
+        self._init_memory_compAll()
     
     def pop_context(self):
         '''Destructor. Removes the current running context'''
@@ -49,7 +51,7 @@ class QIndexerCUDA(QIndexer):
         
         code = resource_filename(__name__, 'cuda/indexer.cu')
         code_t = Template(read_file(code))
-        code = code_t.safe_substitute(size=len(self.character_list), block=self.block)
+        code = code_t.safe_substitute(size=len(self.character_list), block=self.block, stepSize=self.indicesStepSize)
         self.module = SourceModule(code)
         
         self.calculate_distance_function = self.module.get_function("calculateDistance")
@@ -59,11 +61,19 @@ class QIndexerCUDA(QIndexer):
         self.h_comp = driver.pagelocked_empty(( len(self.seqs) * (len(self.character_list)+1), 1), numpy.int32, mem_flags=driver.host_alloc_flags.DEVICEMAP)
         self.d_comp = numpy.intp(self.h_comp.base.get_device_pointer())
 
-        self.h_compAll = driver.pagelocked_empty(( self.indicesStepSize * (len(self.character_list)+1), 1), numpy.int32, mem_flags=driver.host_alloc_flags.DEVICEMAP)
-        self.d_compAll = numpy.intp(self.h_compAll.base.get_device_pointer())
-
         self.h_distances = driver.pagelocked_empty(( len(self.seqs) * self.indicesStepSize, 1), numpy.float32, mem_flags=driver.host_alloc_flags.DEVICEMAP)
         self.d_distances = numpy.intp(self.h_distances.base.get_device_pointer())
+
+        self.h_validComps = driver.pagelocked_empty(( len(self.seqs) * self.indicesStepSize, 1), numpy.int32, mem_flags=driver.host_alloc_flags.DEVICEMAP)
+        self.d_validComps = numpy.intp(self.h_validComps.base.get_device_pointer())
+        self.h_seqs = driver.pagelocked_empty(( len(self.seqs) * self.indicesStepSize, 1), numpy.int32, mem_flags=driver.host_alloc_flags.DEVICEMAP)
+        self.d_seqs = numpy.intp(self.h_seqs.base.get_device_pointer())
+
+
+    def _init_memory_compAll(self):
+        self.h_compAll = driver.pagelocked_empty(( self.indicesStepSize * (len(self.character_list)+1), 1), numpy.int32, mem_flags=driver.host_alloc_flags.DEVICEMAP)
+        self.d_compAll = numpy.intp(self.h_compAll.base.get_device_pointer())
+        #self.d_compAll = driver.mem_alloc(( self.indicesStepSize * (len(self.character_list)+1)*4))
     
     def _copy_index(self, compAll):
         driver.memcpy_htod(self.d_compAll, numpy.concatenate(compAll))
@@ -86,39 +96,68 @@ class QIndexerCUDA(QIndexer):
         :param step: set this to True when you're stepping through distance values. Hence: start at 0 <= distance < 0.01, then 0.01 <= distance < 0.02, etc  
         """
         self.seqs = seqs
-        self._init_memory()
-        self.dim_grid = (self.indicesStepSize/self.block, self.block)
-        self.dim_block = (len(self.character_list), len(self.seqs),1)
+        keys = self.tupleSet.keys()
 
+        self.dim_grid = (self.indicesStepSize/self.block, self.block*len(seqs))
+        self.dim_block = (len(self.character_list), 1,1)
+        self._init_memory()
+
+        # create index to see how many compositions are found:
+        self.d_index_increment = driver.mem_alloc(4)
+        index = numpy.zeros((1), dtype=numpy.int32)
+        driver.memcpy_htod(self.d_index_increment, index)
 
         #find smallest window:
         loc = 0
         while loc < len(self.wSize)-1 and self.windowSize(len(seq)) > self.wSize[loc]:
             loc += 1
 
-        comp = []
+        # create numpy array with sequence compositions:
+        comp = numpy.array([], dtype=numpy.int32)
         for seq in seqs:
-            comp.extend(self.count(seq.upper(), self.wSize[loc], 0, len(seq)))
-        
-        driver.memcpy_htod(self.d_comp, comp.toarray())
+            comp = numpy.append(comp,self.count(seq.seq.upper(), self.wSize[loc], 0, len(seq)).toarray())
+        self.logger.debug("Copying compositions of reads to device")
+        driver.memcpy_htod(self.d_comp, comp)
       
-        self.calculate_distance_function(self.d_compAll, self.d_comp, self.d_distances, numpy.float32(self.compositionScale), 
+        self.logger.debug("Calculating distances")
+        self.calculate_distance_function(self.d_compAll, self.d_comp, self.d_distances, self.d_validComps, self.d_seqs, self.d_index_increment, numpy.float32(self.compositionScale),
+                                         numpy.int32(len(seqs)), numpy.int32(len(keys)), numpy.float32(self.sliceDistance), 
                                      block=self.dim_block, 
                                      grid=self.dim_grid)
-        
-        driver.Context.synchronize() 
-        distances = numpy.ndarray(buffer=self.h_distances, dtype=numpy.float32, shape=(len(seqs) * len(self.h_distances), 1))
-        #self.logger.debug("Distances: {}".format(distances))
 
-        hits = []
+        driver.Context.synchronize() 
+
+        self.logger.debug("Getting distances")
+
+        distances = numpy.ndarray(buffer=self.h_distances, dtype=numpy.float32, shape=(1,len(self.h_distances)))[0]
+        
+        numberOfValidComps = numpy.zeros((1), dtype=numpy.int32)
+        driver.memcpy_dtoh(numberOfValidComps, self.d_index_increment)
+        numberOfValidComps = numberOfValidComps[0]
+        
+        validComps = numpy.ndarray(buffer=self.h_validComps, dtype=numpy.int32, shape=(1,len(self.h_validComps)))[0]
+        validSeqs = numpy.ndarray(buffer=self.h_seqs, dtype=numpy.int32, shape=(1,len(self.h_seqs)))[0]
+        
+        self.logger.debug("Process distances")
+        hits = [{}]*len(seqs)
+        for s in xrange(numberOfValidComps):
+
+            valid = keys[validComps[s]]
+            for hit in self.tupleSet[valid]:
+                if hit[1] not in hits[validSeqs[s]]:
+                    hits[validSeqs[s]][hit[1]] = []
+                hits[validSeqs[s]][hit[1]].extend([(hit, self.wSize[loc], distances[s])])
+        """
         for s in xrange(len(seqs)):
             hits.append({})
-            keys = self.tupleSet.keys()
-            validComp = [keys[x] for x in xrange(len(keys)) if keys[x].data[0] == comp[s].data[0] and distances[x+s]  < self.sliceDistance]
-            
-            for valid in validComp:
+
+            validComp = [(keys[x],distances[x+(s*self.indicesStepSize)])  for x in xrange(len(keys)) if keys[x].data[0] == comp[s*(len(self.character_list)+1)] and distances[x+(s*self.indicesStepSize)]  < self.sliceDistance]
+            #distance = [distances[x+(s*self.indicesStepSize)]  for x in xrange(len(keys)) if keys[x].data[0] == comp[s*(len(self.character_list)+1)] and distances[x+(s*self.indicesStepSize)]  < self.sliceDistance]
+            for v in xrange(len(validComp)):
+                valid = validComp[v][0]
                 for hit in self.tupleSet[valid]:
-                    if hit[1] not in hits:
-                        hits[hit[1]] = []
-                    hits[hit[1]].extend([(hit, self.wSize[loc], self.distance_calc(valid, comp[s]))])
+                    if hit[1] not in hits[s]:
+                        hits[s][hit[1]] = []
+                    hits[s][hit[1]].extend([(hit, self.wSize[loc], validComp[v][0])])
+        """
         return hits
