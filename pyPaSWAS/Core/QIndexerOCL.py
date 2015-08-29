@@ -161,13 +161,13 @@ class QIndexerOCL(QIndexer):
 
 
         self.logger.debug("Getting distances")
-        self.h_distances = numpy.array([0]*len(self.h_distances), dtype=numpy.float32) 
-        cl.enqueue_copy(self.queue, self.h_distances, self.d_distances)
+        #self.h_distances = numpy.array([0]*len(self.h_distances), dtype=numpy.float32) 
+        #cl.enqueue_copy(self.queue, self.h_distances, self.d_distances)
                 
         numberOfValidComps = numpy.zeros((1), dtype=numpy.int32)
         cl.enqueue_copy(self.queue, numberOfValidComps, self.d_index_increment)
         
-        
+        distances = cl.enqueue_map_buffer(self.queue, self.d_distances, cl.map_flags.READ, 0, shape=(1,len(self.h_distances)), dtype=numpy.float32)[0][0]        
         validComps = cl.enqueue_map_buffer(self.queue, self.d_validComps, cl.map_flags.READ, 0, shape=(1,len(self.h_validComps)), dtype=numpy.int32)[0][0]
         validSeqs = cl.enqueue_map_buffer(self.queue, self.d_seqs, cl.map_flags.READ, 0, shape=(1,len(self.h_seqs)), dtype=numpy.int32)[0][0] 
 
@@ -178,11 +178,11 @@ class QIndexerOCL(QIndexer):
             hits.append({})
         
         for s in xrange(numberOfValidComps[0]):
-
+            self.logger.debug("VALID seq: {}, distance {}".format(validSeqs[s],distances[s]))
             valid = keys[validComps[s]]
             for hit in self.tupleSet[valid]:
                 if hit[1] not in hits[validSeqs[s]]:
                     hits[validSeqs[s]][hit[1]] = []
-                hits[validSeqs[s]][hit[1]].extend([(hit, self.wSize[loc], self.h_distances[s])])
+                hits[validSeqs[s]][hit[1]].extend([(hit, self.wSize[loc], distances[s])])
         
         return hits

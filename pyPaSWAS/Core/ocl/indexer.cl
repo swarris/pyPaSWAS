@@ -41,7 +41,7 @@ __kernel void calculateDistance(
 	if (comp < length) {		
 		__local float s_distances[INDEX_SIZE];
 	
-		s_distances[thread] = (float) index[block+threadPlus1] - (float)query[threadPlus1];
+		s_distances[thread] = (float) index[block+threadPlus1] - (float)query[threadPlus1+(seq*(INDEX_SIZE+1))];
 		s_distances[thread] *= s_distances[thread];
 	
 	
@@ -56,6 +56,7 @@ __kernel void calculateDistance(
 			}
 			offset *= 2;
 		}
+		barrier(CLK_LOCAL_MEM_FENCE);
 		if (thread == 0){
 			//distances[get_group_id(0) * BLOCK_SIZE + get_group_id(1)] =  sqrt(s_distances[INDEX_SIZE-1])/scale;
 			s_distances[INDEX_SIZE-1] = sqrt(s_distances[INDEX_SIZE-1])/scale;

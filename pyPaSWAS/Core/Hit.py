@@ -51,7 +51,7 @@ class Hit(object):
         self.distance = None
         self.rc = False
 
-        self.logger.debug('Initializing hit OK.')
+        #self.logger.debug('Initializing hit OK.')
 
     @staticmethod
     def _is_a_valid_location(location, sequence_length):
