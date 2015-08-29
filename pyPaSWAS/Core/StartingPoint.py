@@ -31,14 +31,14 @@ class StartingPoint(object):
         self.size = 9 * 4
         self.sequence = ''
         self.logger = logger
-        self.logger.debug('Initializing startingPoint OK.')
+
     
     def parse_byte_string(self, byte_string, location):
         """parse_byte_string sets the member variables based on the bytes in the byte string.
         @param byte_string: the byte string with all the starting points
         @param location: which starting point to get
         """
-        self.logger.debug('Parsing byte string...')
+        #self.logger.debug('Parsing byte string...')
         index = location * self.size
         self.sequence = numpy.fromstring(byte_string[index:index + 4], dtype=numpy.int32)
         if (len(self.sequence) > 0):
@@ -73,9 +73,8 @@ class StartingPoint(object):
         self.score = numpy.asscalar(numpy.fromstring(byte_string[index + 24:index + 28], dtype=numpy.float32,)[0])
         self.max_score = numpy.fromstring(byte_string[index + 28:index + 32], dtype=numpy.float32)[0]
         self.pos_score = numpy.fromstring(byte_string[index + 32:index + 36], dtype=numpy.float32)[0]
-        self.logger.debug('Parsing byte string OK.')
+        #self.logger.debug('Parsing byte string OK.')
 
-    #TODO: refactor this to StartingPointList??
     @staticmethod
     def _byte_string_to_list(byte_string, length, sequence_index, target_index):
         '''
@@ -104,19 +103,3 @@ class StartingPoint(object):
                 "\nposScore: {8}".format(self.sequence, self.target, self.block_x, self.block_y, self.value_x,
                                          self.value_y, self.score, self.max_score, self.pos_score))
 
-##TODO: implement a class StartingPointList
-#class StartingPointList():
-#
-#    def __init__(self):
-#        '''List of starting points'''
-#        self.listOfStartingPoints = []
-#
-#    def findHighestScore(self):
-##TODO: if sorted on creation: easier to implement this
-#        max_score = 0
-#        found = None
-#        for startingPoint in self.listOfStartingPoints:
-#            if startingPoint.score > max_score:
-#                found = startingPoint
-#                max_score = found.score
-#        return found

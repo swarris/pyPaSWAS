@@ -21,7 +21,7 @@ class QIndexerOCL(QIndexer):
         self._set_platform(self.settings.platform_name)
         
         self._initialize_device(int(self.settings.device_number))
-        self._init_memory()
+        self._init_memory_compAll()
     
     def _set_device_type(self, device_type):
         '''Sets the device type'''
@@ -71,16 +71,27 @@ class QIndexerOCL(QIndexer):
         
         code = resource_filename(__name__, 'ocl/indexer.cl')
         code_t = Template(read_file(code))
-        code = code_t.safe_substitute(size=len(self.character_list), block=self.block)
-        self.program = cl.Program(self.ctx, code).build()#options=['-D', 'NVIDIA'])        
-        self.dim_grid = (len(self.character_list) *self.indicesStepSize/self.block, self.block)
-        self.dim_block = (len(self.character_list), 1)
+        code = code_t.safe_substitute(size=len(self.character_list), block=self.block, stepSize=self.indicesStepSize)
+        self.program = cl.Program(self.ctx, code).build()        
 
 
     def _init_memory(self):
-        self.h_distances = numpy.empty(self.indicesStepSize).astype(numpy.float32)
+        self.h_distances = numpy.empty(len(self.seqs) * self.indicesStepSize).astype(numpy.float32)
         self.d_distances = cl.Buffer(self.ctx, cl.mem_flags.WRITE_ONLY| cl.mem_flags.ALLOC_HOST_PTR| cl.mem_flags.COPY_HOST_PTR, hostbuf=self.h_distances)
+        
+        self.h_comp = numpy.empty( len(self.seqs) * (len(self.character_list)+1)).astype(numpy.int32)
+        self.d_comp = cl.Buffer(self.ctx, cl.mem_flags.READ_ONLY| cl.mem_flags.ALLOC_HOST_PTR| cl.mem_flags.COPY_HOST_PTR, hostbuf=self.h_comp)
 
+        self.h_validComps = numpy.empty( len(self.seqs) * self.indicesStepSize).astype(numpy.int32)
+        self.d_validComps = cl.Buffer(self.ctx, cl.mem_flags.READ_ONLY| cl.mem_flags.ALLOC_HOST_PTR| cl.mem_flags.COPY_HOST_PTR, hostbuf=self.h_validComps)
+        
+        self.h_seqs = numpy.empty( len(self.seqs) * self.indicesStepSize).astype(numpy.int32)
+        self.d_seqs = cl.Buffer(self.ctx, cl.mem_flags.READ_ONLY| cl.mem_flags.ALLOC_HOST_PTR| cl.mem_flags.COPY_HOST_PTR, hostbuf=self.h_seqs)
+ 
+    def _init_memory_compAll(self):
+        self.h_compAll = numpy.empty(self.indicesStepSize * (len(self.character_list)+1)).astype(numpy.int32)
+        self.d_compAll = cl.Buffer(self.ctx, cl.mem_flags.WRITE_ONLY| cl.mem_flags.ALLOC_HOST_PTR| cl.mem_flags.COPY_HOST_PTR, hostbuf=self.h_compAll)
+ 
     def _copy_index(self, compAll):
         compAll = numpy.concatenate(compAll)
         self.d_compAll = cl.Buffer(self.ctx, cl.mem_flags.READ_ONLY | cl.mem_flags.ALLOC_HOST_PTR| cl.mem_flags.COPY_HOST_PTR, hostbuf=compAll) 
@@ -95,7 +106,6 @@ class QIndexerOCL(QIndexer):
 
 
     def findIndices(self,seqs, start = 0.0, step=False):
-        pass
         """ finds the seeding locations for the mapping process.
         Structure of locations:
         (hit, window, distance), with hit: (location, reference seq id)
@@ -105,30 +115,74 @@ class QIndexerOCL(QIndexer):
         :param start: minimum distance. Use default unless you're stepping through distance values
         :param step: set this to True when you're stepping through distance values. Hence: start at 0 <= distance < 0.01, then 0.01 <= distance < 0.02, etc  
         """
-        hits = []
-        self.logger.debug("Calculating distances")
-        for seq in seqs:
-            #find smallest window:
-            hits.append({})
-            loc = 0
-            while loc < len(self.wSize)-1 and self.windowSize(len(seq)) > self.wSize[loc]:
-                loc += 1
-    
-            comp = self.count(seq.seq.upper(), self.wSize[loc], 0, len(seq))
-            keys = self.tupleSet.keys()
-    
-            self.d_comp = cl.Buffer(self.ctx, cl.mem_flags.READ_ONLY | cl.mem_flags.ALLOC_HOST_PTR| cl.mem_flags.COPY_HOST_PTR, hostbuf=comp.toarray())
-            self.program.calculateDistance(self.queue, self.dim_grid,self.dim_block, self.d_compAll, self.d_comp, self.d_distances, numpy.float32(self.compositionScale), numpy.int32(len(keys)))
-            
-            self.h_distances = numpy.array([0]*self.indicesStepSize, dtype=numpy.float32) 
-            cl.enqueue_copy(self.queue, self.h_distances, self.d_distances)
-            distances = self.h_distances
-            self.logger.debug("Process distances")
-            validComp = [keys[x] for x in xrange(len(keys)) if keys[x].data[0] == comp.data[0] and distances[x]  < self.sliceDistance]
-            for valid in validComp:
-                for hit in self.tupleSet[valid]:
-                    if hit[1] not in hits[-1]:
-                        hits[-1][hit[1]] = []
-                    hits[-1][hit[1]].extend([(hit, self.wSize[loc], self.distance_calc(valid, comp))])
+ 
+        self.seqs = seqs
+        keys = self.tupleSet.keys()
+        
+        # setup device parameters
+        #self.dim_grid = (self.indicesStepSize/self.block, self.block*len(seqs))
+        #self.dim_block = (len(self.character_list), 1,1)
 
+        self.dim_grid = (len(self.character_list) *self.indicesStepSize/self.block, self.block*len(seqs))
+        self.dim_block = (len(self.character_list), 1)
+        
+        #init memory
+        self._init_memory()
+
+        # create index to see how many compositions are found:
+        self.d_index_increment = cl.Buffer(self.ctx, cl.mem_flags.WRITE_ONLY, size=4)
+        index = numpy.zeros((1), dtype=numpy.int32)
+        cl.enqueue_write_buffer(self.queue, self.d_index_increment, index)
+
+        #find smallest window:
+        loc = 0
+        while loc < len(self.wSize)-1 and self.windowSize(len(seq)) > self.wSize[loc]:
+            loc += 1
+
+        # create numpy array with sequence compositions:
+        comp = numpy.array([], dtype=numpy.int32)
+        for seq in seqs:
+            comp = numpy.append(comp,self.count(seq.seq.upper(), self.wSize[loc], 0, len(seq)).toarray())
+
+        self.logger.debug("Copying compositions of reads to device")
+        cl.enqueue_write_buffer(self.queue, self.d_comp, comp)
+      
+        self.logger.debug("Calculating distances")
+        self.program.calculateDistance(self.queue, self.dim_grid,self.dim_block, 
+                                       self.d_compAll, self.d_comp, 
+                                       self.d_distances, 
+                                       self.d_validComps, 
+                                       self.d_seqs, 
+                                       self.d_index_increment, 
+                                       numpy.float32(self.compositionScale),
+                                       numpy.int32(len(seqs)), 
+                                       numpy.int32(len(keys)), 
+                                       numpy.float32(self.sliceDistance))
+
+
+        self.logger.debug("Getting distances")
+        self.h_distances = numpy.array([0]*len(self.h_distances), dtype=numpy.float32) 
+        cl.enqueue_copy(self.queue, self.h_distances, self.d_distances)
+                
+        numberOfValidComps = numpy.zeros((1), dtype=numpy.int32)
+        cl.enqueue_copy(self.queue, numberOfValidComps, self.d_index_increment)
+        
+        
+        validComps = cl.enqueue_map_buffer(self.queue, self.d_validComps, cl.map_flags.READ, 0, shape=(1,len(self.h_validComps)), dtype=numpy.int32)[0][0]
+        validSeqs = cl.enqueue_map_buffer(self.queue, self.d_seqs, cl.map_flags.READ, 0, shape=(1,len(self.h_seqs)), dtype=numpy.int32)[0][0] 
+
+        self.logger.debug("Process {} valid compositions".format(numberOfValidComps[0]))
+
+        hits = []
+        for s in xrange(len(seqs)):
+            hits.append({})
+        
+        for s in xrange(numberOfValidComps[0]):
+
+            valid = keys[validComps[s]]
+            for hit in self.tupleSet[valid]:
+                if hit[1] not in hits[validSeqs[s]]:
+                    hits[validSeqs[s]][hit[1]] = []
+                hits[validSeqs[s]][hit[1]].extend([(hit, self.wSize[loc], self.h_distances[s])])
+        
         return hits

@@ -16,6 +16,7 @@ class QIndexer (Indexer):
         self.generate_character_list(qgram)
         self.character_index = {}
         self.indicesStep = 0
+        self.block = 1000 # only for parallel devices
         index = 1
         for c in self.character_list:
             self.character_index[c] = index
@@ -89,6 +90,7 @@ class QIndexer (Indexer):
             distances = [self.distance_calc(a, comp) for a in compAll] 
             #self.logger.debug("Distances: {}".format(distances))
             validComp = [keys[x] for x in xrange(len(keys)) if keys[x].data[0] == comp.data[0] and distances[x]  < self.sliceDistance]
+            self.logger.debug("Found {} relevant locations".format(len(validComp)))
             
             for valid in validComp:
                 for hit in self.tupleSet[valid]:

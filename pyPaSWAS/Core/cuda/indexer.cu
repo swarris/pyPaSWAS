@@ -15,7 +15,6 @@ __global__ void calculateDistance(int *index, int *query, float *distances, unsi
 		unsigned int *seqs,
 		unsigned int *indexIncrement, float scale, unsigned int numSeqs, unsigned int length, float sliceDistance){
 
-	__shared__ float s_distances[INDEX_SIZE];
 
 	unsigned int seq = blockIdx.y / BLOCK_SIZE;
 	unsigned int blockY = blockIdx.y % BLOCK_SIZE;
@@ -24,7 +23,10 @@ __global__ void calculateDistance(int *index, int *query, float *distances, unsi
 	unsigned int block = (comp)*(INDEX_SIZE+1);
 	unsigned int threadPlus1 = threadIdx.x+1;
 	unsigned int thread = threadIdx.x;
+
 	if (comp < length) {
+		__shared__ float s_distances[INDEX_SIZE];
+
 		s_distances[thread] = (float) index[block+threadPlus1] - (float)query[threadPlus1+(seq*(INDEX_SIZE+1))];
 		s_distances[thread] *= s_distances[thread];
 
@@ -40,13 +42,14 @@ __global__ void calculateDistance(int *index, int *query, float *distances, unsi
 			}
 			offset *= 2;
 		}
+		__syncthreads();
 		if (thread == 0){
 			s_distances[INDEX_SIZE-1] = sqrt(s_distances[INDEX_SIZE-1])/scale;
-			if (s_distances[INDEX_SIZE-1] <= sliceDistance){
-				unsigned int index = atomicAdd(indexIncrement, 1);
-				distances[index] =  s_distances[INDEX_SIZE-1];
-				validComps[index] = comp;
-				seqs[index] = seq;
+			if (s_distances[INDEX_SIZE-1] < sliceDistance){
+				unsigned int indices = atomicAdd(indexIncrement, 1);
+				distances[indices] =  s_distances[INDEX_SIZE-1];
+				validComps[indices] = comp;
+				seqs[indices] = seq;
 			}
 		}
 

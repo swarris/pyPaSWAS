@@ -173,31 +173,28 @@ class ComBaRMapper(Aligner):
         
                         locations = allLocations[read-currentBlockOfReads]
                         locs = []
-        
                         if (len(locations) > 0):
                             for value in locations.itervalues():
                                 locs.extend(value)
-        
-                            for i in range(0, len(locs), 15000000) :
-                                splittedTargets = []
-        
-                                for loc in locs[i:i+15000000]:
-                                    swSeqRecord = indexer.getSWSeqRecord(loc, targets)
-                                    swSeqRecord.distance = loc[2]
-                                    swSeqRecord.id = targets[loc[0][1]].id
-                                    swSeqRecord.refID = loc[0][1]
-                                    splittedTargets.append(swSeqRecord)
-        
-                                if (len(splittedTargets) > 0 and len(filteredRecordsSeqs) > 0):
-                                    splittedTargets.sort(key=lambda seqIO : len(seqIO.seq), reverse=True)
-                                    target_index = 0
-                                    # process of the seeds:                                                                                                                                                          
-                                    while target_index < len(splittedTargets):
-                                        last_target_index = self.smith_waterman.set_targets(splittedTargets, target_index, None, filteredRecordsSeqs)
-                                        self.logger.debug('At target: {0} of {1}, processing up to {2}'.format(target_index, len(splittedTargets), str(last_target_index)))
-                                        results = self.smith_waterman.align_sequences(filteredRecordsSeqs, splittedTargets, target_index)
-                                        self.hitlist.extend(results)
-                                        target_index = last_target_index
+                            splittedTargets = []
+    
+                            for loc in locs:
+                                swSeqRecord = indexer.getSWSeqRecord(loc, targets)
+                                swSeqRecord.distance = loc[2]
+                                swSeqRecord.id = targets[loc[0][1]].id
+                                swSeqRecord.refID = loc[0][1]
+                                splittedTargets.append(swSeqRecord)
+    
+                            if (len(splittedTargets) > 0 and len(filteredRecordsSeqs) > 0):
+                                splittedTargets.sort(key=lambda seqIO : len(seqIO.seq), reverse=True)
+                                target_index = 0
+                                # process of the seeds:                                                                                                                                                          
+                                while target_index < len(splittedTargets):
+                                    last_target_index = self.smith_waterman.set_targets(splittedTargets, target_index, None, filteredRecordsSeqs)
+                                    self.logger.debug('At target: {0} of {1}, processing up to {2}'.format(target_index, len(splittedTargets), str(last_target_index)))
+                                    results = self.smith_waterman.align_sequences(filteredRecordsSeqs, splittedTargets, target_index)
+                                    self.hitlist.extend(results)
+                                    target_index = last_target_index
             
             #filter out reads already processed:
             currentRead = 0

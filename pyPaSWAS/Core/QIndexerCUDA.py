@@ -17,8 +17,6 @@ class QIndexerCUDA(QIndexer):
     
     def __init__(self, settings, logger, stepFactor = 0.1, reads= [], qgram=1):
         QIndexer.__init__(self, settings, logger, stepFactor, reads, qgram)
-        
-        self.block = 1000
 
         self._initialize_device(self.settings.device_number)
         self._init_memory_compAll()
@@ -97,9 +95,11 @@ class QIndexerCUDA(QIndexer):
         """
         self.seqs = seqs
         keys = self.tupleSet.keys()
-
-        self.dim_grid = (self.indicesStepSize/self.block, self.block*len(seqs))
+        
+        # setup device parameters
+        self.dim_grid = (self.indicesStepSize/self.block, self.block*len(seqs),1)
         self.dim_block = (len(self.character_list), 1,1)
+        #init memory
         self._init_memory()
 
         # create index to see how many compositions are found:
@@ -137,9 +137,10 @@ class QIndexerCUDA(QIndexer):
         
         validComps = numpy.ndarray(buffer=self.h_validComps, dtype=numpy.int32, shape=(1,len(self.h_validComps)))[0]
         validSeqs = numpy.ndarray(buffer=self.h_seqs, dtype=numpy.int32, shape=(1,len(self.h_seqs)))[0]
-        
-        self.logger.debug("Process distances")
-        hits = [{}]*len(seqs)
+        self.logger.debug("Process {} valid compositions".format(numberOfValidComps))
+        hits = []
+        for s in xrange(len(seqs)):
+            hits.append({})
         for s in xrange(numberOfValidComps):
 
             valid = keys[validComps[s]]
@@ -147,17 +148,5 @@ class QIndexerCUDA(QIndexer):
                 if hit[1] not in hits[validSeqs[s]]:
                     hits[validSeqs[s]][hit[1]] = []
                 hits[validSeqs[s]][hit[1]].extend([(hit, self.wSize[loc], distances[s])])
-        """
-        for s in xrange(len(seqs)):
-            hits.append({})
 
-            validComp = [(keys[x],distances[x+(s*self.indicesStepSize)])  for x in xrange(len(keys)) if keys[x].data[0] == comp[s*(len(self.character_list)+1)] and distances[x+(s*self.indicesStepSize)]  < self.sliceDistance]
-            #distance = [distances[x+(s*self.indicesStepSize)]  for x in xrange(len(keys)) if keys[x].data[0] == comp[s*(len(self.character_list)+1)] and distances[x+(s*self.indicesStepSize)]  < self.sliceDistance]
-            for v in xrange(len(validComp)):
-                valid = validComp[v][0]
-                for hit in self.tupleSet[valid]:
-                    if hit[1] not in hits[s]:
-                        hits[s][hit[1]] = []
-                    hits[s][hit[1]].extend([(hit, self.wSize[loc], validComp[v][0])])
-        """
         return hits

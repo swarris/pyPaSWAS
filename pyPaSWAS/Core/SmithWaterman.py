@@ -773,8 +773,8 @@ class SmithWaterman(object):
                     hit_list.append(hit)
                 else:
                     self.logger.debug("Hit {0} -vs- {1} does not meet filter requirements".format(sequences[sequence_starting_point + start_seq].id, targets[target_starting_point + start_target].id ))
-            if not show:
-                self.logger.debug("Hit {0} -vs- {1} not shown".format(sequences[sequence_starting_point + start_seq].id, targets[target_starting_point + start_target].id ))
+            #if not show:
+            #    self.logger.debug("Hit {0} -vs- {1} not shown".format(sequences[sequence_starting_point + start_seq].id, targets[target_starting_point + start_target].id ))
         return hit_list
     
     def _filter_hit(self, hit):
