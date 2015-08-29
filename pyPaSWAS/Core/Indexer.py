@@ -27,7 +27,7 @@ class Indexer:
         self.logger = logger
         self.stepFactor = stepFactor
         self.sliceDistance = self.sliceDistance#*self.sliceDistance*self.compositionScale*self.compositionScale
-
+        self.readsToProcess = int(settings.reads_to_process)
         
         self.wSize = list(set(map(lambda x : len(x) , reads)))
         self.wSize = map(lambda x : self.windowSize(x), self.wSize)

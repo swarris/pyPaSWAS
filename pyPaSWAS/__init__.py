@@ -173,6 +173,8 @@ def parse_cli(config_file):
 
     mapper_options.add_option('--compressed_index', help='Used compressed index. Compressing an index saves disk space, but creates a memory leak.', dest='compressed_index',
                               default=config.get('Mapper', 'compressed_index'))
+    mapper_options.add_option('--reads_to_process', help='Number of reads to process at once on parallel device. Keep low when the device times out.', dest='reads_to_process',
+                              default=config.get('Mapper', 'reads_to_process'))
 
     parser.add_option_group(mapper_options)
 

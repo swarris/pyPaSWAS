@@ -178,7 +178,6 @@ class QIndexerOCL(QIndexer):
             hits.append({})
         
         for s in xrange(numberOfValidComps[0]):
-            self.logger.debug("VALID seq: {}, distance {}".format(validSeqs[s],distances[s]))
             valid = keys[validComps[s]]
             for hit in self.tupleSet[valid]:
                 if hit[1] not in hits[validSeqs[s]]:
