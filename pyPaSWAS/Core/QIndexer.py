@@ -44,7 +44,7 @@ class QIndexer (Indexer):
                 for qgram_string in range(start_index, end_index-self.qgram):
                     subStr = str(seq[qgram_string:qgram_string + self.qgram])
                     
-                    if "N" not in subStr and len(subStr.strip()) == len(self.character_list[0]):
+                    if "N" not in subStr and subStr in self.character_index and len(subStr.strip()) == len(self.character_list[0]):
                         results[self.character_index[subStr]] += fraction 
         r = results.view(int)
         r[:] = results
