@@ -26,7 +26,7 @@ In most cases it is enough to clone the repository. After that, please install:
 - numpy: sudo pip install numpy (or pip install --user numpy)
 - BioPython: sudo pip install Biopython (or pip install --user Biopython)
 - In some cases, the python development packages are required (Ubuntu: sudo apt-get install python-dev) 
-- When confronted with the message that the 'internal' module is missing when running pyPaSWAS, the 'six' package is not installed correctly. This can be solved by upgrading it to the most recent version: 'sudo pip install --upgrade six'  
+- When confronted with the message that the 'intern' module is missing when running pyPaSWAS, the 'six' package is not installed correctly. This can be solved by upgrading it to the most recent version: 'sudo pip install --upgrade six'  
 
 Making use of the CUDA version (also recommended when using the OpenCL version on a NVIDIA GPU):
 - Download CUDA sdk: https://developer.nvidia.com/cuda-downloads
