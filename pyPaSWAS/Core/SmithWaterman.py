@@ -11,6 +11,7 @@ It can be used to initialize the device, allocate the required memory and run th
 #from pycuda.compiler import SourceModule
 import numpy
 import math
+import time
 
 from pyPaSWAS.Core.StartingPoint import StartingPoint
 from pyPaSWAS.Core.HitList import HitList
@@ -497,6 +498,7 @@ class SmithWaterman(object):
                 #self._set_parameters(length, self.target_block_length, self.max_sequences-self.added_dummy_seqs, self.number_of_targets-self.added_dummy_targets)
                 self._set_parameters(length, self.target_block_length, self.max_sequences, self.number_of_targets)
             # copy sequences and targets to the device
+            #t = time.clock()
             self.copy_sequences(sequence_array, self.target_array)
             # initialize index for zero copy of starting points
             self._init_zero_copy()
@@ -504,6 +506,7 @@ class SmithWaterman(object):
             self._calculate_score()
             # perform the traceback
             self._traceback_host()
+            #self.logger.info(">{}".format(time.clock()-t))
 
             # TODO: change to returning a value, change _print_alignments to getAlignments in SmithWaterman
             # TODO: move _print_alignments to here? This should be a statement to retrieve the results and
