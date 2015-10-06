@@ -2,6 +2,7 @@ from string import Template
 
 import numpy
 import scipy
+import math
 from scipy.sparse import csc_matrix
 
 import pycuda.driver as driver
@@ -53,7 +54,8 @@ class QIndexerCUDA(QIndexer):
         self.module = SourceModule(code)
         
         self.calculate_distance_function = self.module.get_function("calculateDistance")
-
+        self.calculate_qgrams_function = self.module.get_function("calculateQgrams")
+        self.setToZero_function = self.module.get_function("setToZero")
 
     def _init_memory(self):
         self.h_comp = driver.pagelocked_empty(( len(self.seqs) * (len(self.character_list)+1), 1), numpy.int32, mem_flags=driver.host_alloc_flags.DEVICEMAP)
@@ -76,13 +78,99 @@ class QIndexerCUDA(QIndexer):
     def _copy_index(self, compAll):
         driver.memcpy_htod(self.d_compAll, numpy.concatenate(compAll))
 
+    def indicesToProcessLeft(self):
+        self.logger.info("At indices: {}, {}, {}".format(self.indexCount, self.indicesStep, self.indicesStepSize))
+        return self.indexCount == self.indicesStep or (self.indexCount == 0 and self.indicesStep == 0)
+
     def createIndex(self, sequence, fileName = None, retainInMemory=True):
-        QIndexer.createIndex(self, sequence, fileName, retainInMemory)
-        self.logger.info("Preparing index for GPU")
-        keys = self.tupleSet.keys()
-        compAll = [k.toarray() for k in keys]
-        self._copy_index(compAll)
+        #QIndexer.createIndex(self, sequence, fileName, retainInMemory)
+ 
+        currentTupleSet = {}
+        self.tupleSet = {}
+        self.prevCount = self.indexCount
+        self.indexCount = 0
+        numberOfWindowsInPrevSeqs = 0
+        numberOfWindowsToCalculate = 0
         
+        for window in self.wSize:
+            self.tupleSet = {}
+            seqId = 0
+            while seqId < len(sequence) and self.indexCount < self.indicesStep + self.indicesStepSize:
+                # get sequence
+                seq = str(sequence[seqId].seq)
+                # calculate step through genome 
+                revWindowSize = int(self.reverseWindowSize(window)*self.stepFactor*self.slideStep) 
+                # see how many windows fit in this sequence
+                numberOfWindows = int(math.ceil(len(seq) / revWindowSize))
+                self.logger.debug("Number of windows in this seq: {}".format(numberOfWindows))
+                if self.indexCount + numberOfWindows <= self.indicesStep:
+                    # sequence already completely processed
+                    self.indexCount += numberOfWindows
+                    numberOfWindowsInPrevSeqs += numberOfWindows
+                else:
+                    # see how many windows can be calculate
+                    numberOfWindowsToCalculate = self.indexCount + numberOfWindows - self.indicesStep
+                    if numberOfWindowsToCalculate > self.indicesStepSize:
+                        numberOfWindowsToCalculate = self.indicesStepSize
+                    if self.indexCount - numberOfWindowsInPrevSeqs > 0 :
+                        numberOfWindowsToCalculate -= numberOfWindowsInPrevSeqs
+                        # where to start?
+                        startWindow = self.indicesStep - self.indexCount + numberOfWindowsInPrevSeqs
+                    else:
+                        startWindow = self.indicesStep - self.indexCount
+                                
+                    self.indexCount += startWindow + numberOfWindowsToCalculate
+                    numberOfWindowsInPrevSeqs += numberOfWindowsToCalculate 
+                
+                    self.logger.debug("Creating index of {} with window {}".format(sequence[seqId].id, window))
+                    self.logger.debug("Will process #windows: {}".format(numberOfWindowsToCalculate))
+                    startIndex = startWindow * revWindowSize
+                    endIndex = numberOfWindowsToCalculate * revWindowSize + startIndex + window
+                    seqToIndex = str(sequence[seqId].seq[startIndex:endIndex]).upper() 
+                    self.logger.debug("Indices: {}, {}".format(startIndex, endIndex)) 
+                    # memory on gpu for count should already be enough, so copy sequence to gpu
+                    seqHost = numpy.array(seqToIndex, dtype=numpy.character)
+                    seqMem = driver.pagelocked_empty((len(seqToIndex), 1), numpy.byte, mem_flags=driver.host_alloc_flags.DEVICEMAP) 
+                    seqGPU = numpy.intp(seqMem.base.get_device_pointer()) #driver.mem_alloc(len(seqToIndex)) #
+                    driver.memcpy_htod(seqGPU, seqHost)
+                    
+                    # set comps to zero
+                    dim_grid = (self.indicesStepSize/self.block, self.block,1)
+                    dim_block = (len(self.character_list), 1,1)
+                    self.setToZero_function(self.d_compAll, block=dim_block, grid=dim_grid)
+                    driver.Context.synchronize() 
+                    # perform count on gpu 
+                    dim_grid = (int(math.ceil(len(seqToIndex)/float(len(self.character_list)))), 1,1)
+                    dim_block = (len(self.character_list), 1,1)
+                    self.logger.debug("Calculating qgram per location in sequence. q={}, length={}, block={}, grid={}".format(
+                                self.qgram, len(seqToIndex), dim_block, dim_grid))
+                    self.calculate_qgrams_function(seqGPU, numpy.int32(self.qgram), numpy.int32(len(seqToIndex)), self.d_compAll,
+                                    numpy.float32(window), numpy.float32(revWindowSize), 
+                                     block=dim_block, 
+                                     grid=dim_grid)
+                    driver.Context.synchronize() 
+                    comps = numpy.ndarray(buffer=self.h_compAll, dtype=numpy.int32, shape=(1,len(self.h_compAll)))[0].tolist()
+                    self.logger.debug("Adding {} counts to index".format(len(comps)))
+                    # add comps to tuple set
+                    for w in xrange(numberOfWindowsToCalculate):
+                        count = tuple(comps[w*(len(self.character_list)+1):(w+1)*(len(self.character_list)+1)])
+                        if count not in self.tupleSet:
+                            self.tupleSet[count] = [] 
+                        self.tupleSet[count].append((w*revWindowSize, seqId))
+                    
+                
+                    currentTupleSet.update(self.tupleSet)
+                seqId += 1
+                
+        self.indicesStep += self.indicesStepSize
+                    
+        self.tupleSet = currentTupleSet
+        keys = self.tupleSet.keys()
+        self.logger.info("Preparing index for GPU, size: {}".format(len(keys)))
+        compAll = [numpy.array(k, dtype=numpy.int32) for k in keys]
+        self._copy_index(compAll)
+        #self._copy_index(keys)
+    
     def findIndices(self,seqs, start = 0.0, step=False):
         """ finds the seeding locations for the mapping process.
         Structure of locations:

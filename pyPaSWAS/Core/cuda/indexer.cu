@@ -11,6 +11,13 @@ __global__ void calculateDistance(int *index, int *query, float *distances, unsi
 		unsigned int *indexIncrement,
 		float scale, unsigned int numSeqs, unsigned int length, float sliceDistance);
 
+extern "C"
+__global__ void setToZero(unsigned int *comps);
+
+extern "C"
+__global__ void calculateQgrams(char *sequence, unsigned int q, unsigned int length, unsigned int *comps, float windowLength, float step);
+
+
 __global__ void calculateDistance(int *index, int *query, float *distances, unsigned int *validComps,
 		unsigned int *seqs,
 		unsigned int *indexIncrement, float scale, unsigned int numSeqs, unsigned int length, float sliceDistance){
@@ -55,3 +62,44 @@ __global__ void calculateDistance(int *index, int *query, float *distances, unsi
 
 	}
 }
+
+__global__ void setToZero(unsigned int *comps){
+	unsigned int index = 1+threadIdx.x + (INDEX_SIZE) * (blockIdx.x*BLOCK_SIZE + blockIdx.y);
+	comps[index] = 0;
+}
+
+__global__ void calculateQgrams(char *sequence, unsigned int q, unsigned int length, unsigned int *comps, float windowLength, float step) {
+	unsigned int seqLocation = threadIdx.x + INDEX_SIZE * blockIdx.x;
+	if (seqLocation < length - q) {
+		int localQgram = 0;
+		int bit = 1;
+		for (int i=q-1; i >= 0; i--) {
+			if (localQgram >= 0) {
+				char character = sequence[seqLocation+i];
+				switch (character) {
+					case 'A' : break;
+					case 'T' : localQgram+=1*bit; break;
+					case 'C' : localQgram+=2*bit; break;
+					case 'G' : localQgram+=3*bit; break;
+					default : localQgram = -1;
+				}
+				bit *= q;
+			}
+		}
+		if (localQgram >= 0) {
+			localQgram++;
+			unsigned int startWindow = (seqLocation-windowLength) < 0 ? 0 : (unsigned int)ceil((seqLocation - windowLength) / step);
+			unsigned int endWindow = (unsigned int)floor(seqLocation/step) < STEP_SIZE? (unsigned int)floor(seqLocation/step) : STEP_SIZE-1;
+			comps[(startWindow * (INDEX_SIZE+1))]= (int)windowLength;
+
+			for (unsigned int i =startWindow; i < endWindow; i++){
+				atomicAdd(&comps[i * (INDEX_SIZE+1)+localQgram], 1);
+			}
+
+		}
+
+	}
+
+}
+
+

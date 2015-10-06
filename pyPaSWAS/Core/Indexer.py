@@ -51,6 +51,7 @@ class Indexer:
         self.logger.info("At indices: {}, {}, {}".format(self.indexCount, self.indicesStep, self.indicesStepSize))
         return self.indexCount == self.indicesStep+1 or (self.indexCount == 0 and self.indicesStep == 0)
 
+
     def createIndex(self, sequence, fileName = None, retainInMemory=True):
         currentTupleSet = {}
         self.tupleSet = {}
