@@ -154,7 +154,6 @@ class QIndexerCUDA(QIndexer):
                                      grid=dim_grid)
                     driver.Context.synchronize() 
                     comps = numpy.ndarray(buffer=self.h_compAll, dtype=numpy.int32, shape=(1,len(self.h_compAll)))[0].tolist()
-                    self.logger.debug("Adding {} counts to index".format(len(comps)))
                     # add comps to tuple set
                     for w in xrange(numberOfWindowsToCalculate):
                         count = tuple(comps[w*(len(self.character_list)+1):(w+1)*(len(self.character_list)+1)])
