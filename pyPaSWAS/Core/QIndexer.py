@@ -49,7 +49,6 @@ class QIndexer (Indexer):
                         results[self.character_index[subStr]] += fraction 
         r = results.view(int)
         r[:] = results
-
         return(csc_matrix(r, dtype=numpy.int32))
 
     def createIndexAndStore(self, sequence, fileName, retainInMemory=True):

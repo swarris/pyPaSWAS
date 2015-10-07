@@ -12,10 +12,10 @@ __global__ void calculateDistance(int *index, int *query, float *distances, unsi
 		float scale, unsigned int numSeqs, unsigned int length, float sliceDistance);
 
 extern "C"
-__global__ void setToZero(unsigned int *comps);
+__global__ void setToZero(float *comps);
 
 extern "C"
-__global__ void calculateQgrams(char *sequence, unsigned int q, unsigned int length, unsigned int *comps, float windowLength, float step);
+__global__ void calculateQgrams(char *sequence, unsigned int q, unsigned int length, float *comps, float windowLength, float step, float fraction);
 
 
 __global__ void calculateDistance(int *index, int *query, float *distances, unsigned int *validComps,
@@ -63,17 +63,18 @@ __global__ void calculateDistance(int *index, int *query, float *distances, unsi
 	}
 }
 
-__global__ void setToZero(unsigned int *comps){
+__global__ void setToZero(float *comps){
 	unsigned int index = 1+threadIdx.x + (INDEX_SIZE) * (blockIdx.x*BLOCK_SIZE + blockIdx.y);
-	comps[index] = 0;
+	comps[index] = 0.0;
 }
 
-__global__ void calculateQgrams(char *sequence, unsigned int q, unsigned int length, unsigned int *comps, float windowLength, float step) {
+__global__ void calculateQgrams(char *sequence, unsigned int q, unsigned int length, float *comps, float windowLength, float step, float fraction) {
 	unsigned int seqLocation = threadIdx.x + INDEX_SIZE * blockIdx.x;
 	if (seqLocation < length - q) {
 		int localQgram = 0;
 		int bit = 1;
-		for (int i=q-1; i >= 0; i--) {
+		//for (int i=q-1; i >= 0; i--) {
+		for (int i=0; i < q; i++) {
 			if (localQgram >= 0) {
 				char character = sequence[seqLocation+i];
 				switch (character) {
@@ -90,10 +91,10 @@ __global__ void calculateQgrams(char *sequence, unsigned int q, unsigned int len
 			localQgram++;
 			unsigned int startWindow = (seqLocation-windowLength) < 0 ? 0 : (unsigned int)ceil((seqLocation - windowLength) / step);
 			unsigned int endWindow = (unsigned int)floor(seqLocation/step) < STEP_SIZE? (unsigned int)floor(seqLocation/step) : STEP_SIZE-1;
-			comps[(startWindow * (INDEX_SIZE+1))]= (int)windowLength;
+			comps[(startWindow * (INDEX_SIZE+1))]= (float)windowLength;
 
 			for (unsigned int i =startWindow; i < endWindow; i++){
-				atomicAdd(&comps[i * (INDEX_SIZE+1)+localQgram], 1);
+				atomicAdd(&comps[i * (INDEX_SIZE+1)+localQgram], fraction);
 			}
 
 		}

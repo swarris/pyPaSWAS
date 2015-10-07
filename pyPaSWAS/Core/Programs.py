@@ -180,6 +180,7 @@ class ComBaRMapper(Aligner):
     
                             for loc in locs:
                                 swSeqRecord = indexer.getSWSeqRecord(loc, targets)
+                                #if len(swSeqRecord) > 0:
                                 swSeqRecord.distance = loc[2]
                                 swSeqRecord.id = targets[loc[0][1]].id
                                 swSeqRecord.refID = loc[0][1]

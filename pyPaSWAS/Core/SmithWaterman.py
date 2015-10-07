@@ -205,6 +205,7 @@ class SmithWaterman(object):
                                  (self.shared_x * self.shared_y)) * number_of_targets)) #@UndefinedVariable @IgnorePep8
         except:
             self.logger.warning("Possibly not enough memory for targets")
+            self.logger.warning("mem: {}, l seq: {}, l targets: {}, #targets: {}".format(self._device_global_mem_size(), length_sequences, length_targets, number_of_targets))
             return 1
         else:
             return value if value > 0 else 1

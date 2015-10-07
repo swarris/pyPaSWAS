@@ -73,6 +73,8 @@ class QIndexerCUDA(QIndexer):
     def _init_memory_compAll(self):
         self.h_compAll = driver.pagelocked_empty(( self.indicesStepSize * (len(self.character_list)+1), 1), numpy.int32, mem_flags=driver.host_alloc_flags.DEVICEMAP)
         self.d_compAll = numpy.intp(self.h_compAll.base.get_device_pointer())
+        self.h_compAll_index = driver.pagelocked_empty(( self.indicesStepSize * (len(self.character_list)+1), 1), numpy.float32, mem_flags=driver.host_alloc_flags.DEVICEMAP)
+        self.d_compAll_index = numpy.intp(self.h_compAll_index.base.get_device_pointer())
         #self.d_compAll = driver.mem_alloc(( self.indicesStepSize * (len(self.character_list)+1)*4))
     
     def _copy_index(self, compAll):
@@ -122,6 +124,7 @@ class QIndexerCUDA(QIndexer):
                     else:
                         startWindow = self.indicesStep - self.indexCount
                     if startWindow < 0 :
+                        numberOfWindowsToCalculate += startWindow
                         startWindow = 0        
                     self.indexCount += startWindow + numberOfWindowsToCalculate
                     numberOfWindowsInPrevSeqs += numberOfWindowsToCalculate 
@@ -141,19 +144,19 @@ class QIndexerCUDA(QIndexer):
                     # set comps to zero
                     dim_grid = (self.indicesStepSize/self.block, self.block,1)
                     dim_block = (len(self.character_list), 1,1)
-                    self.setToZero_function(self.d_compAll, block=dim_block, grid=dim_grid)
+                    self.setToZero_function(self.d_compAll_index, block=dim_block, grid=dim_grid)
                     driver.Context.synchronize() 
                     # perform count on gpu 
                     dim_grid = (int(math.ceil(len(seqToIndex)/float(len(self.character_list)))), 1,1)
                     dim_block = (len(self.character_list), 1,1)
                     self.logger.debug("Calculating qgram per location in sequence. q={}, length={}, block={}, grid={}".format(
                                 self.qgram, len(seqToIndex), dim_block, dim_grid))
-                    self.calculate_qgrams_function(seqGPU, numpy.int32(self.qgram), numpy.int32(len(seqToIndex)), self.d_compAll,
-                                    numpy.float32(window), numpy.float32(revWindowSize), 
+                    self.calculate_qgrams_function(seqGPU, numpy.int32(self.qgram), numpy.int32(len(seqToIndex)), self.d_compAll_index,
+                                    numpy.float32(window), numpy.float32(revWindowSize), numpy.float32(self.compositionScale / float(window-self.qgram+1)), 
                                      block=dim_block, 
                                      grid=dim_grid)
                     driver.Context.synchronize() 
-                    comps = numpy.ndarray(buffer=self.h_compAll, dtype=numpy.int32, shape=(1,len(self.h_compAll)))[0].tolist()
+                    comps = numpy.ndarray(buffer=self.h_compAll_index, dtype=numpy.float32, shape=(1,len(self.h_compAll_index)))[0].tolist()
                     # add comps to tuple set
                     for w in xrange(numberOfWindowsToCalculate):
                         count = tuple(comps[w*(len(self.character_list)+1):(w+1)*(len(self.character_list)+1)])
@@ -207,7 +210,7 @@ class QIndexerCUDA(QIndexer):
         comp = numpy.array([], dtype=numpy.int32)
         for seq in seqs:
             comp = numpy.append(comp,self.count(seq.seq.upper(), self.wSize[loc], 0, len(seq)).toarray())
-        self.logger.debug("Copying compositions of reads to device")
+        self.logger.debug("Copying {} compositions of reads to device".format(len(comp)))
         driver.memcpy_htod(self.d_comp, comp)
       
         self.logger.debug("Calculating distances")
