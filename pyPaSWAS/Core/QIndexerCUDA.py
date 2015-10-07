@@ -112,13 +112,17 @@ class QIndexerCUDA(QIndexer):
                     numberOfWindowsToCalculate = self.indexCount + numberOfWindows - self.indicesStep
                     if numberOfWindowsToCalculate > self.indicesStepSize:
                         numberOfWindowsToCalculate = self.indicesStepSize
+                    elif numberOfWindowsToCalculate <= 0:
+                        numberOfWindowsToCalculate = numberOfWindows
+                        
                     if self.indexCount - numberOfWindowsInPrevSeqs > 0 :
                         numberOfWindowsToCalculate -= numberOfWindowsInPrevSeqs
                         # where to start?
                         startWindow = self.indicesStep - self.indexCount + numberOfWindowsInPrevSeqs
                     else:
                         startWindow = self.indicesStep - self.indexCount
-                                
+                    if startWindow < 0 :
+                        startWindow = 0        
                     self.indexCount += startWindow + numberOfWindowsToCalculate
                     numberOfWindowsInPrevSeqs += numberOfWindowsToCalculate 
                 
