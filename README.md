@@ -26,16 +26,25 @@ In most cases it is enough to clone the repository. After that, please install:
 - numpy: sudo pip install numpy (or pip install --user numpy)
 - BioPython: sudo pip install Biopython (or pip install --user Biopython)
 - In some cases, the python development packages are required (Ubuntu: sudo apt-get install python-dev) 
-- When confronted with the message that the 'intern' module is missing when running pyPaSWAS, the 'six' package is not installed correctly. This can be solved by upgrading it to the most recent version: 'sudo pip install --upgrade six'  
 
 Making use of the CUDA version (also recommended when using the OpenCL version on a NVIDIA GPU):
 - Download CUDA sdk: https://developer.nvidia.com/cuda-downloads
-- pip install pyCuda (http://mathema.tician.de/software/pycuda/)
+- sudo pip install pyCuda (http://mathema.tician.de/software/pycuda/)
 
 Making use of the OpenCL version:
 - check dependencies or downloads for your system. See this wiki for some great pointers: http://wiki.tiker.net/OpenCLHowTo
-- pip install pyOpenCL
+- sudo pip install pyOpenCL
 
+Getting pyPaSWAS:
+- Clone the repository: git clone https://github.com/swarris/pyPaSWAS.git
+- Or download a pre-packaged release: https://github.com/swarris/pyPaSWAS/releases
+
+Notes on Mac OS X
+--------------
+Installing all the necessary packages on a Mac can be difficult:
+- When confronted with the message that the 'intern' module is missing when running pyPaSWAS using openCL, the 'six' package is not installed correctly. This can be solved by upgrading it to the most recent version: 'sudo pip install --upgrade six'. In some cases this will not help.  
+- Although Apple has native support for OpenCL, pyOpenCL might not run with this compiler. Please download the Intel drivers and compiler.
+- NVIDIA CUDA through pyCuda is the best choice when you have a NVIDIA GPU in your Mac. 
 
 Running the software
 -------------------- 
