@@ -15,5 +15,5 @@ if __name__ == '__main__':
             getattr(logging, 'DEBUG') == ppw.logger.getEffectiveLevel()):
             ppw.logger.exception(str(exception))
         else:
-            print 'Something unforeseen caused the program to terminate.\n' \
-                  'The internal error message was: ', ','.join(exception.args)
+            print('Program ended. The message was: ', ','.join(exception.args))
+            print("Please use the option --help for information on command line arguments.")
