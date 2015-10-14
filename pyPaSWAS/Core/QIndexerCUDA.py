@@ -97,14 +97,17 @@ class QIndexerCUDA(QIndexer):
         for window in self.wSize:
             self.tupleSet = {}
             seqId = 0
+            self.logger.debug("if window: {} < {} + {}".format(self.indexCount, self.indicesStep,  self.indicesStepSize))
             while seqId < len(sequence) and self.indexCount < self.indicesStep + self.indicesStepSize:
+                self.logger.debug("seq id: {}".format(seqId))
                 # get sequence
                 seq = str(sequence[seqId].seq)
                 # calculate step through genome 
                 revWindowSize = int(self.reverseWindowSize(window)*self.stepFactor*self.slideStep) 
                 # see how many windows fit in this sequence
                 numberOfWindows = int(math.ceil(len(seq) / revWindowSize))
-                self.logger.debug("Number of windows in this seq: {}".format(numberOfWindows))
+                self.logger.debug("Number of windows in {}: {}".format(sequence[seqId].id, numberOfWindows))
+                self.logger.debug("if: {} + {} <= {}".format(self.indexCount, numberOfWindows, self.indicesStep))
                 if self.indexCount + numberOfWindows <= self.indicesStep:
                     # sequence already completely processed
                     self.indexCount += numberOfWindows

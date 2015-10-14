@@ -16,7 +16,7 @@ class QIndexer (Indexer):
         self.generate_character_list(qgram)
         self.character_index = {}
         self.indicesStep = 0
-        self.block = 1000 # only for parallel devices
+        self.block = 100 # only for parallel devices
         index = 1
         for c in self.character_list:
             self.character_index[c] = index
