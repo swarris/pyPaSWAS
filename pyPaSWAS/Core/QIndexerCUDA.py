@@ -82,7 +82,7 @@ class QIndexerCUDA(QIndexer):
 
     def indicesToProcessLeft(self):
         self.logger.info("At indices: {}, {}, {}".format(self.indexCount, self.indicesStep, self.indicesStepSize))
-        return self.indexCount == self.indicesStep or (self.indexCount == 0 and self.indicesStep == 0)
+        return self.indexCount <= self.indicesStep or (self.indexCount == 0 and self.indicesStep == 0)
 
     def createIndex(self, sequence, fileName = None, retainInMemory=True):
         #QIndexer.createIndex(self, sequence, fileName, retainInMemory)
@@ -91,90 +91,78 @@ class QIndexerCUDA(QIndexer):
         self.tupleSet = {}
         self.prevCount = self.indexCount
         self.indexCount = 0
-        numberOfWindowsInPrevSeqs = 0
         numberOfWindowsToCalculate = 0
+        seqCompleted = False
         
         for window in self.wSize:
             self.tupleSet = {}
             seqId = 0
-            self.logger.debug("if window: {} < {} + {}".format(self.indexCount, self.indicesStep,  self.indicesStepSize))
-            while seqId < len(sequence) and self.indexCount < self.indicesStep + self.indicesStepSize:
-                self.logger.debug("seq id: {}".format(seqId))
+            #self.logger.debug("if window: {} < {} + {}".format(self.indexCount, self.indicesStep,  self.indicesStepSize))
+            while not seqCompleted and seqId < len(sequence) and self.indexCount < self.indicesStep + self.indicesStepSize:
+                #self.logger.debug("seq id: {}".format(seqId))
                 # get sequence
                 seq = str(sequence[seqId].seq)
                 # calculate step through genome 
                 revWindowSize = int(self.reverseWindowSize(window)*self.stepFactor*self.slideStep) 
                 # see how many windows fit in this sequence
                 numberOfWindows = int(math.ceil(len(seq) / revWindowSize))
-                self.logger.debug("Number of windows in {}: {}".format(sequence[seqId].id, numberOfWindows))
-                self.logger.debug("if: {} + {} <= {}".format(self.indexCount, numberOfWindows, self.indicesStep))
+                #self.logger.debug("Number of windows in {}: {}".format(sequence[seqId].id, numberOfWindows))
+                #self.logger.debug("if: {} + {} <= {}".format(self.indexCount, numberOfWindows, self.indicesStep))
                 if self.indexCount + numberOfWindows <= self.indicesStep:
                     # sequence already completely processed
                     self.indexCount += numberOfWindows
-                    numberOfWindowsInPrevSeqs += numberOfWindows
                 else:
                     # see how many windows can be calculate
-                    numberOfWindowsToCalculate = self.indexCount + numberOfWindows - self.indicesStep
+                    seqCompleted = True
+                    startWindow = self.indexCount - self.prevCount
+                    #self.logger.debug("windows: {} {} {}".format(startWindow, self.indexCount, self.prevCount))
+                    numberOfWindowsToCalculate = numberOfWindows - startWindow  
                     if numberOfWindowsToCalculate > self.indicesStepSize:
                         numberOfWindowsToCalculate = self.indicesStepSize
-                    elif numberOfWindowsToCalculate <= 0:
-                        numberOfWindowsToCalculate = numberOfWindows
+
+                    self.indexCount += numberOfWindowsToCalculate
+                    self.logger.debug("Creating index of {} with window {}".format(sequence[seqId].id, window))
+                    self.logger.debug("Will process #windows: {}".format(numberOfWindowsToCalculate))
+                    startIndex = startWindow * revWindowSize
+                    endIndex = numberOfWindowsToCalculate * revWindowSize + startIndex + window
+                    seqToIndex = str(sequence[seqId].seq[startIndex:endIndex]).upper() 
+                    #self.logger.debug("Indices: {}, {}".format(startIndex, endIndex)) 
+                    # memory on gpu for count should already be enough, so copy sequence to gpu
+                    seqHost = numpy.array(seqToIndex, dtype=numpy.character)
+                    seqMem = driver.pagelocked_empty((len(seqToIndex), 1), numpy.byte, mem_flags=driver.host_alloc_flags.DEVICEMAP) 
+                    seqGPU = numpy.intp(seqMem.base.get_device_pointer()) #driver.mem_alloc(len(seqToIndex)) #
+                    driver.memcpy_htod(seqGPU, seqHost)
                         
-                    if self.indexCount - numberOfWindowsInPrevSeqs > 0 :
-                        numberOfWindowsToCalculate -= numberOfWindowsInPrevSeqs
-                        # where to start?
-                        startWindow = self.indicesStep - self.indexCount + numberOfWindowsInPrevSeqs
-                    else:
-                        startWindow = self.indicesStep - self.indexCount
-                    if startWindow < 0 :
-                        numberOfWindowsToCalculate += startWindow
-                        startWindow = 0
-                    if numberOfWindowsToCalculate > 0:        
-                        self.indexCount += startWindow + numberOfWindowsToCalculate
-                        numberOfWindowsInPrevSeqs += numberOfWindowsToCalculate 
+                    # set comps to zero
+                    dim_grid = (self.indicesStepSize/self.block, self.block,1)
+                    dim_block = (len(self.character_list), 1,1)
+                    self.setToZero_function(self.d_compAll_index, block=dim_block, grid=dim_grid)
+                    driver.Context.synchronize() 
+                    # perform count on gpu 
+                    dim_grid = (int(math.ceil(len(seqToIndex)/float(len(self.character_list)))), 1,1)
+                    dim_block = (len(self.character_list), 1,1)
+                    self.logger.debug("Calculating qgram per location in sequence. q={}, length={}, block={}, grid={}".format(
+                                self.qgram, len(seqToIndex), dim_block, dim_grid))
+                    self.calculate_qgrams_function(seqGPU, numpy.int32(self.qgram), numpy.int32(len(seqToIndex)), self.d_compAll_index,
+                                    numpy.float32(window), numpy.float32(revWindowSize), numpy.float32(self.compositionScale / float(window-self.qgram+1)), 
+                                     block=dim_block, 
+                                     grid=dim_grid)
+                    driver.Context.synchronize() 
+                    comps = numpy.ndarray(buffer=self.h_compAll_index, dtype=numpy.float32, shape=(1,len(self.h_compAll_index)))[0].tolist()
+                    # add comps to tuple set
+                    for w in xrange(numberOfWindowsToCalculate):
+                        count = tuple(comps[w*(len(self.character_list)+1):(w+1)*(len(self.character_list)+1)])
+                        if count not in self.tupleSet:
+                            self.tupleSet[count] = [] 
+                        self.tupleSet[count].append((w*revWindowSize, seqId))
                     
-                        self.logger.debug("Creating index of {} with window {}".format(sequence[seqId].id, window))
-                        self.logger.debug("Will process #windows: {}".format(numberOfWindowsToCalculate))
-                        startIndex = startWindow * revWindowSize
-                        endIndex = numberOfWindowsToCalculate * revWindowSize + startIndex + window
-                        seqToIndex = str(sequence[seqId].seq[startIndex:endIndex]).upper() 
-                        self.logger.debug("Indices: {}, {}".format(startIndex, endIndex)) 
-                        # memory on gpu for count should already be enough, so copy sequence to gpu
-                        seqHost = numpy.array(seqToIndex, dtype=numpy.character)
-                        seqMem = driver.pagelocked_empty((len(seqToIndex), 1), numpy.byte, mem_flags=driver.host_alloc_flags.DEVICEMAP) 
-                        seqGPU = numpy.intp(seqMem.base.get_device_pointer()) #driver.mem_alloc(len(seqToIndex)) #
-                        driver.memcpy_htod(seqGPU, seqHost)
-                        
-                        # set comps to zero
-                        dim_grid = (self.indicesStepSize/self.block, self.block,1)
-                        dim_block = (len(self.character_list), 1,1)
-                        self.setToZero_function(self.d_compAll_index, block=dim_block, grid=dim_grid)
-                        driver.Context.synchronize() 
-                        # perform count on gpu 
-                        dim_grid = (int(math.ceil(len(seqToIndex)/float(len(self.character_list)))), 1,1)
-                        dim_block = (len(self.character_list), 1,1)
-                        self.logger.debug("Calculating qgram per location in sequence. q={}, length={}, block={}, grid={}".format(
-                                    self.qgram, len(seqToIndex), dim_block, dim_grid))
-                        self.calculate_qgrams_function(seqGPU, numpy.int32(self.qgram), numpy.int32(len(seqToIndex)), self.d_compAll_index,
-                                        numpy.float32(window), numpy.float32(revWindowSize), numpy.float32(self.compositionScale / float(window-self.qgram+1)), 
-                                         block=dim_block, 
-                                         grid=dim_grid)
-                        driver.Context.synchronize() 
-                        comps = numpy.ndarray(buffer=self.h_compAll_index, dtype=numpy.float32, shape=(1,len(self.h_compAll_index)))[0].tolist()
-                        # add comps to tuple set
-                        for w in xrange(numberOfWindowsToCalculate):
-                            count = tuple(comps[w*(len(self.character_list)+1):(w+1)*(len(self.character_list)+1)])
-                            if count not in self.tupleSet:
-                                self.tupleSet[count] = [] 
-                            self.tupleSet[count].append((w*revWindowSize, seqId))
-                        
-                    
-                        currentTupleSet.update(self.tupleSet)
-                    else:
-                        self.indexCount += self.indicesStepSize
-                seqId += 1
                 
-        self.indicesStep += self.indicesStepSize
+                    currentTupleSet.update(self.tupleSet)
+
+                seqId += 1
+            if seqId == len(sequence):
+                self.indexCount = self.indicesStep + self.indicesStepSize
+        self.indicesStep = self.indexCount if self.indexCount < self.indicesStep +self.indicesStepSize else self.indicesStep
                     
         self.tupleSet = currentTupleSet
         keys = self.tupleSet.keys()
