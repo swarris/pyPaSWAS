@@ -162,7 +162,7 @@ class QIndexerCUDA(QIndexer):
                 seqId += 1
             if seqId == len(sequence):
                 self.indexCount = self.indicesStep + self.indicesStepSize
-        self.indicesStep = self.indexCount if self.indexCount < self.indicesStep +self.indicesStepSize else self.indicesStep
+        self.indicesStep = self.indexCount if self.indexCount <= self.indicesStep +self.indicesStepSize else self.indicesStep
                     
         self.tupleSet = currentTupleSet
         keys = self.tupleSet.keys()
