@@ -97,36 +97,36 @@ class QIndexerCUDA(QIndexer):
         for window in self.wSize:
             self.tupleSet = {}
             seqId = 0
-            self.logger.debug("if window: {} < {} + {}".format(self.indexCount, self.indicesStep,  self.indicesStepSize))
+            #self.logger.debug("if window: {} < {} + {}".format(self.indexCount, self.indicesStep,  self.indicesStepSize))
             while not seqCompleted and seqId < len(sequence) and self.indexCount < self.indicesStep + self.indicesStepSize:
-                self.logger.debug("seq id: {}".format(seqId))
+                #self.logger.debug("seq id: {}".format(seqId))
                 # get sequence
                 seq = str(sequence[seqId].seq)
                 # calculate step through genome 
                 revWindowSize = int(self.reverseWindowSize(window)*self.stepFactor*self.slideStep) 
                 # see how many windows fit in this sequence
                 numberOfWindows = int(math.ceil(len(seq) / revWindowSize))
-                self.logger.debug("Number of windows in {}: {}".format(sequence[seqId].id, numberOfWindows))
-                self.logger.debug("if: {} + {} <= {}".format(self.indexCount, numberOfWindows, self.indicesStep))
+                #self.logger.debug("Number of windows in {}: {}".format(sequence[seqId].id, numberOfWindows))
+                #self.logger.debug("if: {} + {} <= {}".format(self.indexCount, numberOfWindows, self.indicesStep))
                 if self.indexCount + numberOfWindows <= self.indicesStep:
                     # sequence already completely processed
                     self.indexCount += numberOfWindows
                 else:
                     # see how many windows can be calculate
                     seqCompleted = True
-                    startWindow = self.indexCount - self.prevCount
-                    self.logger.debug("windows: {} {} {}".format(startWindow, self.indexCount, self.prevCount))
+                    startWindow = self.prevCount -self.indexCount
+                    #self.logger.debug("windows: {} {} {}".format(startWindow, self.indexCount, self.prevCount))
                     numberOfWindowsToCalculate = numberOfWindows - startWindow  
                     if numberOfWindowsToCalculate > self.indicesStepSize:
                         numberOfWindowsToCalculate = self.indicesStepSize
 
-                    self.indexCount += numberOfWindowsToCalculate
+                    self.indexCount += startWindow + numberOfWindowsToCalculate
                     self.logger.debug("Creating index of {} with window {}".format(sequence[seqId].id, window))
                     self.logger.debug("Will process #windows: {}".format(numberOfWindowsToCalculate))
                     startIndex = startWindow * revWindowSize
                     endIndex = numberOfWindowsToCalculate * revWindowSize + startIndex + window
                     seqToIndex = str(sequence[seqId].seq[startIndex:endIndex]).upper() 
-                    self.logger.debug("Indices: {}, {}".format(startIndex, endIndex)) 
+                    #self.logger.debug("Indices: {}, {}".format(startIndex, endIndex)) 
                     # memory on gpu for count should already be enough, so copy sequence to gpu
                     seqHost = numpy.array(seqToIndex, dtype=numpy.character)
                     seqMem = driver.pagelocked_empty((len(seqToIndex), 1), numpy.byte, mem_flags=driver.host_alloc_flags.DEVICEMAP) 
@@ -161,7 +161,7 @@ class QIndexerCUDA(QIndexer):
 
                 seqId += 1
             if seqId == len(sequence):
-                self.indexCount = self.indicesStep + self.indicesStepSize
+                self.indexCount = self.indicesStep + self.indicesStepSize+1
         self.indicesStep = self.indexCount if self.indexCount <= self.indicesStep +self.indicesStepSize else self.indicesStep
                     
         self.tupleSet = currentTupleSet
