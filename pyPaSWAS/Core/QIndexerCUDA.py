@@ -86,7 +86,6 @@ class QIndexerCUDA(QIndexer):
 
     def createIndex(self, sequence, fileName = None, retainInMemory=True):
         #QIndexer.createIndex(self, sequence, fileName, retainInMemory)
- 
         currentTupleSet = {}
         self.tupleSet = {}
         self.prevCount = self.indexCount
@@ -99,7 +98,6 @@ class QIndexerCUDA(QIndexer):
             seqId = 0
             #self.logger.debug("if window: {} < {} + {}".format(self.indexCount, self.indicesStep,  self.indicesStepSize))
             while not seqCompleted and seqId < len(sequence) and self.indexCount < self.indicesStep + self.indicesStepSize:
-                #self.logger.debug("seq id: {}".format(seqId))
                 # get sequence
                 seq = str(sequence[seqId].seq)
                 # calculate step through genome 
@@ -126,7 +124,7 @@ class QIndexerCUDA(QIndexer):
                     startIndex = startWindow * revWindowSize
                     endIndex = numberOfWindowsToCalculate * revWindowSize + startIndex + window
                     seqToIndex = str(sequence[seqId].seq[startIndex:endIndex]).upper() 
-                    #self.logger.debug("Indices: {}, {}".format(startIndex, endIndex)) 
+                    self.logger.debug("Indices: {}, {}. Len: {}".format(startIndex, endIndex, len(seqToIndex))) 
                     # memory on gpu for count should already be enough, so copy sequence to gpu
                     seqHost = numpy.array(seqToIndex, dtype=numpy.character)
                     seqMem = driver.pagelocked_empty((len(seqToIndex), 1), numpy.byte, mem_flags=driver.host_alloc_flags.DEVICEMAP) 
@@ -154,7 +152,7 @@ class QIndexerCUDA(QIndexer):
                         count = tuple(comps[w*(len(self.character_list)+1):(w+1)*(len(self.character_list)+1)])
                         if count not in self.tupleSet:
                             self.tupleSet[count] = [] 
-                        self.tupleSet[count].append((w*revWindowSize, seqId))
+                        self.tupleSet[count].append((startIndex+ w*revWindowSize, seqId))
                     
                 
                     currentTupleSet.update(self.tupleSet)
