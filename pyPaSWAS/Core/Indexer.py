@@ -18,7 +18,7 @@ class Indexer:
     windowStep = 1.0
     compositionScale = 1000.0
     distanceStep = 0.01
-    indicesStepSize = 100000
+    indicesStepSize = 40000
     readsToProcess = 30
     
     def __init__(self, settings, logger, stepFactor = 0.1, reads= []):

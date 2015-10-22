@@ -164,16 +164,17 @@ class ComBaRMapper(Aligner):
 
 
                     allLocations = indexer.findIndices(records_seqs[currentBlockOfReads:currentRead])
+
                     if len(allLocations) > 0 :
                         for read in xrange(currentBlockOfReads, currentRead):
                             
                             firstRead = records_seqs[read]
                             filteredRecordsSeqs = [firstRead]
-                            self.logger.info("Processing seq: " + records_seqs[read].id)
             
                             locations = allLocations[read-currentBlockOfReads]
                             locs = []
                             if (len(locations) > 0):
+                                self.logger.info("Processing seq: " + records_seqs[read].id)
                                 for value in locations.itervalues():
                                     locs.extend(value)
                                 splittedTargets = []
