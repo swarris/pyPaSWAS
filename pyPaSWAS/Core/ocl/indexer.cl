@@ -4,7 +4,7 @@
 #define STEP_SIZE ${stepSize}
 
 #pragma OPENCL EXTENSION cl_khr_int32_base_atomics : enable
-
+#pragma OPENCL EXTENSION cl_khr_int64_base_atomics : enable
 
 /* self.d_compAll, self.d_comp, 
    self.d_distances, 
@@ -73,19 +73,20 @@ __kernel void calculateDistance(
 	}
 }
 
-__kernel void setToZero(__global float *comps){
-	unsigned int index = 1+ get_local_id(0) + (INDEX_SIZE) * (get_group_id(0)*BLOCK_SIZE + get_group_id(1));
-	comps[index] = 0.0;
+__kernel void setToZero(__global int *comps){
+	unsigned int index = 1+ get_local_id(0) + (INDEX_SIZE+1) * (get_group_id(0)*BLOCK_SIZE + get_group_id(1));
+	comps[index] = 0;
 }
 
 __kernel void scaleComp(__global float *comps, __global int *comps_int, float fraction){
-	unsigned int index = 1+ get_local_id(0) + (INDEX_SIZE) * (get_group_id(0)*BLOCK_SIZE + get_group_id(1));
+	unsigned int index = 1+ get_local_id(0) + (INDEX_SIZE+1) * (get_group_id(0)*BLOCK_SIZE + get_group_id(1));
 	comps[index] = (float)comps_int[index] / fraction;
 }
 
 
 __kernel void calculateQgrams(__global char *sequence, unsigned int q, unsigned int length, volatile __global int *comps, float windowLength, float step, int fraction) {
 	unsigned int seqLocation = get_local_id(0) + INDEX_SIZE * get_group_id(0);
+	
 	if (seqLocation < length - q) {
 		int localQgram = 0;
 		int bit = 1;
@@ -107,14 +108,15 @@ __kernel void calculateQgrams(__global char *sequence, unsigned int q, unsigned 
 			localQgram++;
 			unsigned int startWindow = (seqLocation-windowLength) < 0 ? 0 : (unsigned int)ceil((seqLocation - windowLength) / step);
 			unsigned int endWindow = (unsigned int)floor(seqLocation/step) < STEP_SIZE? (unsigned int)floor(seqLocation/step) : STEP_SIZE-1;
-			comps[(startWindow * (INDEX_SIZE+1))]= (float)windowLength;
+			comps[(startWindow * (INDEX_SIZE+1))]= (int)windowLength;
+			
 
 			for (unsigned int i =startWindow; i < endWindow; i++){
 				atom_add(&comps[i * (INDEX_SIZE+1)+localQgram], fraction);
 			}
-
 		}
 
 	}
+	
 
 }

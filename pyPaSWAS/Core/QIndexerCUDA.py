@@ -135,6 +135,7 @@ class QIndexerCUDA(QIndexer):
                     dim_grid = (self.indicesStepSize/self.block, self.block,1)
                     dim_block = (len(self.character_list), 1,1)
                     self.setToZero_function(self.d_compAll_index, block=dim_block, grid=dim_grid)
+
                     driver.Context.synchronize() 
                     # perform count on gpu 
                     dim_grid = (int(math.ceil(len(seqToIndex)/float(len(self.character_list)))), 1,1)
