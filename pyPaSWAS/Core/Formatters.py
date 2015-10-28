@@ -94,7 +94,7 @@ class SamFormatter(DefaultFormatter):
         for header_line in self.sq_lines:
             output.write(self.sq_lines[header_line] + '\n')
         #program information header line
-        output.write('@PG\tID:0\tPN:paswas\tVN:2.2\n')
+        output.write('@PG\tID:0\tPN:paswas\tVN:3.0\n')
         #write the hit lines to the output file
         for line in self.record_lines:
             output.write(line + '\n')

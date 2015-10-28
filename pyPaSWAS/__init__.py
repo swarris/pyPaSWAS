@@ -238,10 +238,10 @@ def _override_settings(config_file, settings, arguments):
         raise ConfigParser.ParsingError("Unable to parse the given configuration file ({})".format(config_file))
 
     # Replace input files with those given in the config file
-    if config.get('General', 'FILE1') != '' and config.get('General', 'FILE2') != '':
-        arguments = [config.get('General', 'FILE1'), config.get('General', 'FILE2')]
-        config.remove_option('General', 'FILE1')
-        config.remove_option('General', 'FILE2')
+    #if config.get('General', 'FILE1') != '' and config.get('General', 'FILE2') != '':
+    #    arguments = [config.get('General', 'FILE1'), config.get('General', 'FILE2')]
+    #    config.remove_option('General', 'FILE1')
+    #    config.remove_option('General', 'FILE2')
 
     # Replace all other settings set in the config file
     sections = config.sections()
