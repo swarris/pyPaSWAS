@@ -147,13 +147,9 @@ class QIndexerOCL(QIndexer):
                     seqGPU = cl.Buffer(self.ctx, cl.mem_flags.READ_ONLY| cl.mem_flags.ALLOC_HOST_PTR| cl.mem_flags.COPY_HOST_PTR, hostbuf=seqHost) 
                     
                     # set comps to zero
-                    dim_grid = (len(self.character_list)* self.indicesStepSize, 1)
+                    dim_grid = (len(self.character_list)* self.indicesStepSize/self.block, self.block)
                     dim_block = (len(self.character_list), 1)
-                    self.logger.debug("dims: {} {}".format(dim_block, dim_grid))
                     self.program.setToZero(self.queue, dim_grid, dim_block, self.d_compAll_index_int)
-                    comps = cl.enqueue_map_buffer(self.queue, self.d_compAll_index_int, cl.map_flags.READ, 0, shape=(1,len(self.h_compAll_index)), dtype=numpy.int32)[0][0] 
-                    self.logger.debug("Comps: {}".format(comps))
-                    
                     # perform count on gpu 
                     dim_grid = (len(self.character_list) * int(math.ceil(len(seqToIndex)/float(len(self.character_list)))), 1)
                     dim_block = (len(self.character_list), 1)
@@ -165,18 +161,16 @@ class QIndexerOCL(QIndexer):
                                      dim_block, 
                                      seqGPU, numpy.int32(self.qgram), numpy.int32(len(seqToIndex)), self.d_compAll_index_int,
                                     numpy.float32(window), numpy.float32(revWindowSize), numpy.int32(self.compositionScale))
-
+                    
+                    comps = cl.enqueue_map_buffer(self.queue, self.d_compAll_index_int, cl.map_flags.READ, 0, shape=(1,len(self.h_compAll_index_int)), dtype=numpy.int32)[0][0]
                     # scale values
                     dim_grid = (len(self.character_list)* self.indicesStepSize/self.block, self.block)
                     dim_block = (len(self.character_list), 1)
                     
                     self.program.scaleComp(self.queue, dim_grid, dim_block, self.d_compAll_index, self.d_compAll_index_int, numpy.float32(window-self.qgram+1))
-
-                    comps = cl.enqueue_map_buffer(self.queue, self.d_compAll_index_int, cl.map_flags.READ, 0, shape=(1,len(self.h_compAll_index)), dtype=numpy.int32)[0][0] 
-                    self.logger.debug("Comps: {}".format(comps))
                     
                     comps = cl.enqueue_map_buffer(self.queue, self.d_compAll_index, cl.map_flags.READ, 0, shape=(1,len(self.h_compAll_index)), dtype=numpy.float32)[0][0] 
-                    self.logger.debug("Comps: {}".format(comps))
+
                     # add comps to tuple set
                     for w in xrange(numberOfWindowsToCalculate):
                         count = tuple(comps[w*(len(self.character_list)+1):(w+1)*(len(self.character_list)+1)])
