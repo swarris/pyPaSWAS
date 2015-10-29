@@ -73,9 +73,9 @@ __kernel void calculateDistance(
 	}
 }
 
-__kernel void setToZero(__global float *comps){
+__kernel void setToZero(__global int *comps){
 	unsigned int index = 1+ get_local_id(0) + (INDEX_SIZE) * (get_group_id(0)*BLOCK_SIZE + get_group_id(1));
-	comps[index] = 0.0;
+	comps[index] = 10;
 }
 
 __kernel void scaleComp(__global float *comps, __global int *comps_int, float fraction){
