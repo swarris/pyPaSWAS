@@ -64,7 +64,7 @@ __global__ void calculateDistance(int *index, int *query, float *distances, unsi
 }
 
 __global__ void setToZero(float *comps){
-	unsigned int index = 1+threadIdx.x + (INDEX_SIZE) * (blockIdx.x*BLOCK_SIZE + blockIdx.y);
+	unsigned int index = 1+threadIdx.x + (INDEX_SIZE+1) * (blockIdx.x*BLOCK_SIZE + blockIdx.y);
 	comps[index] = 0.0;
 }
 
