@@ -4,7 +4,6 @@
 #define STEP_SIZE ${stepSize}
 
 #pragma OPENCL EXTENSION cl_khr_int32_base_atomics : enable
-#pragma OPENCL EXTENSION cl_khr_int64_base_atomics : enable
 
 /* self.d_compAll, self.d_comp, 
    self.d_distances, 
@@ -81,6 +80,10 @@ __kernel void setToZero(__global int *comps){
 __kernel void scaleComp(__global float *comps, __global int *comps_int, float fraction){
 	unsigned int index = 1+ get_local_id(0) + (INDEX_SIZE+1) * (get_group_id(0)*BLOCK_SIZE + get_group_id(1));
 	comps[index] = (float)comps_int[index] / fraction;
+	if (!get_local_id(0)) { // copy windows
+		index--;
+		comps[index] = (float)comps_int[index];
+	}
 }
 
 

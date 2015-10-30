@@ -233,7 +233,7 @@ class QIndexerOCL(QIndexer):
         for seq in seqs:
             comp = numpy.append(comp,self.count(seq.seq.upper(), self.wSize[loc], 0, len(seq)).toarray())
 
-        self.logger.debug("Copying compositions of reads to device")
+        self.logger.debug("Copying compositions of reads to device: {}, {}".format(self.compositionScale, self.sliceDistance))
         cl.enqueue_write_buffer(self.queue, self.d_comp, comp)
       
         self.logger.debug("Calculating distances")
