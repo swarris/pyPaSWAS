@@ -184,6 +184,14 @@ def parse_cli(config_file):
     device_options.add_option('--device', help='the device on which the computations will be performed. '
                               'This should be an integer.', dest='device_number',
                               default=config.get('Device', 'device_number'))
+    device_options.add_option('--number_of_compute_units', help='Number of compute units to use (openCL only). Will not work on every device, recommended for CPU only. Set this 1 to use a single core on the device for example.'
+                              'This should be an integer, using 0 for full device.', dest='number_of_compute_units',
+                              default=config.get('Device', 'number_of_compute_units'))
+    device_options.add_option('--sub_device', help='the sub device on which the computations will be performed. Only used when number_of_compute_units > 0. '
+                              'This should be an integer.', dest='sub_device',
+                              default=config.get('Device', 'sub_device'))
+    
+    
     device_options.add_option('--limit_length', help='Length of the longest sequence  in characters to be read'
                               ' from file. Lower this when memory of GPU is low.', dest='limit_length',
                               default=config.get('Device', 'limit_length'))

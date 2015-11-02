@@ -66,9 +66,11 @@ class QIndexerOCL(QIndexer):
         self.logger.debug('Initializing device {0}'.format(device_number))
         
         self.device = self.platform.get_devices(device_type=self.device_type)[device_number]
+        if int(self.settings.number_of_compute_units) > 0:
+            self.device = self.device.create_sub_devices([cl.device_partition_property.EQUALLY,int(self.settings.number_of_compute_units)])[int(self.settings.sub_device)]
+
         self.ctx = cl.Context(devices=[self.device])
         self.queue = cl.CommandQueue(self.ctx)
-        
         code = resource_filename(__name__, 'ocl/indexer.cl')
         code_t = Template(read_file(code))
         code = code_t.safe_substitute(size=len(self.character_list), block=self.block, stepSize=self.indicesStepSize)
