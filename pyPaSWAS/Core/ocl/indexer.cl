@@ -3,7 +3,7 @@
 #define BLOCK_SIZE ${block}
 #define STEP_SIZE ${stepSize}
 
-#pragma OPENCL EXTENSION cl_khr_int32_base_atomics : enable
+#pragma OPENCL EXTENSION cl_khr_global_int32_base_atomics : enable
 
 /* self.d_compAll, self.d_comp, 
    self.d_distances, 
