@@ -507,13 +507,13 @@ class SmithWaterman(object):
             self._calculate_score()
             # perform the traceback
             self._traceback_host()
-            self.logger.info("Time spent on device > {}".format(time.time()-t))
 
             # TODO: change to returning a value, change _print_alignments to getAlignments in SmithWaterman
             # TODO: move _print_alignments to here? This should be a statement to retrieve the results and
             # put them into a Hitlist (?)
             #hitlist = self._print_alignments(records_seqs, targets, index, target_index)
             self._print_alignments(records_seqs, targets, index, target_index, hitlist)
+            self.logger.info("Time spent on Smith-Waterman > {}".format(time.time()-t))
             index += self.max_sequences
         return hitlist
 
