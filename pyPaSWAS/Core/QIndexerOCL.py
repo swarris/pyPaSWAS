@@ -82,13 +82,13 @@ class QIndexerOCL(QIndexer):
         self.d_distances = cl.Buffer(self.ctx, cl.mem_flags.WRITE_ONLY| cl.mem_flags.ALLOC_HOST_PTR| cl.mem_flags.COPY_HOST_PTR, hostbuf=self.h_distances)
         
         self.h_comp = numpy.empty( len(self.seqs) * (len(self.character_list)+1)).astype(numpy.int32)
-        self.d_comp = cl.Buffer(self.ctx, cl.mem_flags.READ_ONLY| cl.mem_flags.ALLOC_HOST_PTR| cl.mem_flags.COPY_HOST_PTR, hostbuf=self.h_comp)
+        self.d_comp = cl.Buffer(self.ctx, cl.mem_flags.READ_WRITE| cl.mem_flags.ALLOC_HOST_PTR| cl.mem_flags.COPY_HOST_PTR, hostbuf=self.h_comp)
 
         self.h_validComps = numpy.empty( len(self.seqs) * self.indicesStepSize).astype(numpy.int32)
-        self.d_validComps = cl.Buffer(self.ctx, cl.mem_flags.READ_ONLY| cl.mem_flags.ALLOC_HOST_PTR| cl.mem_flags.COPY_HOST_PTR, hostbuf=self.h_validComps)
+        self.d_validComps = cl.Buffer(self.ctx, cl.mem_flags.READ_WRITE| cl.mem_flags.ALLOC_HOST_PTR| cl.mem_flags.COPY_HOST_PTR, hostbuf=self.h_validComps)
         
         self.h_seqs = numpy.empty( len(self.seqs) * self.indicesStepSize).astype(numpy.int32)
-        self.d_seqs = cl.Buffer(self.ctx, cl.mem_flags.READ_ONLY| cl.mem_flags.ALLOC_HOST_PTR| cl.mem_flags.COPY_HOST_PTR, hostbuf=self.h_seqs)
+        self.d_seqs = cl.Buffer(self.ctx, cl.mem_flags.READ_WRITE| cl.mem_flags.ALLOC_HOST_PTR| cl.mem_flags.COPY_HOST_PTR, hostbuf=self.h_seqs)
  
     def _init_memory_compAll(self):
         self.h_compAll = numpy.empty(self.indicesStepSize * (len(self.character_list)+1)).astype(numpy.int32)
