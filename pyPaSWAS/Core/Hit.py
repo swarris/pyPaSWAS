@@ -350,3 +350,14 @@ class Hit(object):
             else:
                 char = 'I'
         return char
+
+class Distance(Hit):
+    def __init__(self, logger, sequence_info, target_info, sequence_location, target_location):
+       Hit.__init__(self, logger, sequence_info, target_info, sequence_location, target_location)
+
+    @staticmethod
+    def _is_a_valid_location(location, sequence_length):
+        ''' Verifies wether or not a location is valid.
+        '''
+        return isinstance(location, tuple) and len(location) == 2 and location[0] <= location[1] 
+

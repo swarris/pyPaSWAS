@@ -42,8 +42,7 @@ class Indexer:
         return int(math.ceil(math.floor(seqLength*(self.stepFactor+1.0)) / self.windowStep) * self.windowStep)
 
     def reverseWindowSize(self, window):
-        return int(math.floor(window/(self.stepFactor+1.0)-self.windowStep))
-
+        return int(math.floor(window/(self.stepFactor+1.0)))
     def setIndicesStep(self, indicesStep):
         self.indicesStep = indicesStep
 

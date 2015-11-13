@@ -142,4 +142,22 @@ class TrimmerFormatter(DefaultFormatter):
             output.write(line + '\n')
         output.close()
         self.logger.debug('finished printing results')
+        
+class PlotterFormatter(DefaultFormatter):
+    def __init__(self, logger, hitlist, outputfile):
+        DefaultFormatter.__init__(self, logger, hitlist, outputfile)
+
+    def _format_hit(self, hit):
+        return '\t'.join([hit.sequence_info.id, hit.target_info.id, str(hit.seq_location[0]),str(hit.target_location[0]), str(hit.target_info.distance)])+"\n"
+
+    def print_results(self):
+        '''sets, formats and prints the results to a file.'''
+        self.logger.info('plotting results...')
+        output = open(self.outputfile, 'w')
+        #format header and hit lines
+        for hit in self.hitlist.real_hits.itervalues():
+            output.write(self._format_hit(hit))
+
+        output.close()
+        self.logger.debug('finished plotting results')
 

@@ -8,8 +8,8 @@ as used by NCBI blastall version 2.2.21.
 from pyPaSWAS import parse_cli, set_logger, normalize_file_path
 from pyPaSWAS.Core import resource_filename
 from pyPaSWAS.Core.Exceptions import InvalidOptionException
-from pyPaSWAS.Core.Formatters import DefaultFormatter, SamFormatter,TrimmerFormatter
-from pyPaSWAS.Core.Programs import Aligner,Trimmer, ComBaRMapper,  ComBaRIndexer
+from pyPaSWAS.Core.Formatters import DefaultFormatter, SamFormatter,TrimmerFormatter, PlotterFormatter
+from pyPaSWAS.Core.Programs import Aligner,Trimmer, ComBaRMapper,  ComBaRIndexer, GenomePlotter
 from pyPaSWAS.Core.Readers import BioPythonReader
 from pyPaSWAS.Core.Scores import BasicScore, CustomScore, DnaRnaScore, Blosum62Score, Blosum80Score, IrysScore
 from pyPaSWAS.Core.HitList import HitList
@@ -58,6 +58,8 @@ class Pypaswas(object):
             formatter = SamFormatter(self.logger, results, self.outputfile)
         elif self.output_format == "trimmedFasta":
             formatter = TrimmerFormatter(self.logger, results, self.outputfile)
+        elif self.output_format == "plot":
+            formatter = PlotterFormatter(self.logger, results, self.outputfile)
         else:
             formatter = DefaultFormatter(self.logger, results, self.outputfile)
         return formatter
@@ -140,6 +142,8 @@ class Pypaswas(object):
             self.output_format = 'TXT'
         elif self.settings.out_format.upper() == 'TRIMMEDFASTA':
             self.output_format = 'trimmedFasta'
+        elif self.settings.out_format.upper() == 'PLOT':
+            self.output_format = 'plot'
         else:
             raise InvalidOptionException('Invalid output format {0}.'.format(self.settings.out_format))
 
@@ -158,6 +162,10 @@ class Pypaswas(object):
         elif self.settings.program == "indexer":
             self.program = ComBaRIndexer(self.logger, self.score, self.settings, self.arguments)
             self.logger.warning("Removing limits on length of sequences for ComBaR mapping!")
+            self.settings.limit_length = 10**20
+        elif self.settings.program == "plotter":
+            self.program = GenomePlotter(self.logger, self.score, self.settings, self.arguments)
+            self.logger.warning("Removing limits on length of sequences for genome plotter!")
             self.settings.limit_length = 10**20
         else:
             raise InvalidOptionException('Invalid program selected {0}'.format(self.settings.program))

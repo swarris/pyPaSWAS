@@ -169,6 +169,7 @@ class QIndexerCUDA(QIndexer):
         compAll = [numpy.array(k, dtype=numpy.int32) for k in keys]
         self._copy_index(compAll)
         #self._copy_index(keys)
+
     
     def findIndices(self,seqs, start = 0.0, step=False):
         """ finds the seeding locations for the mapping process.

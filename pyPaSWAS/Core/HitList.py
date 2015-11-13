@@ -19,6 +19,12 @@ class HitList(object):
         self.hits.update(hitList.hits)
         self.real_hits.update(hitList.real_hits)
 
+    def add(self, hit):
+        keys = hit.keys()
+        self.hits[keys[0]] = hit
+        self.real_hits[keys[0]] = hit
+        
+
     def append(self, hit):
         '''
         Appends a hit to the hit list

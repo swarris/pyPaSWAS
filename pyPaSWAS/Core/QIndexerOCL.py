@@ -11,11 +11,16 @@ from pyPaSWAS.Core.Exceptions import HardwareException, InvalidOptionException
 
 class QIndexerOCL(QIndexer):
     
-    def __init__(self, settings, logger, stepFactor = 0.1, reads= [], qgram=1):
+    def __init__(self, settings, logger, stepFactor = 0.1, reads= [], qgram=1, block = None, indicesStepSize= None):
         QIndexer.__init__(self, settings, logger, stepFactor, reads, qgram)
         
-        self.block = 10000
-        
+        if block == None:
+            self.block = 10000
+        else:
+            self.block =block
+            
+        if indicesStepSize != None:
+            self.indicesStepSize = indicesStepSize
         self.device_type = 0
         self._set_device_type(self.settings.device_type)
         self._set_platform(self.settings.platform_name)
@@ -119,11 +124,11 @@ class QIndexerOCL(QIndexer):
         for window in self.wSize:
             self.tupleSet = {}
             seqId = 0
-            while not seqCompleted and seqId < len(sequence) and self.indexCount < self.indicesStep + self.indicesStepSize:
+            while int(self.reverseWindowSize(window)*self.stepFactor*self.slideStep) > 0 and not seqCompleted and seqId < len(sequence) and self.indexCount < self.indicesStep + self.indicesStepSize:
                 # get sequence
                 seq = str(sequence[seqId].seq)
                 # calculate step through genome 
-                revWindowSize = int(self.reverseWindowSize(window)*self.stepFactor*self.slideStep) 
+                revWindowSize = int(math.ceil(self.reverseWindowSize(window)*self.stepFactor*self.slideStep)) 
                 # see how many windows fit in this sequence
                 numberOfWindows = int(math.ceil(len(seq) / revWindowSize))
                 if self.indexCount + numberOfWindows <= self.indicesStep:
@@ -138,7 +143,7 @@ class QIndexerOCL(QIndexer):
                         numberOfWindowsToCalculate = self.indicesStepSize
 
                     self.indexCount += startWindow + numberOfWindowsToCalculate
-                    self.logger.debug("Creating index of {} with window {}".format(sequence[seqId].id, window))
+                    self.logger.debug("Creating index of {} with window {}".format(sequence[seqId].id, window ))
                     self.logger.debug("Will process #windows: {}".format(numberOfWindowsToCalculate))
                     startIndex = startWindow * revWindowSize
                     endIndex = numberOfWindowsToCalculate * revWindowSize + startIndex + window
@@ -190,9 +195,14 @@ class QIndexerOCL(QIndexer):
                     
         self.tupleSet = currentTupleSet
         keys = self.tupleSet.keys()
-        self.logger.info("Preparing index for device, size: {}".format(len(keys)))
-        compAll = [numpy.array(k, dtype=numpy.int32) for k in keys]
-        self._copy_index(compAll)
+        if len(keys) > 0 :
+            self.logger.info("Preparing index for device, size: {}".format(len(keys)))
+            compAll = [numpy.array(k, dtype=numpy.int32) for k in keys]
+            self._copy_index(compAll)
+        else: # stop processing
+            self.indexCount = 1
+            self.indicesStep = 0
+            
 
 
 
@@ -209,6 +219,8 @@ class QIndexerOCL(QIndexer):
  
         self.seqs = seqs
         keys = self.tupleSet.keys()
+        if len(keys) == 0 :
+            return []
         
         # setup device parameters
         #self.dim_grid = (self.indicesStepSize/self.block, self.block*len(seqs))
@@ -276,3 +288,81 @@ class QIndexerOCL(QIndexer):
                 hits[validSeqs[s]][hit[1]].extend([(hit, self.wSize[loc], distances[s])])
         
         return hits
+    
+class GenomePlotter(QIndexerOCL):
+    
+    def __init__(self, qindexer, reads = [], block = None, indicesStepSize= None):
+        QIndexerOCL.__init__(self, qindexer.settings, qindexer.logger, qindexer.stepFactor, reads, qindexer.qgram, block, indicesStepSize)
+        
+        self.device_type = qindexer.device_type
+        self.device = qindexer.device
+        self.platform = qindexer.platform
+        self.ctx = qindexer.ctx
+        self.queue = qindexer.queue
+        self.program = qindexer.program        
+        
+        self._init_memory_compAll()
+
+    def findDistances(self, qindexer, start = 0.0, step=False):
+        """ finds the seeding locations for the mapping process.
+        Structure of locations:
+        (hit, window, distance), with hit: (location, reference seq id)
+        Full structure:
+        ((location, reference seq id), window, distance)
+        :param seq: sequence used for comparison
+        :param start: minimum distance. Use default unless you're stepping through distance values
+        :param step: set this to True when you're stepping through distance values. Hence: start at 0 <= distance < 0.01, then 0.01 <= distance < 0.02, etc  
+        """
+        keys = self.tupleSet.keys()
+        self.seqs = qindexer.tupleSet.keys()
+        self.dim_grid = (len(self.character_list) *self.indicesStepSize/self.block, self.block*len(self.seqs))
+        self.dim_block = (len(self.character_list), 1)
+        
+        #init memory
+        self._init_memory()
+
+        # create index to see how many compositions are found:
+        self.d_index_increment = cl.Buffer(self.ctx, cl.mem_flags.WRITE_ONLY, size=4)
+        index = numpy.zeros((1), dtype=numpy.int32)
+        cl.enqueue_write_buffer(self.queue, self.d_index_increment, index)
+
+        self.logger.debug("Calculating distances")
+        self.program.calculateDistance(self.queue, self.dim_grid,self.dim_block, 
+                                       self.d_compAll, qindexer.d_compAll, 
+                                       self.d_distances, 
+                                       self.d_validComps, 
+                                       self.d_seqs, 
+                                       self.d_index_increment, 
+                                       numpy.float32(self.compositionScale),
+                                       numpy.int32(len(self.seqs)), 
+                                       numpy.int32(len(keys)), 
+                                       numpy.float32(self.sliceDistance))
+
+
+        self.logger.debug("Getting distances")
+        #self.h_distances = numpy.array([0]*len(self.h_distances), dtype=numpy.float32) 
+        #cl.enqueue_copy(self.queue, self.h_distances, self.d_distances)
+                
+        numberOfValidComps = numpy.zeros((1), dtype=numpy.int32)
+        cl.enqueue_copy(self.queue, numberOfValidComps, self.d_index_increment)
+        
+        distances = cl.enqueue_map_buffer(self.queue, self.d_distances, cl.map_flags.READ, 0, shape=(1,len(self.h_distances)), dtype=numpy.float32)[0][0]        
+        validComps = cl.enqueue_map_buffer(self.queue, self.d_validComps, cl.map_flags.READ, 0, shape=(1,len(self.h_validComps)), dtype=numpy.int32)[0][0]
+        validSeqs = cl.enqueue_map_buffer(self.queue, self.d_seqs, cl.map_flags.READ, 0, shape=(1,len(self.h_seqs)), dtype=numpy.int32)[0][0] 
+
+        self.logger.debug("Process {} valid compositions".format(numberOfValidComps[0]))
+
+        hits = []
+        for s in xrange(len(self.seqs)):
+            hits.append({})
+        
+        for s in xrange(numberOfValidComps[0]):
+            valid = keys[validComps[s]]
+            for hit in self.tupleSet[valid]:
+                if hit[1] not in hits[validSeqs[s]]:
+                    hits[validSeqs[s]][hit[1]] = []
+                for hitQindexer in qindexer.tupleSet[self.seqs[validSeqs[s]]]:
+                    hits[validSeqs[s]][hit[1]].extend([(hit, hitQindexer , distances[s])])
+        
+        return hits
+    

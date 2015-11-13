@@ -33,7 +33,6 @@ class QIndexer (Indexer):
     def count(self, seq, window, start_index, end_index):
         results = numpy.zeros(len(self.character_list)+1)
         results[0] = window
-        
         # make sure end_index never exceeds length of sequence:
         if end_index >= len(seq):
             end_index = len(seq)
@@ -48,6 +47,7 @@ class QIndexer (Indexer):
                     if "N" not in subStr and subStr in self.character_index and len(subStr.strip()) == len(self.character_list[0]):
                         results[self.character_index[subStr]] += fraction 
         r = results.view(int)
+        
         r[:] = results
         return(csc_matrix(r, dtype=numpy.int32))
 
