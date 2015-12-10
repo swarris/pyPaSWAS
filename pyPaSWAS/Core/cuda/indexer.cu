@@ -15,7 +15,7 @@ extern "C"
 __global__ void setToZero(float *comps);
 
 extern "C"
-__global__ void calculateQgrams(char *sequence, unsigned int q, unsigned int length, float *comps, float windowLength, float step, float fraction);
+__global__ void calculateQgrams(char *sequence, unsigned int q, unsigned int length, float *comps, float windowLength, float step, float fraction, char nAs);
 
 
 __global__ void calculateDistance(int *index, int *query, float *distances, unsigned int *validComps,
@@ -33,10 +33,14 @@ __global__ void calculateDistance(int *index, int *query, float *distances, unsi
 
 	if (comp < length) {
 		__shared__ float s_distances[INDEX_SIZE];
+		__shared__ int s_notEmptyQ[INDEX_SIZE];
+		unsigned int indexValue = index[block+threadPlus1];
+		unsigned int queryValue = query[threadPlus1+(seq*(INDEX_SIZE+1))];
 
-		s_distances[thread] = (float) index[block+threadPlus1] - (float)query[threadPlus1+(seq*(INDEX_SIZE+1))];
+		s_distances[thread] = (float) indexValue - (float)queryValue;
 		s_distances[thread] *= s_distances[thread];
 
+		s_notEmptyQ[thread] = indexValue | queryValue;
 
 		unsigned int offset = 1;
 
@@ -46,11 +50,12 @@ __global__ void calculateDistance(int *index, int *query, float *distances, unsi
 				int ai = offset*(2*thread+1)-1;
 				int bi = offset*(2*thread+2)-1;
 				s_distances[bi] += s_distances[ai];
+				s_notEmptyQ[bi] |= s_notEmptyQ[ai];
 			}
 			offset *= 2;
 		}
 		__syncthreads();
-		if (thread == 0){
+		if (thread == 0 && s_notEmptyQ[INDEX_SIZE-1]){
 			s_distances[INDEX_SIZE-1] = sqrt(s_distances[INDEX_SIZE-1])/scale;
 			if (s_distances[INDEX_SIZE-1] < sliceDistance){
 				unsigned int indices = atomicAdd(indexIncrement, 1);
@@ -68,7 +73,7 @@ __global__ void setToZero(float *comps){
 	comps[index] = 0.0;
 }
 
-__global__ void calculateQgrams(char *sequence, unsigned int q, unsigned int length, float *comps, float windowLength, float step, float fraction) {
+__global__ void calculateQgrams(char *sequence, unsigned int q, unsigned int length, float *comps, float windowLength, float step, float fraction, char nAs) {
 	unsigned int seqLocation = threadIdx.x + INDEX_SIZE * blockIdx.x;
 	if (seqLocation < length - q) {
 		int localQgram = 0;
@@ -77,6 +82,8 @@ __global__ void calculateQgrams(char *sequence, unsigned int q, unsigned int len
 		for (int i=0; i < q; i++) {
 			if (localQgram >= 0) {
 				char character = sequence[seqLocation+i];
+				if (character == 'N')
+					character = nAs;
 				switch (character) {
 					case 'A' : break;
 					case 'T' : localQgram+=1*bit; break;

@@ -214,7 +214,7 @@ class Pypaswas(object):
                 else:
                     self.logger.info('Processing {0}- vs {1}-sequences'.format(len(query_sequences),
                                                                             len(target_sequences)))
-                    results.extend(self.program.process(query_sequences, target_sequences))
+                    results.extend(self.program.process(query_sequences, target_sequences, self))
                 
                 if len(target_sequences) <= end_index:
                     sequencesToProcess = False

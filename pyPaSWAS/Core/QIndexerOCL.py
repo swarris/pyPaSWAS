@@ -11,9 +11,9 @@ from pyPaSWAS.Core.Exceptions import HardwareException, InvalidOptionException
 
 class QIndexerOCL(QIndexer):
     
-    def __init__(self, settings, logger, stepFactor = 0.1, reads= [], qgram=1, block = None, indicesStepSize= None):
+    def __init__(self, settings, logger, stepFactor = 0.1, reads= [], qgram=1, block = None, indicesStepSize= None, nAs ='N'):
         QIndexer.__init__(self, settings, logger, stepFactor, reads, qgram)
-        
+        self.nAs = nAs
         if block == None:
             self.block = 10000
         else:
@@ -134,6 +134,7 @@ class QIndexerOCL(QIndexer):
                 if self.indexCount + numberOfWindows <= self.indicesStep:
                     # sequence already completely processed
                     self.indexCount += numberOfWindows
+                    seqId += 1
                 else:
                     # see how many windows can be calculate
                     seqCompleted = True
@@ -167,7 +168,7 @@ class QIndexerOCL(QIndexer):
                                      dim_grid, 
                                      dim_block, 
                                      seqGPU, numpy.int32(self.qgram), numpy.int32(len(seqToIndex)), self.d_compAll_index_int,
-                                    numpy.float32(window), numpy.float32(revWindowSize), numpy.int32(self.compositionScale))
+                                    numpy.float32(window), numpy.float32(revWindowSize), numpy.int32(self.compositionScale), numpy.uint8(ord(self.nAs)))
                     
                     comps = cl.enqueue_map_buffer(self.queue, self.d_compAll_index_int, cl.map_flags.READ, 0, shape=(1,len(self.h_compAll_index_int)), dtype=numpy.int32)[0][0]
                     # scale values
@@ -187,8 +188,9 @@ class QIndexerOCL(QIndexer):
                     
                 
                     currentTupleSet.update(self.tupleSet)
+                    if endIndex >= len(sequence[seqId]):
+                        seqId += 1
 
-                seqId += 1
             if seqId == len(sequence):
                 self.indexCount = self.indicesStep + self.indicesStepSize+1
         self.indicesStep = self.indexCount if self.indexCount <= self.indicesStep +self.indicesStepSize else self.indicesStep
@@ -202,8 +204,6 @@ class QIndexerOCL(QIndexer):
         else: # stop processing
             self.indexCount = 1
             self.indicesStep = 0
-            
-
 
 
     def findIndices(self,seqs, start = 0.0, step=False):
@@ -291,8 +291,8 @@ class QIndexerOCL(QIndexer):
     
 class GenomePlotter(QIndexerOCL):
     
-    def __init__(self, qindexer, reads = [], block = None, indicesStepSize= None):
-        QIndexerOCL.__init__(self, qindexer.settings, qindexer.logger, qindexer.stepFactor, reads, qindexer.qgram, block, indicesStepSize)
+    def __init__(self, qindexer, reads = [], block = None, indicesStepSize= None, nAs = 'N'):
+        QIndexerOCL.__init__(self, qindexer.settings, qindexer.logger, qindexer.stepFactor, reads, qindexer.qgram, block, indicesStepSize, nAs)
         
         self.device_type = qindexer.device_type
         self.device = qindexer.device

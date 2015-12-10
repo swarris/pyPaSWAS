@@ -165,7 +165,7 @@ def parse_cli(config_file):
                               dest='base_score', default=config.get('Filter', 'base_score'))
     parser.add_option_group(filter_options)
 
-    mapper_options = optparse.OptionGroup(parser, 'Options related to Composition based read mapper (experimental).')
+    mapper_options = optparse.OptionGroup(parser, 'Options related to Composition based read mapper.')
     mapper_options.add_option('--maximum_distance', help='Maximum distance in composition for a position to be considered a seed', dest='maximum_distance',
                               default=config.get('Mapper', 'maximum_distance'))
     mapper_options.add_option('--qgram', help='QGram number, should be >= 1', dest='qgram',
@@ -178,6 +178,11 @@ def parse_cli(config_file):
 
     parser.add_option_group(mapper_options)
 
+    plotter_options = optparse.OptionGroup(parser, 'Options related to the GenomePlotter. See mapper options')
+    mapper_options.add_option('--window_length', help='Precision of the plotter, given in the length of the window processed (in bases)', dest='window_length',
+                              default=config.get('Plotter', 'window_length'))
+
+    parser.add_option_group(plotter_options)
 
     device_options = optparse.OptionGroup(parser, 'Options that affect the usage and settings of the '
                                           'parallel devices')

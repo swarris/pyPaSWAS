@@ -41,9 +41,14 @@ __kernel void calculateDistance(
 	
 	if (comp < length) {		
 		__local float s_distances[INDEX_SIZE];
-	
-		s_distances[thread] = (float) index[block+threadPlus1] - (float)query[threadPlus1+(seq*(INDEX_SIZE+1))];
+		__local int s_notEmptyQ[INDEX_SIZE];
+		unsigned int indexValue = index[block+threadPlus1];
+		unsigned int queryValue = query[threadPlus1+(seq*(INDEX_SIZE+1))];
+
+		s_distances[thread] = (float) indexValue - (float)queryValue;
 		s_distances[thread] *= s_distances[thread];
+		
+		s_notEmptyQ[thread] = indexValue | queryValue;
 	
 	
 		unsigned int offset = 1;
@@ -54,11 +59,12 @@ __kernel void calculateDistance(
 			    int ai = offset*(2*thread+1)-1;
 			    int bi = offset*(2*thread+2)-1;
 			    s_distances[bi] += s_distances[ai];
+			    s_notEmptyQ[bi] |= s_notEmptyQ[ai];
 			}
 			offset *= 2;
 		}
 		barrier(CLK_LOCAL_MEM_FENCE);
-		if (thread == 0){
+		if (thread == 0 && s_notEmptyQ[INDEX_SIZE-1]){
 			//distances[get_group_id(0) * BLOCK_SIZE + get_group_id(1)] =  sqrt(s_distances[INDEX_SIZE-1])/scale;
 			s_distances[INDEX_SIZE-1] = sqrt(s_distances[INDEX_SIZE-1])/scale;
 
@@ -87,7 +93,7 @@ __kernel void scaleComp(__global float *comps, __global int *comps_int, float fr
 }
 
 
-__kernel void calculateQgrams(__global char *sequence, unsigned int q, unsigned int length, volatile __global int *comps, float windowLength, float step, int fraction) {
+__kernel void calculateQgrams(__global char *sequence, unsigned int q, unsigned int length, volatile __global int *comps, float windowLength, float step, int fraction, char nAs) {
 	unsigned int seqLocation = get_local_id(0) + INDEX_SIZE * get_group_id(0);
 	
 	if (seqLocation < length - q) {
@@ -97,6 +103,9 @@ __kernel void calculateQgrams(__global char *sequence, unsigned int q, unsigned 
 		for (int i=0; i < q; i++) {
 			if (localQgram >= 0) {
 				char character = sequence[seqLocation+i];
+				if (character == 'N')
+					character = nAs;
+
 				switch (character) {
 					case 'A' : break;
 					case 'T' : localQgram+=1*bit; break;
