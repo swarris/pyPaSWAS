@@ -289,13 +289,13 @@ class GenomePlotter(Aligner):
 
         if self.qindexerOCL:
             from pyPaSWAS.Core.QIndexerOCL import QIndexerOCL, GenomePlotter
-            indexer = QIndexerOCL(self.settings, self.logger, 0.1, dummySeq, int(self.settings.qgram), block, indexStepSize, nAs='A')
+            indexer = QIndexerOCL(self.settings, self.logger, 0.1, dummySeq, int(self.settings.qgram), block, indexStepSize, nAs='N')
             #plotter = GenomePlotter(indexer, dummySeq, block, indexStepSize)                                                                                                                            
         elif self.qindexerCUDA:
             from pyPaSWAS.Core.QIndexerCUDA import QIndexerCUDA, GenomePlotter
             block = 10
             indexStepSize=1000
-            indexer = QIndexerCUDA(self.settings, self.logger, 0.1, dummySeq, int(self.settings.qgram), block, indexStepSize, nAs='A')
+            indexer = QIndexerCUDA(self.settings, self.logger, 0.1, dummySeq, int(self.settings.qgram), block, indexStepSize, nAs='N')
             #plotter = GenomePlotter(indexer, dummySeq, block, indexStepSize)                                                                                                                            
         else:
             from pyPaSWAS.Core.QIndexer import QIndexer
@@ -304,7 +304,7 @@ class GenomePlotter(Aligner):
         self.logger.debug("Starting indexer on targets")
         while indexer.indicesToProcessLeft():
             indexer.createIndexAndStore(targets, self.arguments[1])
-            plotter = GenomePlotter(indexer, dummySeq, block, indexStepSize, nAs='C')
+            plotter = GenomePlotter(indexer, dummySeq, block, indexStepSize, nAs='N')
             self.logger.debug("Starting indexer on sequences")
             while plotter.indicesToProcessLeft():
                 plotter.createIndexAndStore(records_seqs, self.arguments[0])
