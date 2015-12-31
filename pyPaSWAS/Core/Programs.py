@@ -179,6 +179,12 @@ class ComBaRMapper(Aligner):
                                 self.logger.info("Processing seq: " + records_seqs[read].id)
                                 for value in locations.itervalues():
                                     locs.extend(value)
+
+                                if len(locs) > float(self.settings.fraction_of_seeds) * indexer.indicesStepSize:
+                                    self.logger.warning("Too many locations for fast processing. Sorting and slicing now with fraction_of_seeds = {}.".format(self.settings.fraction_of_seeds))
+                                    locs.sort(key = lambda x:x[2]) # sort on distance
+                                    locs = locs[:int(float(self.settings.fraction_of_seeds)*len(locs))]
+
                                 splittedTargets = []
         
                                 for loc in locs:
@@ -289,13 +295,13 @@ class GenomePlotter(Aligner):
 
         if self.qindexerOCL:
             from pyPaSWAS.Core.QIndexerOCL import QIndexerOCL, GenomePlotter
-            indexer = QIndexerOCL(self.settings, self.logger, 0.1, dummySeq, int(self.settings.qgram), block, indexStepSize, nAs='N')
+            indexer = QIndexerOCL(self.settings, self.logger, 0.1, dummySeq, int(self.settings.qgram), block, indexStepSize, nAs='A')
             #plotter = GenomePlotter(indexer, dummySeq, block, indexStepSize)                                                                                                                            
         elif self.qindexerCUDA:
             from pyPaSWAS.Core.QIndexerCUDA import QIndexerCUDA, GenomePlotter
             block = 10
             indexStepSize=1000
-            indexer = QIndexerCUDA(self.settings, self.logger, 0.1, dummySeq, int(self.settings.qgram), block, indexStepSize, nAs='N')
+            indexer = QIndexerCUDA(self.settings, self.logger, 0.1, dummySeq, int(self.settings.qgram), block, indexStepSize, nAs='A')
             #plotter = GenomePlotter(indexer, dummySeq, block, indexStepSize)                                                                                                                            
         else:
             from pyPaSWAS.Core.QIndexer import QIndexer
@@ -304,7 +310,7 @@ class GenomePlotter(Aligner):
         self.logger.debug("Starting indexer on targets")
         while indexer.indicesToProcessLeft():
             indexer.createIndexAndStore(targets, self.arguments[1])
-            plotter = GenomePlotter(indexer, dummySeq, block, indexStepSize, nAs='N')
+            plotter = GenomePlotter(indexer, dummySeq, block, indexStepSize, nAs='C')
             self.logger.debug("Starting indexer on sequences")
             while plotter.indicesToProcessLeft():
                 plotter.createIndexAndStore(records_seqs, self.arguments[0])

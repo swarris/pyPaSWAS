@@ -171,11 +171,13 @@ def parse_cli(config_file):
     mapper_options.add_option('--qgram', help='QGram number, should be >= 1', dest='qgram',
                               default=config.get('Mapper', 'qgram'))
 
-    mapper_options.add_option('--compressed_index', help='Used compressed index. Compressing an index saves disk space, but creates a memory leak.', dest='compressed_index',
+    mapper_options.add_option('--compressed_index', help='Used compressed index. Compressing an index saves disk space, but creates a memory leak. Obsolete for CUDA/OpenCL', dest='compressed_index',
                               default=config.get('Mapper', 'compressed_index'))
-    mapper_options.add_option('--reads_to_process', help='Number of reads to process at once on parallel device. Keep low when the device times out.', dest='reads_to_process',
+    mapper_options.add_option('--reads_to_process', help='Number of reads of same length to process at once on parallel device. Keep low when the device times out.', dest='reads_to_process',
                               default=config.get('Mapper', 'reads_to_process'))
-
+    mapper_options.add_option('--fraction_of_seeds', help='Seeding can give many possible locations, for example with reads from repeat regions. This option controls the maximum number of seeds to be processed after sorting them on distance.', dest='fraction_of_seeds',
+                              default=config.get('Mapper', 'fraction_of_seeds'))
+    
     parser.add_option_group(mapper_options)
 
     plotter_options = optparse.OptionGroup(parser, 'Options related to the GenomePlotter. See mapper options')
