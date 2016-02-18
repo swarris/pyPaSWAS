@@ -246,6 +246,21 @@ class Hit(object):
                           str(self.sequence_info.seq[:self.target_location[0]] + self.sequence_info.seq[self.target_location[1]+1:])])
 
 
+    def get_fasta(self):
+        identifier = self.get_seq_id()
+        if identifier[-2:] == 'RC':
+            identifier = identifier[:-3]
+
+        target_id = self.get_target_id()
+        if target_id[-2:] == 'RC':
+            target_id = target_id[:-3]
+
+        if len(self.sequence_match) == 0 or len(self.target_match) == 0 or len(self.alignment) == 0:
+            raise CudaException('sequence_match, target_match and alignment should be set and have lengths > 0.')
+        return ''.join(['>', target_id, ' ', self.sequence_info.id, "\n", 
+                          str(self.sequence_info.seq[:self.target_location[0]] + self.sequence_info.seq[self.target_location[1]+1:])])
+
+
 
     def get_sam_sq(self):
         '''creates and returns the target (reference) information of the hit formatted

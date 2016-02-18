@@ -58,6 +58,8 @@ class Pypaswas(object):
             formatter = SamFormatter(self.logger, results, self.outputfile)
         elif self.output_format == "trimmedFasta":
             formatter = TrimmerFormatter(self.logger, results, self.outputfile)
+        elif self.output_format == "FASTA":
+            formatter = FASTA(self.logger, results, self.outputfile)
         elif self.output_format == "plot":
             formatter = PlotterFormatter(self.logger, results, self.outputfile)
         else:
@@ -118,6 +120,8 @@ class Pypaswas(object):
         score = None
         if matrix_name == 'DNA-RNA':
             score = DnaRnaScore(self.logger, self.settings)
+        elif matrix_name == 'DNA':
+            score = DnaRnaScore(self.logger, self.settings)
         elif matrix_name == 'BASIC':
             score = BasicScore(self.logger, self.settings)
         elif matrix_name == 'BLOSUM62':
@@ -144,6 +148,8 @@ class Pypaswas(object):
             self.output_format = 'trimmedFasta'
         elif self.settings.out_format.upper() == 'PLOT':
             self.output_format = 'plot'
+        elif self.settings.out_format.upper() == 'FASTA':
+            self.output_format = 'FASTA'
         else:
             raise InvalidOptionException('Invalid output format {0}.'.format(self.settings.out_format))
 
@@ -167,6 +173,8 @@ class Pypaswas(object):
             self.program = GenomePlotter(self.logger, self.score, self.settings, self.arguments)
             self.logger.warning("Removing limits on length of sequences for genome plotter!")
             self.settings.limit_length = 10**20
+        elif self.settings.program == "palindrome":
+            self.program = Palindrome(self.logger, self.score, self.settings, self.arguments)
         else:
             raise InvalidOptionException('Invalid program selected {0}'.format(self.settings.program))
 

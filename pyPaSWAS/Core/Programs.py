@@ -349,5 +349,28 @@ class GenomePlotter(Aligner):
         self.logger.debug('Genome plotter finished.')
         return self.hitlist
         
-        
+class Palindrome(Aligner):
+    
+    def __init__(self, logger, score, settings):
+        Aligner.__init__(self, logger, score, settings)
+
+    def process(self, records_seqs, targets, pypaswas):
+        '''This methods sends the target- and query sequences to the SmithWaterman instance
+        and receives the resulting hitlist.
+        '''
+        # step through the targets
+        self.logger.debug('Fixing palindrome sequences...')
+        target_index = 0
+            
+        while target_index < len(targets):
+            self.logger.debug('At read: {0} of {1}'.format(target_index, len(targets)))
+
+            last_target_index = self.smith_waterman.set_targets(targets, target_index, max_length, records_seqs)
+            # results should be a Hitlist()
+            results = self.smith_waterman.align_sequences(records_seqs, targets, target_index)
+            self.hitlist.extend(results)
+            target_index = last_target_index
+        self.logger.debug('Fixing done.')
+        return self.hitlist
+
         

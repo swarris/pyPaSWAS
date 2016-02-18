@@ -142,6 +142,48 @@ class TrimmerFormatter(DefaultFormatter):
             output.write(line + '\n')
         output.close()
         self.logger.debug('finished printing results')
+
+class FASTA(DefaultFormatter):
+    '''This Formatter is used to create FASTA output
+    '''
+
+    def __init__(self, logger, hitlist, outputfile):
+        '''Since the header contains information about the target sequences and must be
+            present before alignment lines, formatted lines are stored before printing.
+        '''
+        DefaultFormatter.__init__(self, logger, hitlist, outputfile)
+        self.sq_lines = {}
+        self.record_lines = []
+
+    def _set_name(self):
+        '''Name of the formatter. Used for logging'''
+        self.name = 'SAM formatter'
+
+    def _format_hit(self, hit):
+        '''Adds a header line to self.sq_lines and an alignment line to self.record_lines.
+            The following mappings are used for header lines:
+                SN: hit.get_target_id()
+                LN: hit.full_target.original_length
+        '''
+        self.logger.debug('Formatting hit {0}'.format(hit.get_seq_id()))
+        self.record_lines.append(hit.get_fasta())
+
+    def print_results(self):
+        '''sets, formats and prints the results to a file.'''
+        self.logger.info('formatting results...')
+        #format header and hit lines
+        for hit in self.hitlist.real_hits.itervalues():
+            self._format_hit(hit)
+
+        self.logger.debug('printing results...')
+        output = open(self.outputfile, 'w')
+
+        #write the hit lines to the output file
+        for line in self.record_lines:
+            output.write(line + '\n')
+        output.close()
+        self.logger.debug('finished printing results')
+        
         
 class PlotterFormatter(DefaultFormatter):
     def __init__(self, logger, hitlist, outputfile):
