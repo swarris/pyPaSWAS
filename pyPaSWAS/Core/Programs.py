@@ -4,6 +4,7 @@ from operator import itemgetter
 from SWSeqRecord import SWSeqRecord
 from Bio.Seq import Seq
 from Hit import Distance
+from Hit import Hit
 
 class Aligner(object):
     '''
@@ -358,18 +359,36 @@ class Palindrome(Aligner):
         '''This methods sends the target- and query sequences to the SmithWaterman instance
         and receives the resulting hitlist.
         '''
-        # step through the targets
+        # Fix this target
         self.logger.debug('Fixing palindrome sequences...')
-        target_index = 0
-            
-        while target_index < len(targets):
-            self.logger.debug('At read: {0} of {1}'.format(target_index, len(targets)))
 
-            last_target_index = self.smith_waterman.set_targets(targets, target_index, max_length, records_seqs)
-            # results should be a Hitlist()
-            results = self.smith_waterman.align_sequences(records_seqs, targets, target_index)
-            self.hitlist.extend(results)
-            target_index = last_target_index
+        cur_records_seq = records_seqs
+        cur_targets = targets
+        target_index = 0
+        # handle it as a queue:    
+        while len(cur_targets) >0 :
+            self.smith_waterman.set_targets(cur_targets, target_index)
+            results = self.smith_waterman.align_sequences(cur_records_seq, cur_targets, target_index)
+            if len(results.real_hits) == 0 : # nothing more to do
+                results = HitList(self.logger)
+                hit = Hit(self.logger, cur_records_seq[0],
+                          cur_targets[0],
+                          (0, 1), (0, 1))
+                results.append(hit)
+                self.hitlist.extend(results)
+            else:
+                # process hit to get new targets
+                # get hits and sort on highest score
+                hit = sorted(results.real_hits.values(),key=attrgetter('score'), reverse=True)[0]
+                # process this best hit
+                hit.palindrome(cur_records_seq, cur_targets)
+            # remove processed sequences: 
+            cur_targets = cur_targets[1:]
+            cur_records_seq = cur_records_seq[1:]
+                
+                 
+                
+            
         self.logger.debug('Fixing done.')
         return self.hitlist
 

@@ -66,11 +66,17 @@ class Reader(object):
         return self.records
 
     def complement_records(self):
-        '''Appends the reversed complements to the parsed records '''
+        '''Appends the reverse complements to the parsed records '''
         #self.logger.debug('Creating complement sequences...')
         seqIO = lambda seqIO: SWSeqRecord(Seq(str(seqIO.seq.reverse_complement()), seqIO.seq.alphabet),
                                           identifier=(str(seqIO.id) + self.rc_string))
         self.records.extend([seqIO(record) for record in self.records])
+
+    def complement_records_only(self):
+        '''Creates the reverse complements to the parsed records '''
+        seqIO = lambda seqIO: SWSeqRecord(Seq(str(seqIO.seq.reverse_complement()), seqIO.seq.alphabet),
+                                          identifier=(str(seqIO.id) + self.rc_string))
+        self.records = [seqIO(record) for record in self.records]
 
 
 class BioPythonReader(Reader):

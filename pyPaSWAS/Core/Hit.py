@@ -6,6 +6,7 @@ original version by Sven Warris
 
 from pyPaSWAS.Core.Exceptions import CudaException
 from Bio.Seq import Seq
+from pyPaSWAS.Core.SWSeqRecord import SWSeqRecord
 
 class Hit(object):
     '''This class models an alignment between a sequence and a target.
@@ -260,6 +261,10 @@ class Hit(object):
         return ''.join(['>', target_id, ' ', self.sequence_info.id, "\n", 
                           str(self.sequence_info.seq[:self.target_location[0]] + self.sequence_info.seq[self.target_location[1]+1:])])
 
+    def get_full_fasta(self):
+        identifier = self.get_seq_id()
+        return '>{}\n{}\n'.format(identifier, str(self.sequence_info.seq))
+
 
 
     def get_sam_sq(self):
@@ -365,6 +370,29 @@ class Hit(object):
             else:
                 char = 'I'
         return char
+    
+    def palindrome(records_seq, targets):
+        self.logger.debug("Seq: {}\nTar: {}".format(self.sequence_info.seq[:30], self.target_info.seq[:30]))
+        if self.query_coverage > 0.98:
+            records_seq.append(SWSeqRecord(self.sequence_info.seq[:len(self.sequence_info.seq)/2], self.sequence_info.id + "_SPLIT1"))
+            records_seq.append(SWSeqRecord(self.sequence_info.seq[len(self.sequence_info.seq)/2:], self.sequence_info.id + "_SPLIT2"))
+
+            targets.append(SWSeqRecord(self.target_info.seq[:len(self.target_info.seq)/2], self.target_info.id + "_SPLIT1"))
+            targets.append(SWSeqRecord(self.target_info.seq[len(self.target_info.seq)/2:], self.target_info.id + "_SPLIT2"))
+        else:
+            if self.seq_location[0] > 50:
+                records_seq.append(SWSeqRecord(self.sequence_info.seq[:self.seq_location[0]], self.sequence_info.id + "_F"))
+                targets.append(SWSeqRecord(self.target_info.seq[:self.seq_location[0]], self.target_info.id + "_F"))
+            if len(self.sequence_info.seq) - self.seq_location[1] > 50:
+                records_seq.append(SWSeqRecord(self.sequence_info.seq[self.seq_location[1]:], self.sequence_info.id + "_L"))
+                targets.append(SWSeqRecord(self.target_info.seq[self.seq_location[1]:], self.target_info.id + "_L"))
+
+            if self.seq_location[1] - self.seq_location[0] > 50:
+                records_seq.append(SWSeqRecord(self.sequence_info.seq[self.seq_location[0]:self.seq_location[1]], self.sequence_info.id + "_M"))
+                targets.append(SWSeqRecord(self.target_info.seq[self.seq_location[0]:self.seq_location[1]], self.target_info.id + "_M"))
+                
+
+
 
 class Distance(Hit):
     def __init__(self, logger, sequence_info, target_info, sequence_location, target_location):

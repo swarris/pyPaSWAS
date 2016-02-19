@@ -166,7 +166,7 @@ class FASTA(DefaultFormatter):
                 LN: hit.full_target.original_length
         '''
         self.logger.debug('Formatting hit {0}'.format(hit.get_seq_id()))
-        self.record_lines.append(hit.get_fasta())
+        self.record_lines.append(hit.get_full_fasta())
 
     def print_results(self):
         '''sets, formats and prints the results to a file.'''
