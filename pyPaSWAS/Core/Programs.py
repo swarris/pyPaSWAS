@@ -1,6 +1,7 @@
 ''' This module contains the programs from the pyPaSWAS suite '''
 from pyPaSWAS.Core.HitList import HitList
-from operator import itemgetter
+from operator import itemgetter,attrgetter
+
 from SWSeqRecord import SWSeqRecord
 from Bio.Seq import Seq
 from Hit import Distance
@@ -367,8 +368,8 @@ class Palindrome(Aligner):
         target_index = 0
         # handle it as a queue:    
         while len(cur_targets) >0 :
-            self.smith_waterman.set_targets(cur_targets, target_index)
-            results = self.smith_waterman.align_sequences(cur_records_seq, cur_targets, target_index)
+            self.smith_waterman.set_targets(cur_targets[:1], target_index)
+            results = self.smith_waterman.align_sequences(cur_records_seq[:1], cur_targets, target_index)
             if len(results.real_hits) == 0 : # nothing more to do
                 results = HitList(self.logger)
                 hit = Hit(self.logger, cur_records_seq[0],

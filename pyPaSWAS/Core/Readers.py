@@ -7,7 +7,7 @@ from Bio import  SeqIO
 from Bio.Seq import Seq
 from pyPaSWAS.Core.SWSeqRecord import SWSeqRecord
 from pyPaSWAS.Core.Exceptions import InvalidOptionException
-
+from Exceptions import ReaderException
 
 class Reader(object):
     '''The generic reader from which other readers inherit some common functionalities.
@@ -89,9 +89,7 @@ class BioPythonReader(Reader):
         self.records = list(islice(SeqIO.parse(file_elements, self.filetype), start, end))
         file_elements.close()
         if len(self.records) == 0:
-            pass
-            #self.logger.warning('No (more) sequence data found in input file ({}), '
-            #                           'of file type {}.'.format(self.path, self.filetype))
+            raise ReaderException('No (more) sequence data found in input file ({}), of file type {}.'.format(self.path, self.filetype))
 
         if self.limitlength > 0:
             nrecords = len(self.records)

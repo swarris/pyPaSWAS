@@ -7,8 +7,8 @@ as used by NCBI blastall version 2.2.21.
 
 from pyPaSWAS import parse_cli, set_logger, normalize_file_path
 from pyPaSWAS.Core import resource_filename
-from pyPaSWAS.Core.Exceptions import InvalidOptionException
-from pyPaSWAS.Core.Formatters import DefaultFormatter, SamFormatter,TrimmerFormatter, PlotterFormatter
+from pyPaSWAS.Core.Exceptions import InvalidOptionException, ReaderException
+from pyPaSWAS.Core.Formatters import DefaultFormatter, SamFormatter,TrimmerFormatter, PlotterFormatter, FASTA
 from pyPaSWAS.Core.Programs import Aligner,Trimmer, ComBaRMapper,  ComBaRIndexer, GenomePlotter, Palindrome
 from pyPaSWAS.Core.Readers import BioPythonReader
 from pyPaSWAS.Core.Scores import BasicScore, CustomScore, DnaRnaScore, Blosum62Score, Blosum80Score, IrysScore, PalindromeScore
@@ -200,8 +200,8 @@ class Pypaswas(object):
         self._set_scoring_matrix()
         self.logger.info('Application initialized.')
         self.logger.info('Setting program...')
-        self._set_program()
         self._set_output_format()
+        self._set_program()
         self.logger.info('Program set.')
         
         queriesToProcess = True
@@ -214,8 +214,11 @@ class Pypaswas(object):
         
         while queriesToProcess:
             self.logger.info('Reading query sequences {} {}...'.format(query_start, query_end))
-            query_sequences = self._get_query_sequences(self.arguments[0], start=query_start, end=query_end)
-            self.logger.info('Query sequences OK.')
+            try:
+                query_sequences = self._get_query_sequences(self.arguments[0], start=query_start, end=query_end)
+                self.logger.info('Query sequences OK.')
+            except ReaderException:
+                queriesToProcess = False
             query_start = query_start + int(self.settings.query_step)
             query_end = query_end + int(self.settings.query_step)
 
@@ -224,12 +227,16 @@ class Pypaswas(object):
                 start_index = 0
                 end_index = int(self.settings.sequence_step)
        
-            while sequencesToProcess:
+            while queriesToProcess and sequencesToProcess:
                 self.logger.info('Reading target sequences {}, {}...'.format(start_index,end_index))
-                target_sequences = self._get_target_sequences(self.arguments[1], start=start_index, end=end_index)
-                self.logger.info('Target sequences OK.')
+                try:
+                    target_sequences = self._get_target_sequences(self.arguments[1], start=start_index, end=end_index)
+                    self.logger.info('Target sequences OK.')
+                except ReaderException:
+                    sequencesToProcess = False
+                    
     
-                if len(query_sequences) == 0 or len(target_sequences) == 0:
+                if not sequencesToProcess or not queriesToProcess or len(query_sequences) == 0 or len(target_sequences) == 0:
                     sequencesToProcess = False
                     self.logger.info('Processing done')
                 else:
