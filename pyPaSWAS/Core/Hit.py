@@ -376,19 +376,19 @@ class Hit(object):
             records_seq.append(SWSeqRecord(self.sequence_info.seq[:len(self.sequence_info.seq)/2], self.sequence_info.id + "_SPLIT1"))
             records_seq.append(SWSeqRecord(self.sequence_info.seq[len(self.sequence_info.seq)/2:], self.sequence_info.id + "_SPLIT2"))
 
-            targets.append(SWSeqRecord(self.sequence_info.seq[:len(self.sequence_info.seq)/2].reverse_complement(), self.target_info.id + "_SPLIT1"))
-            targets.append(SWSeqRecord(self.sequence_info.seq[len(self.sequence_info.seq)/2:].reverse_complement(), self.target_info.id + "_SPLIT2"))
+            targets.append(SWSeqRecord(self.sequence_info.seq[:len(self.sequence_info.seq)/2].reverse_complement(), self.sequence_info.id + "_SPLIT1_RC"))
+            targets.append(SWSeqRecord(self.sequence_info.seq[len(self.sequence_info.seq)/2:].reverse_complement(), self.sequence_info.id + "_SPLIT2_RC"))
         else:
             if self.seq_location[0] > 50:
                 records_seq.append(SWSeqRecord(self.sequence_info.seq[:self.seq_location[0]], self.sequence_info.id + "_F"))
-                targets.append(SWSeqRecord(self.sequence_info.seq[:self.seq_location[0]].reverse_complement(), self.target_info.id + "_F"))
+                targets.append(SWSeqRecord(self.sequence_info.seq[:self.seq_location[0]].reverse_complement(), self.sequence_info.id + "_F_RC"))
             if len(self.sequence_info.seq) - self.seq_location[1] > 50:
                 records_seq.append(SWSeqRecord(self.sequence_info.seq[self.seq_location[1]:], self.sequence_info.id + "_L"))
-                targets.append(SWSeqRecord(self.sequence_info.seq[self.seq_location[1]:].reverse_complement(), self.target_info.id + "_L"))
+                targets.append(SWSeqRecord(self.sequence_info.seq[self.seq_location[1]:].reverse_complement(), self.sequence_info.id + "_L_RC"))
 
             if self.seq_location[1] - self.seq_location[0] > 50:
                 records_seq.append(SWSeqRecord(self.sequence_info.seq[self.seq_location[0]:self.seq_location[1]], self.sequence_info.id + "_M"))
-                targets.append(SWSeqRecord(self.sequence_info.seq[self.seq_location[0]:self.seq_location[1]].reverse_complement(), self.target_info.id + "_M"))
+                targets.append(SWSeqRecord(self.sequence_info.seq[self.seq_location[0]:self.seq_location[1]].reverse_complement(), self.sequence_info.id + "_M_RC"))
                 
 
 

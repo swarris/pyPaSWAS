@@ -251,7 +251,8 @@ class Pypaswas(object):
 
                 start_index = start_index + int(self.settings.sequence_step)
                 end_index = end_index + int(self.settings.sequence_step)
-
+                if  self.settings.program == "palindrome":
+                    sequencesToProcess = False
 
         nhits = len(results.hits)
         # retrieve and print results!
