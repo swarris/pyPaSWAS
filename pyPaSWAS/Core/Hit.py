@@ -373,12 +373,21 @@ class Hit(object):
     
     def palindrome(self, records_seq, targets):
         if self.query_coverage > 0.98:
-            records_seq.append(SWSeqRecord(self.sequence_info.seq[:len(self.sequence_info.seq)/2], self.sequence_info.id + "_SPLIT1"))
-            records_seq.append(SWSeqRecord(self.sequence_info.seq[len(self.sequence_info.seq)/2:], self.sequence_info.id + "_SPLIT2"))
+            records_seq.append(SWSeqRecord(self.sequence_info.seq[:len(self.sequence_info.seq)/2], self.sequence_info.id + "_a1"))
+            records_seq.append(SWSeqRecord(self.sequence_info.seq[len(self.sequence_info.seq)/2:], self.sequence_info.id + "_a2"))
 
-            targets.append(SWSeqRecord(self.sequence_info.seq[:len(self.sequence_info.seq)/2].reverse_complement(), self.sequence_info.id + "_SPLIT1_RC"))
-            targets.append(SWSeqRecord(self.sequence_info.seq[len(self.sequence_info.seq)/2:].reverse_complement(), self.sequence_info.id + "_SPLIT2_RC"))
+            targets.append(SWSeqRecord(self.sequence_info.seq[:len(self.sequence_info.seq)/2].reverse_complement(), self.sequence_info.id + "_a1_RC"))
+            targets.append(SWSeqRecord(self.sequence_info.seq[len(self.sequence_info.seq)/2:].reverse_complement(), self.sequence_info.id + "_a2_RC"))
         else:
+            snip = (self.seq_location[1]-self.seq_location[0])/2
+            if snip - self.seq_location[0] > 50:
+                records_seq.append(SWSeqRecord(self.sequence_info.seq[:snip], self.sequence_info.id + "_b1"))
+                targets.append(SWSeqRecord(self.sequence_info.seq[:snip].reverse_complement(), self.sequence_info.id + "_b1_RC"))
+            if self.seq_location[1] - snip > 50:
+                records_seq.append(SWSeqRecord(self.sequence_info.seq[snip:], self.sequence_info.id + "_b2"))
+                targets.append(SWSeqRecord(self.sequence_info.seq[snip:].reverse_complement(), self.sequence_info.id + "_b2_RC"))
+            
+            """
             if self.seq_location[0] > 50:
                 records_seq.append(SWSeqRecord(self.sequence_info.seq[:self.seq_location[0]], self.sequence_info.id + "_F"))
                 targets.append(SWSeqRecord(self.sequence_info.seq[:self.seq_location[0]].reverse_complement(), self.sequence_info.id + "_F_RC"))
@@ -389,7 +398,7 @@ class Hit(object):
             if self.seq_location[1] - self.seq_location[0] > 50:
                 records_seq.append(SWSeqRecord(self.sequence_info.seq[self.seq_location[0]:self.seq_location[1]], self.sequence_info.id + "_M"))
                 targets.append(SWSeqRecord(self.sequence_info.seq[self.seq_location[0]:self.seq_location[1]].reverse_complement(), self.sequence_info.id + "_M_RC"))
-                
+            """    
 
 
 
