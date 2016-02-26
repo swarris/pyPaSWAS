@@ -371,8 +371,8 @@ class Hit(object):
                 char = 'I'
         return char
     
-    def palindrome(self, records_seq, targets):
-        if self.query_coverage > 0.98:
+    def palindrome(self, records_seq, targets, settings):
+        if self.query_coverage > float(settings.query_coverage_slice):
             records_seq.append(SWSeqRecord(self.sequence_info.seq[:len(self.sequence_info.seq)/2], self.sequence_info.id + "_a1"))
             records_seq.append(SWSeqRecord(self.sequence_info.seq[len(self.sequence_info.seq)/2:], self.sequence_info.id + "_a2"))
 
@@ -380,10 +380,10 @@ class Hit(object):
             targets.append(SWSeqRecord(self.sequence_info.seq[len(self.sequence_info.seq)/2:].reverse_complement(), self.sequence_info.id + "_a2_RC"))
         else:
             snip = (self.seq_location[1]-self.seq_location[0])/2
-            if snip - self.seq_location[0] > 50:
+            if snip - self.seq_location[0] > int(settings.minimum_read_length):
                 records_seq.append(SWSeqRecord(self.sequence_info.seq[:snip], self.sequence_info.id + "_b1"))
                 targets.append(SWSeqRecord(self.sequence_info.seq[:snip].reverse_complement(), self.sequence_info.id + "_b1_RC"))
-            if self.seq_location[1] - snip > 50:
+            if self.seq_location[1] - snip > int(settings.minimum_read_length):
                 records_seq.append(SWSeqRecord(self.sequence_info.seq[snip:], self.sequence_info.id + "_b2"))
                 targets.append(SWSeqRecord(self.sequence_info.seq[snip:].reverse_complement(), self.sequence_info.id + "_b2_RC"))
             

@@ -181,10 +181,20 @@ def parse_cli(config_file):
     parser.add_option_group(mapper_options)
 
     plotter_options = optparse.OptionGroup(parser, 'Options related to the GenomePlotter. See mapper options')
-    mapper_options.add_option('--window_length', help='Precision of the plotter, given in the length of the window processed (in bases)', dest='window_length',
+    plotter_options.add_option('--window_length', help='Precision of the plotter, given in the length of the window processed (in bases)', dest='window_length',
                               default=config.get('Plotter', 'window_length'))
 
     parser.add_option_group(plotter_options)
+
+
+    palindrome_options = optparse.OptionGroup(parser, 'Options related to the Palindrome detector.')
+    palindrome_options.add_option('--query_coverage_slice', help='Minimum fraction of the read in the alignment needed to slice the read in half.', dest='query_coverage_slice',
+                              default=config.get('Palindrome', 'query_coverage_slice'))
+
+    palindrome_options.add_option('--minimum_read_length', help='Minimum length of the read in bp to the saved.', dest='minimum_read_length',
+                              default=config.get('Palindrome', 'minimum_read_length'))
+    parser.add_option_group(palindrome_options)
+
 
     device_options = optparse.OptionGroup(parser, 'Options that affect the usage and settings of the '
                                           'parallel devices')
