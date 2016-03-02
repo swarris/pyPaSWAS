@@ -112,6 +112,22 @@ def parse_cli(config_file):
 
     parser.add_option_group(general_options)
 
+
+    input_options = optparse.OptionGroup(parser, 'start & stop indices for processing files. Handy for cluster processing. Leave all to zero to process all.')
+    input_options.add_option('--start_query', help='start index in the query file (1)', dest='start_query', default=config.get("Input", "start_query"))
+    input_options.add_option('--end_query', help='end index in the query file (1)', dest='end_query', default=config.get("Input", "end_query"))
+
+    input_options.add_option('--start_target', help='start index in the target file (2)', dest='start_target', default=config.get("Input", "start_target"))
+    input_options.add_option('--end_target', help='end index in the target file (2)', dest='end_target', default=config.get("Input", "end_target"))
+    input_options.add_option('--sequence_step', help='Number of sequences read from file 2 before processing. Handy when processing NGS files.',
+                              dest='sequence_step', default=config.get('Input', 'sequence_step'))
+    input_options.add_option('--query_step', help='Number of sequences read from file 1 before processing. Handy when processing NGS files.',
+                              dest='query_step', default=config.get('Input', 'query_step'))
+
+    parser.add_option_group(input_options)
+
+
+
     aligner_options = optparse.OptionGroup(parser, 'Options that affect the alignment.\nAligners include aligner'
                                            ' and mapper')
     aligner_options.add_option('--customMatrix', help='the custom matrix that should be used', dest='custom_matrix')
@@ -221,12 +237,9 @@ def parse_cli(config_file):
                               dest='max_genome_length', default=config.get('Device', 'max_genome_length'))
     device_options.add_option('--recompile', help='Recompile CUDA code? Set to F(alse) when sequences are of similar length: much faster.',
                               dest='recompile', default=config.get('Device', 'recompile'))
-    device_options.add_option('--sequence_step', help='Number of sequences read from file 2 before processing. Handy when processing NGS files.',
-                              dest='sequence_step', default=config.get('Device', 'sequence_step'))
-    device_options.add_option('--query_step', help='Number of sequences read from file 1 before processing. Handy when processing NGS files.',
-                              dest='query_step', default=config.get('Device', 'query_step'))
     device_options.add_option('--short_sequences', help='Set to T(true) when aligning short sequences (trimming?) to maximize memory usage.',
                               dest='short_sequences', default=config.get('Device', 'short_sequences'))
+
     parser.add_option_group(device_options)
     
     

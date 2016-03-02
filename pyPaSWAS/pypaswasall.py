@@ -205,10 +205,14 @@ class Pypaswas(object):
         self.logger.info('Program set.')
         
         queriesToProcess = True
-        query_start = 0
-        query_end = int(self.settings.query_step)
-        start_index = 0
-        end_index = int(self.settings.sequence_step)
+        
+        query_start = int(self.settings.start_query)
+        query_end = int(self.settings.start_query) + int(self.settings.query_step) \
+            if int(self.settings.start_query) + int(self.settings.query_step) < int(self.settings.end_query) else int(self.settings.end_query)  
+        
+        start_index = int(self.settings.start_target)
+        end_index = int(self.settings.start_target) + int(self.settings.sequence_step) \
+            if int(self.settings.start_target) + int(self.settings.sequence_step) < int(self.settings.end_target) else int(self.settings.end_target)
         
         results = HitList(self.logger)
         
@@ -219,13 +223,12 @@ class Pypaswas(object):
                 self.logger.info('Query sequences OK.')
             except ReaderException:
                 queriesToProcess = False
-            query_start = query_start + int(self.settings.query_step)
-            query_end = query_end + int(self.settings.query_step)
 
             sequencesToProcess = True
             if not self.settings.program == "palindrome":
-                start_index = 0
-                end_index = int(self.settings.sequence_step)
+                start_index = int(self.settings.start_target)
+                end_index = int(self.settings.start_target) + int(self.settings.sequence_step) \
+                    if int(self.settings.start_target) + int(self.settings.sequence_step) < int(self.settings.end_target) else int(self.settings.end_target)
        
             while queriesToProcess and sequencesToProcess:
                 self.logger.info('Reading target sequences {}, {}...'.format(start_index,end_index))
@@ -251,8 +254,14 @@ class Pypaswas(object):
 
                 start_index = start_index + int(self.settings.sequence_step)
                 end_index = end_index + int(self.settings.sequence_step)
-                if  self.settings.program == "palindrome":
+                if  self.settings.program == "palindrome" or (int(self.settings.end_target) > 0 and int(self.settings.end_target) < end_index):
                     sequencesToProcess = False
+
+            if int(self.settings.end_query) > 0 and int(self.settings.end_query) < query_end:
+                queriesToProcess = False
+            query_start = query_start + int(self.settings.query_step)
+            query_end = query_end + int(self.settings.query_step)
+
 
         nhits = len(results.hits)
         # retrieve and print results!
