@@ -208,11 +208,11 @@ class Pypaswas(object):
         
         query_start = int(self.settings.start_query)
         query_end = int(self.settings.start_query) + int(self.settings.query_step) \
-            if int(self.settings.start_query) + int(self.settings.query_step) < int(self.settings.end_query) else int(self.settings.end_query)  
+            if int(self.settings.start_query) + int(self.settings.query_step) < int(self.settings.end_query) and int(self.settings.end_query) > 0 else int(self.settings.end_query)  
         
         start_index = int(self.settings.start_target)
         end_index = int(self.settings.start_target) + int(self.settings.sequence_step) \
-            if int(self.settings.start_target) + int(self.settings.sequence_step) < int(self.settings.end_target) else int(self.settings.end_target)
+            if int(self.settings.start_target) + int(self.settings.sequence_step) < int(self.settings.end_target) and int(self.settings.end_target) > 0 else int(self.settings.end_target)
         
         results = HitList(self.logger)
         
@@ -228,7 +228,7 @@ class Pypaswas(object):
             if not self.settings.program == "palindrome":
                 start_index = int(self.settings.start_target)
                 end_index = int(self.settings.start_target) + int(self.settings.sequence_step) \
-                    if int(self.settings.start_target) + int(self.settings.sequence_step) < int(self.settings.end_target) else int(self.settings.end_target)
+                    if int(self.settings.start_target) + int(self.settings.sequence_step) < int(self.settings.end_target) and int(self.settings.end_target) > 0 else int(self.settings.end_target)
        
             while queriesToProcess and sequencesToProcess:
                 self.logger.info('Reading target sequences {}, {}...'.format(start_index,end_index))
