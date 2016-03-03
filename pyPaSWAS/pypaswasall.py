@@ -212,6 +212,7 @@ class Pypaswas(object):
             query_end = int(self.settings.end_query)
         
         start_index = int(self.settings.start_target)
+
         end_index = int(self.settings.start_target) + int(self.settings.sequence_step) 
         if end_index > int(self.settings.end_target) and int(self.settings.start_target) != int(self.settings.end_target):
             end_index = int(self.settings.end_target)
