@@ -1,8 +1,8 @@
 pyPaSWAS
 ========
+[![DOI](https://zenodo.org/badge/21912/swarris/pyPaSWAS.svg)](https://zenodo.org/badge/latestdoi/21912/swarris/pyPaSWAS)
 
 Extented python version of PaSWAS. Original paper in PLOS ONE: http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0122524
-DOI of pyPaSWAS: [![DOI](https://zenodo.org/badge/21912/swarris/pyPaSWAS.svg)](https://zenodo.org/badge/latestdoi/21912/swarris/pyPaSWAS)
 
 For DNA/RNA/protein sequence alignment, read mapping, genome plotting and trimming.
 
