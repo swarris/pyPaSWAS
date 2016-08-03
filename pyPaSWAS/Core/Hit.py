@@ -179,6 +179,31 @@ class Hit(object):
         else:
             return self.target_info.distance
 
+    def get_graph_relation(self, prefix, targetID):
+        
+        relParameters = "seq_start:{},seq_end:{},".format(self.seq_location[0], self.seq_location[1])
+        relParameters += "target_start:{},target_end:{},".format(self.target_location[0], self.target_location[1])
+        relParameters += "score: {}, length: {}, ".format(self.score, len(self.alignment))
+        relParameters += "relative_score: {}, base_score: {}, ".format(self.relative_score, self.base_score)
+        relParameters += "query_identity: {}, query_coverage: {}, ".format(self.query_identity, self.query_coverage)
+        
+        if targetID == self.get_target_id():
+            relParameters += "direction:'forward'"
+        else:
+            relParameters += "direction:'reverse'"
+
+        relation = "AlignsWith"
+        
+        if self.target_location[0] - self.seq_location[0] >= 0 and self.target_location[1] + (self.sequence_info.original_length - self.seq_location[1]) <= self.target_info.original_length:
+            relation = "AlignsIn"
+        elif (self.target_location[0] - self.seq_location[0] >= 0 and self.target_location[1] + 1 == self.target_info.original_length) or (self.target_location[0] == 0 and self.target_location[1] + 1 + (self.sequence_info.original_length - self.seq_location[1]) <= self.target_info.original_length):
+            relation = "Extends"
+        elif (self.target_location[0] - self.seq_location[0] >= 0 and self.target_location[1] + (self.sequence_info.original_length - self.seq_location[1]) > self.target_info.original_length) or (self.target_location[0] - self.seq_location[0] < 0 and self.target_location[1] + (self.sequence_info.original_length - self.seq_location[1]) <= self.target_info.original_length) :
+            relation = "Overlaps"
+
+        return "match (a:Read),(b:Read) where a.name = '{}_{}' and b.name= '{}_{}' and (not a.name = b.name) and not (a)-[:{}]->(b) create (a)-[r:{} {{ {} }}]->(b)".format(
+                prefix, self.get_seq_id(), prefix, targetID, relation, relation,relParameters)
+
     def get_sam_line(self):
         '''Creates and returns an alignment line as described in http://samtools.sourceforge.net/SAM1.pdf
            The following mappings are used for record lines:

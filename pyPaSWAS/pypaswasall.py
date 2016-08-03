@@ -56,6 +56,9 @@ class Pypaswas(object):
         formatter = ''
         if self.output_format == 'SAM':
             formatter = SamFormatter(self.logger, results, self.outputfile)
+        elif self.output_format == 'GRAPH':
+            from pyPaSWAS.Core.GraphFormatter import GraphFormatter
+            formatter = GraphFormatter(self.logger, results, self.outputfile, self.settings.hostname, self.settings.username, self.settings.password)
         elif self.output_format == "trimmedFasta":
             formatter = TrimmerFormatter(self.logger, results, self.outputfile)
         elif self.output_format == "FASTA":
@@ -113,6 +116,8 @@ class Pypaswas(object):
                 reader.complement_records()
             elif self.score.score_type == 'PALINDROME':
                 reader.complement_records_only()
+            elif self.score.score_type == "IRYS":
+                reader.reverse_records()
             reader.sort_records()
             return reader.get_records()
 
@@ -153,6 +158,8 @@ class Pypaswas(object):
             self.output_format = 'plot'
         elif self.settings.out_format.upper() == 'FASTA':
             self.output_format = 'FASTA'
+        elif self.settings.out_format.upper() == "GRAPH":
+            self.output_format = 'GRAPH'
         else:
             raise InvalidOptionException('Invalid output format {0}.'.format(self.settings.out_format))
 

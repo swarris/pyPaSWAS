@@ -78,6 +78,14 @@ class Reader(object):
                                           identifier=(str(seqIO.id) + self.rc_string))
         self.records = [seqIO(record) for record in self.records]
 
+    def reverse_records(self):
+        '''Appends the reverse complements to the parsed records '''
+        #self.logger.debug('Creating complement sequences...')
+        seqIO = lambda seqIO: SWSeqRecord(Seq(str(seqIO.seq[::-1]), seqIO.seq.alphabet),
+                                          identifier=(str(seqIO.id) + self.rc_string))
+        self.records.extend([seqIO(record) for record in self.records])
+
+
 
 class BioPythonReader(Reader):
     '''This class parses input files'''

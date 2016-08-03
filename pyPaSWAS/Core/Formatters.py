@@ -1,6 +1,5 @@
 '''This module contains the output formatters for pyPaSWAS'''
 
-
 class DefaultFormatter(object):
     '''This is the default formatter for pyPasWas.
         All available formatters inherit from this formatter.
@@ -101,6 +100,8 @@ class SamFormatter(DefaultFormatter):
         output.close()
         self.logger.debug('finished printing results')
 
+
+
 class TrimmerFormatter(DefaultFormatter):
     '''This Formatter is used to create SAM output
         See http://samtools.sourceforge.net/SAM1.pdf
@@ -157,7 +158,7 @@ class FASTA(DefaultFormatter):
 
     def _set_name(self):
         '''Name of the formatter. Used for logging'''
-        self.name = 'SAM formatter'
+        self.name = 'FASTA formatter'
 
     def _format_hit(self, hit):
         '''Adds a header line to self.sq_lines and an alignment line to self.record_lines.

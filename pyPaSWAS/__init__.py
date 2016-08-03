@@ -212,6 +212,11 @@ def parse_cli(config_file):
     parser.add_option_group(palindrome_options)
 
 
+    graph_options = optparse.OptionGroup(parser, 'Options to connect to a neo4j graph database and store mappings in a graph')
+    graph_options.add_option('--hostname',help='Neo4j database host', default=config.get("GraphDatabase", "hostname"))
+    graph_options.add_option('--username',help='Neo4j user name', default=config.get("GraphDatabase", "username"))
+    graph_options.add_option('--password',help='Neo4j password', default=config.get("GraphDatabase", "password"))
+
     device_options = optparse.OptionGroup(parser, 'Options that affect the usage and settings of the '
                                           'parallel devices')
     device_options.add_option('--device', help='the device on which the computations will be performed. '

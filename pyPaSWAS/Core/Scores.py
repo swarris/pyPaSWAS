@@ -358,7 +358,7 @@ class IrysScore(Score):
                 if row == col:
                     self.matrix[row][col] = self.match_score
                 else:
-                    self.matrix[row][col] = str(float(self.mismatch_score) * abs(row-col))
+                    self.matrix[row][col] = str(float(self.mismatch_score) - abs(row-col))
         
 class PalindromeScore(DnaRnaScore):
     def __init__(self, logger, settings):
