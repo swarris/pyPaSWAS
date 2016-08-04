@@ -18,14 +18,17 @@ class GraphFormatter(DefaultFormatter):
         session.close()
     '''
 
-    def __init__(self, logger, hitlist, outputfile, hostname, username, password):
+    def __init__(self, logger, hitlist, outputfile, settings):
+        
         ''' The output file name will be used as prefix for contig names 
         '''
         DefaultFormatter.__init__(self, logger, hitlist, outputfile)
         self.outputfile = outputfile.split("/")[-1]
-        driver = GraphDatabase.driver("bolt://{}".format(hostname), auth=basic_auth(username, password))
+        driver = GraphDatabase.driver("bolt://{}".format(settings.hostname), auth=basic_auth(settings.username, settings.password))
         self.session = driver.session()
         self.insert = []
+        self.sequence_node=settings.sequence_node
+        self.target_node=settings.target_node
         
     def _set_name(self):
         '''Name of the formatter. Used for logging'''
@@ -35,22 +38,22 @@ class GraphFormatter(DefaultFormatter):
         self.logger.debug('Formatting hit {0}'.format(hit.get_seq_id()))
         
         # check if node is in database
-        node = self.session.run("match (r:Read {{name:'{}_{}'}}) return count(r) as c".format(self.outputfile, hit.get_seq_id()))
+        node = self.session.run("match (r:{} {{name:'{}_{}'}}) return count(r) as c".format(self.sequence_node, self.outputfile, hit.get_seq_id()))
         for n in node:
             if n["c"] == 0:
-                self.session.run("create (r:Read {{name:'{}_{}', length:{} }})".format(self.outputfile, hit.get_seq_id(), hit.sequence_info.original_length))
+                self.session.run("create (r:{} {{name:'{}_{}', length:{} }})".format(self.sequence_node, self.outputfile, hit.get_seq_id(), hit.sequence_info.original_length))
             
         if hit.get_target_id()[-2:] != 'RC':
             target_id = hit.get_target_id()
         else:
             target_id = hit.get_target_id()[:-3]
         
-        node = self.session.run("match (r:Read {{name:'{}_{}'}}) return count(r) as c".format(self.outputfile, target_id))
+        node = self.session.run("match (r:{} {{name:'{}_{}'}}) return count(r) as c".format(self.target_node, self.outputfile, target_id))
         for n in node:
             if n["c"] == 0:
-                self.session.run("create (r:Read {{name:'{}_{}', length:{} }})".format(self.outputfile, target_id, hit.target_info.original_length))
+                self.session.run("create (r:{} {{name:'{}_{}', length:{} }})".format(self.target_node, self.outputfile, target_id, hit.target_info.original_length))
         
-        self.insert.append(hit.get_graph_relation(self.outputfile, target_id))
+        self.insert.append(hit.get_graph_relation(self.outputfile, target_id, self.sequence_node, self.target_node))
 
     def print_results(self):
         '''sets, formats and prints the results to a file.'''

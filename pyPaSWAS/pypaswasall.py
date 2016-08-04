@@ -58,7 +58,7 @@ class Pypaswas(object):
             formatter = SamFormatter(self.logger, results, self.outputfile)
         elif self.output_format == 'GRAPH':
             from pyPaSWAS.Core.GraphFormatter import GraphFormatter
-            formatter = GraphFormatter(self.logger, results, self.outputfile, self.settings.hostname, self.settings.username, self.settings.password)
+            formatter = GraphFormatter(self.logger, results, self.outputfile, self.settings)
         elif self.output_format == "trimmedFasta":
             formatter = TrimmerFormatter(self.logger, results, self.outputfile)
         elif self.output_format == "FASTA":

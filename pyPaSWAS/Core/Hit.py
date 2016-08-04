@@ -179,7 +179,7 @@ class Hit(object):
         else:
             return self.target_info.distance
 
-    def get_graph_relation(self, prefix, targetID):
+    def get_graph_relation(self, prefix, targetID, sequence_node, target_node):
         
         relParameters = "seq_start:{},seq_end:{},".format(self.seq_location[0], self.seq_location[1])
         relParameters += "target_start:{},target_end:{},".format(self.target_location[0], self.target_location[1])
@@ -201,8 +201,8 @@ class Hit(object):
         elif (self.target_location[0] - self.seq_location[0] >= 0 and self.target_location[1] + (self.sequence_info.original_length - self.seq_location[1]) > self.target_info.original_length) or (self.target_location[0] - self.seq_location[0] < 0 and self.target_location[1] + (self.sequence_info.original_length - self.seq_location[1]) <= self.target_info.original_length) :
             relation = "Overlaps"
 
-        return "match (a:Read),(b:Read) where a.name = '{}_{}' and b.name= '{}_{}' and (not a.name = b.name) and not (a)-[:{}]->(b) create (a)-[r:{} {{ {} }}]->(b)".format(
-                prefix, self.get_seq_id(), prefix, targetID, relation, relation,relParameters)
+        return "match (a:{}),(b:{}) where a.name = '{}_{}' and b.name= '{}_{}' and (not a.name = b.name) and not (a)-[:{}]->(b) create (a)-[r:{} {{ {} }}]->(b)".format(
+                sequence_node, target_node, prefix, self.get_seq_id(), prefix, targetID, relation, relation,relParameters)
 
     def get_sam_line(self):
         '''Creates and returns an alignment line as described in http://samtools.sourceforge.net/SAM1.pdf
