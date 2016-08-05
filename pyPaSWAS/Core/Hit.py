@@ -196,10 +196,21 @@ class Hit(object):
         
         if self.target_location[0] - self.seq_location[0] >= 0 and self.target_location[1] + (self.sequence_info.original_length - self.seq_location[1]) <= self.target_info.original_length:
             relation = "AlignsIn"
+            relParameters += ",extends: 0"
         elif (self.target_location[0] - self.seq_location[0] >= 0 and self.target_location[1] + 1 == self.target_info.original_length) or (self.target_location[0] == 0 and self.target_location[1] + 1 + (self.sequence_info.original_length - self.seq_location[1]) <= self.target_info.original_length):
             relation = "Extends"
+            if self.target_location[1] + 1 == self.target_info.original_length:
+                relParameters += ",extends: {}".format(self.sequence_info.original_length-self.seq_location[1])
+            else:
+                relParameters += ",extends: {}".format(self.seq_location[0])
         elif (self.target_location[0] - self.seq_location[0] >= 0 and self.target_location[1] + (self.sequence_info.original_length - self.seq_location[1]) > self.target_info.original_length) or (self.target_location[0] - self.seq_location[0] < 0 and self.target_location[1] + (self.sequence_info.original_length - self.seq_location[1]) <= self.target_info.original_length) :
             relation = "Overlaps"
+            if self.target_location[1] + (self.sequence_info.original_length - self.seq_location[1]) > self.target_info.original_length:
+                relParameters += ",extends: {}".format(self.sequence_info.original_length-self.seq_location[1])
+            else:
+                relParameters += ",extends: {}".format(self.seq_location[0])
+        else:
+            relParameters += ",extends: 0"
 
         return "match (a:{}),(b:{}) where a.name = '{}_{}' and b.name= '{}_{}' and (not a.name = b.name) and not (a)-[:{}]->(b) create (a)-[r:{} {{ {} }}]->(b)".format(
                 sequence_node, target_node, prefix, self.get_seq_id(), prefix, targetID, relation, relation,relParameters)

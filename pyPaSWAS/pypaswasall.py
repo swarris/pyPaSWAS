@@ -240,8 +240,9 @@ class Pypaswas(object):
                 end_index = int(self.settings.start_target) + int(self.settings.sequence_step) 
                 if end_index > int(self.settings.end_target) and int(self.settings.start_target) != int(self.settings.end_target):
                     end_index = int(self.settings.end_target)
-       
+            
             while queriesToProcess and sequencesToProcess:
+                
                 self.logger.info('Reading target sequences {}, {}...'.format(start_index,end_index))
                 try:
                     target_sequences = self._get_target_sequences(self.arguments[1], start=start_index, end=end_index)
@@ -258,7 +259,7 @@ class Pypaswas(object):
                                                                             len(target_sequences)))
                     results.extend(self.program.process(query_sequences, target_sequences, self))
                 
-                if len(target_sequences) <= end_index:
+                if sequencesToProcess and len(target_sequences) <= end_index:
                     # for palindrome program, skip directly to next
                     sequencesToProcess = False
                     self.logger.info('Processing done')
