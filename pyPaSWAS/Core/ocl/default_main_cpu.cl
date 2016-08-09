@@ -17,7 +17,7 @@
 #define WORKGROUP_Y (SHARED_Y/WORKLOAD_Y)
 
 /** character used to fill the sequence if length < X */
-#define FILL_CHARACTER 'x'
+#define FILL_CHARACTER '\0'
 #define FILL_SCORE -1E10
 
 /** this value is used to allocate enough memory to store the starting points */

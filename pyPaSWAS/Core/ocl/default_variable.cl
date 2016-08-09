@@ -7,3 +7,5 @@
 
 /** start of the alphabet, so scoringsmatrix index can be calculated */
 #define characterOffset '${CHAR_OFFSET}'
+/** character used to fill the sequence if length < X */
+#define FILL_CHARACTER 'x'
