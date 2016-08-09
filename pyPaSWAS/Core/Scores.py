@@ -20,9 +20,9 @@ class Score(object):
         self.highest_score = 0
         self.minimum_score = 0
         self.code_string = ''
-
+        self.char_offset = '\1'
         self._set_score_type()
-        self.set_dimensions(26)
+        self.set_dimensions(255)
         self.set_gap_score(settings.gap_score)
         self.set_lower_limit_score(settings.lower_limit_score)
         self.set_lower_limit_max_score(settings.lower_limit_score)
@@ -109,6 +109,7 @@ class BasicScore(Score):
 
         self.match_score = settings.match_score
         self.mismatch_score = settings.mismatch_score
+
         self._create_matrix()
         self.logger.debug('Initializing BasicScore finished.')
 
@@ -143,6 +144,8 @@ class Blosum80Score(Score):
         #raise Exception("Blosum80 matrix not yet correctly implemented")
         Score.__init__(self, logger, settings)
         self.logger.debug('Initializing Blosum80Score...')
+        self.set_dimensions(26)
+        self.char_offset = 'A'
         self._create_matrix()
         self.logger.debug('Initializing Blosum80Score finished.')
 
@@ -193,6 +196,8 @@ class Blosum62Score(Score):
         #raise Exception("Blosum80 matrix not yet correctly implemented")
         Score.__init__(self, logger, settings)
         self.logger.debug('Initializing Blosum62Score...')
+        self.set_dimensions(26)
+        self.char_offset = 'A'
         self._create_matrix()
         self.logger.debug('Initializing Blosum62Score finished.')
 
@@ -254,6 +259,8 @@ class CustomScore(Score):
         matrix = settings.custom_matrix
         if matrix is None:
             raise InvalidOptionException('Required argument {0} is missing'.format('matrix'))
+        self.char_offset = 'A'
+        self.set_dimensions(26)
         self._create_matrix(matrix)
         self.logger.debug('Initializing CustomScore finished.')
 
@@ -292,6 +299,8 @@ class DnaRnaScore(Score):
         self.mismatch_score = settings.mismatch_score
         self.other_score = settings.other_score
         self.any_score = settings.any_score
+        self.char_offset = 'A'        
+        self.set_dimensions(26)
         self._create_matrix()
         self.logger.debug('Initializing DnaRnaScore finished.')
 
@@ -342,6 +351,8 @@ class IrysScore(Score):
         self.mismatch_score = settings.mismatch_score
         self.other_score = settings.other_score
         self.any_score = settings.any_score
+        self.char_offset = '!'
+        self.set_dimensions(ord('~') - ord(self.char_offset)+1)
         self._create_matrix()
         self.logger.debug('Initializing IrysScore finished.')
 
@@ -358,7 +369,7 @@ class IrysScore(Score):
                 if row == col:
                     self.matrix[row][col] = self.match_score
                 else:
-                    self.matrix[row][col] = str(float(self.mismatch_score) - abs(row-col))
+                    self.matrix[row][col] = str(float(self.mismatch_score) * abs(row-col))
         
 class PalindromeScore(DnaRnaScore):
     def __init__(self, logger, settings):

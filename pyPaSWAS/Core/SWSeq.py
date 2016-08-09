@@ -4,7 +4,7 @@ from Bio.Seq import Seq
 
 
 class SWSeq(Seq):
-    SPECIAL_CHAR = 'x'
+    SPECIAL_CHAR = '\0'
 
     def __init__(self, string, alphabet):
         super(SWSeq, self).__init__(string, alphabet)

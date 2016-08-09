@@ -14,10 +14,8 @@
 /** amount of blocks across the Y axis */
 #define YdivSHARED_Y (Y/SHARED_Y)
 
-/** start of the alphabet, so scoringsmatrix index can be calculated */
-#define characterOffset 'A'
 /** character used to fill the sequence if length < X */
-#define FILL_CHARACTER 'x'
+#define FILL_CHARACTER '\0'
 #define FILL_SCORE -1E10f
 
 /** this value is used to allocate enough memory to store the starting points */

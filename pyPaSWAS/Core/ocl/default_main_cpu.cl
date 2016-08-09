@@ -16,8 +16,6 @@
 #define WORKGROUP_X (SHARED_X/WORKLOAD_X)
 #define WORKGROUP_Y (SHARED_Y/WORKLOAD_Y)
 
-/** start of the alphabet, so scoringsmatrix index can be calculated */
-#define characterOffset 'A'
 /** character used to fill the sequence if length < X */
 #define FILL_CHARACTER 'x'
 #define FILL_SCORE -1E10

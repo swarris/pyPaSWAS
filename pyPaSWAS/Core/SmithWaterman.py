@@ -674,6 +674,7 @@ class SmithWaterman(object):
             
             # @TO-DO: this is bugfix for the read mapping algorithm. Should not happen, so fix this where it should be fixed
             if start_seq + sequence_starting_point >= len(sequences) or start_target + target_starting_point >= len(targets):
+                self.logger.debug("Starting points in hit incorrect. Skipping")
                 continue
  
             if hasattr(sequences[start_seq + sequence_starting_point], 'start_position'):
@@ -691,6 +692,7 @@ class SmithWaterman(object):
             # check in 'all to all' when 1 data set is used to filter out hit X vs X (filtered on identical id):
             if sequences[sequence_starting_point + start_seq].id == targets[target_starting_point + start_target].id:
                 direction = STOP_DIRECTION
+                self.logger.debug("Found same ID sequence -> target. Skipping")
                 show = False
 
             #self.logger.debug('Score is: {0} vs {1}.'.format(starting_point.score, self.settings.minimum_score))
