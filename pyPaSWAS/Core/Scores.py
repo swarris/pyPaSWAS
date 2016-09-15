@@ -351,7 +351,7 @@ class IrysScore(Score):
         self.mismatch_score = settings.mismatch_score
         self.other_score = settings.other_score
         self.any_score = settings.any_score
-        self.char_offset = '!'
+        self.char_offset = 'A'
         self.set_dimensions(ord('~') - ord(self.char_offset)+1)
         self._create_matrix()
         self.logger.debug('Initializing IrysScore finished.')
