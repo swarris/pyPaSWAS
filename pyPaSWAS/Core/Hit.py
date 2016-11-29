@@ -6,6 +6,7 @@ original version by Sven Warris
 
 from pyPaSWAS.Core.Exceptions import CudaException
 from Bio.Seq import Seq
+from pyPaSWAS.Core.SWSeqRecord import SWSeqRecord
 
 class Hit(object):
     '''This class models an alignment between a sequence and a target.
@@ -178,6 +179,46 @@ class Hit(object):
         else:
             return self.target_info.distance
 
+    def get_graph_relation(self, prefix, targetID, sequence_node, target_node):
+        
+        relParameters = "seq_start:{},seq_end:{},".format(self.seq_location[0], self.seq_location[1])
+        relParameters += "target_start:{},target_end:{},".format(self.target_location[0], self.target_location[1])
+        relParameters += "score: {}, length: {}, ".format(self.score, len(self.alignment))
+        relParameters += "relative_score: {}, base_score: {}, ".format(self.relative_score, self.base_score)
+        relParameters += "query_identity: {}, query_coverage: {}, ".format(self.query_identity, self.query_coverage)
+        
+        if targetID == self.get_target_id():
+            relParameters += "direction:'forward'"
+        else:
+            relParameters += "direction:'reverse'"
+
+        relation = "AlignsWith"
+        
+        if self.target_location[0] - self.seq_location[0] >= 0 and self.target_location[1] + (self.sequence_info.original_length - self.seq_location[1]) <= self.target_info.original_length:
+            relation = "AlignsIn"
+            relParameters += ",extends: 0"
+        elif (self.target_location[0] - self.seq_location[0] >= 0 and self.target_location[1] + 1 == self.target_info.original_length) or (self.target_location[0] == 0 and self.target_location[1] + 1 + (self.sequence_info.original_length - self.seq_location[1]) <= self.target_info.original_length):
+            relation = "Extends"
+            if self.target_location[1] + 1 == self.target_info.original_length:
+                relation += "End"
+                relParameters += ",extends: {}".format(self.sequence_info.original_length-self.seq_location[1])
+            else:
+                relation += "Start"
+                relParameters += ",extends: {}".format(self.seq_location[0])
+        elif (self.target_location[0] - self.seq_location[0] >= 0 and self.target_location[1] + (self.sequence_info.original_length - self.seq_location[1]) > self.target_info.original_length) or (self.target_location[0] - self.seq_location[0] < 0 and self.target_location[1] + (self.sequence_info.original_length - self.seq_location[1]) <= self.target_info.original_length) :
+            relation = "Overlaps"
+            if self.target_location[1] + (self.sequence_info.original_length - self.seq_location[1]) > self.target_info.original_length:
+                relParameters += ",extends: {}".format(self.sequence_info.original_length-self.seq_location[1])
+                relation += "End"
+            else:
+                relation += "Start"
+                relParameters += ",extends: {}".format(self.seq_location[0])
+        else:
+            relParameters += ",extends: 0"
+
+        return "match (a:{}),(b:{}) where a.name = '{}_{}' and b.name= '{}_{}' and (not a.name = b.name) and not (a)-[:{}]->(b) create (a)-[r:{} {{ {} }}]->(b)".format(
+                sequence_node, target_node, prefix, self.get_seq_id(), prefix, targetID, relation, relation,relParameters)
+
     def get_sam_line(self):
         '''Creates and returns an alignment line as described in http://samtools.sourceforge.net/SAM1.pdf
            The following mappings are used for record lines:
@@ -244,6 +285,25 @@ class Hit(object):
             raise CudaException('sequence_match, target_match and alignment should be set and have lengths > 0.')
         return ''.join(['>', target_id, ' ', self.sequence_info.id, "\n", 
                           str(self.sequence_info.seq[:self.target_location[0]] + self.sequence_info.seq[self.target_location[1]+1:])])
+
+
+    def get_fasta(self):
+        identifier = self.get_seq_id()
+        if identifier[-2:] == 'RC':
+            identifier = identifier[:-3]
+
+        target_id = self.get_target_id()
+        if target_id[-2:] == 'RC':
+            target_id = target_id[:-3]
+
+        if len(self.sequence_match) == 0 or len(self.target_match) == 0 or len(self.alignment) == 0:
+            raise CudaException('sequence_match, target_match and alignment should be set and have lengths > 0.')
+        return ''.join(['>', target_id, ' ', self.sequence_info.id, "\n", 
+                          str(self.sequence_info.seq[:self.target_location[0]] + self.sequence_info.seq[self.target_location[1]+1:])])
+
+    def get_full_fasta(self):
+        identifier = self.get_seq_id()
+        return '>{}\n{}'.format(identifier, str(self.sequence_info.seq))
 
 
 
@@ -350,6 +410,37 @@ class Hit(object):
             else:
                 char = 'I'
         return char
+    
+    def palindrome(self, records_seq, targets, settings):
+        if self.query_coverage > float(settings.query_coverage_slice):
+            records_seq.append(SWSeqRecord(self.sequence_info.seq[:len(self.sequence_info.seq)/2], self.sequence_info.id + "_a1"))
+            records_seq.append(SWSeqRecord(self.sequence_info.seq[len(self.sequence_info.seq)/2:], self.sequence_info.id + "_a2"))
+
+            targets.append(SWSeqRecord(self.sequence_info.seq[:len(self.sequence_info.seq)/2].reverse_complement(), self.sequence_info.id + "_a1_RC"))
+            targets.append(SWSeqRecord(self.sequence_info.seq[len(self.sequence_info.seq)/2:].reverse_complement(), self.sequence_info.id + "_a2_RC"))
+        else:
+            snip = (self.seq_location[1]-self.seq_location[0])/2
+            if snip - self.seq_location[0] > int(settings.minimum_read_length):
+                records_seq.append(SWSeqRecord(self.sequence_info.seq[:snip], self.sequence_info.id + "_b1"))
+                targets.append(SWSeqRecord(self.sequence_info.seq[:snip].reverse_complement(), self.sequence_info.id + "_b1_RC"))
+            if self.seq_location[1] - snip > int(settings.minimum_read_length):
+                records_seq.append(SWSeqRecord(self.sequence_info.seq[snip:], self.sequence_info.id + "_b2"))
+                targets.append(SWSeqRecord(self.sequence_info.seq[snip:].reverse_complement(), self.sequence_info.id + "_b2_RC"))
+            
+            """
+            if self.seq_location[0] > 50:
+                records_seq.append(SWSeqRecord(self.sequence_info.seq[:self.seq_location[0]], self.sequence_info.id + "_F"))
+                targets.append(SWSeqRecord(self.sequence_info.seq[:self.seq_location[0]].reverse_complement(), self.sequence_info.id + "_F_RC"))
+            if len(self.sequence_info.seq) - self.seq_location[1] > 50:
+                records_seq.append(SWSeqRecord(self.sequence_info.seq[self.seq_location[1]:], self.sequence_info.id + "_L"))
+                targets.append(SWSeqRecord(self.sequence_info.seq[self.seq_location[1]:].reverse_complement(), self.sequence_info.id + "_L_RC"))
+
+            if self.seq_location[1] - self.seq_location[0] > 50:
+                records_seq.append(SWSeqRecord(self.sequence_info.seq[self.seq_location[0]:self.seq_location[1]], self.sequence_info.id + "_M"))
+                targets.append(SWSeqRecord(self.sequence_info.seq[self.seq_location[0]:self.seq_location[1]].reverse_complement(), self.sequence_info.id + "_M_RC"))
+            """    
+
+
 
 class Distance(Hit):
     def __init__(self, logger, sequence_info, target_info, sequence_location, target_location):

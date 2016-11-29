@@ -1,9 +1,11 @@
 ''' This module contains the programs from the pyPaSWAS suite '''
 from pyPaSWAS.Core.HitList import HitList
-from operator import itemgetter
+from operator import itemgetter,attrgetter
+
 from SWSeqRecord import SWSeqRecord
 from Bio.Seq import Seq
 from Hit import Distance
+from Hit import Hit
 
 class Aligner(object):
     '''
@@ -349,5 +351,46 @@ class GenomePlotter(Aligner):
         self.logger.debug('Genome plotter finished.')
         return self.hitlist
         
-        
+class Palindrome(Aligner):
+    
+    def __init__(self, logger, score, settings):
+        Aligner.__init__(self, logger, score, settings)
+
+    def process(self, records_seqs, targets, pypaswas):
+        '''This methods sends the target- and query sequences to the SmithWaterman instance
+        and receives the resulting hitlist.
+        '''
+        # Fix this target
+        self.logger.debug('Fixing palindrome sequences...')
+
+        cur_records_seq = records_seqs
+        cur_targets = targets
+        target_index = 0
+        # handle it as a queue:    
+        while len(cur_targets) >0 :
+            self.smith_waterman.set_targets(cur_targets[:1], target_index)
+            results = self.smith_waterman.align_sequences(cur_records_seq[:1], cur_targets, target_index)
+            if len(results.real_hits) == 0 : # nothing more to do
+                results = HitList(self.logger)
+                hit = Hit(self.logger, cur_records_seq[0],
+                          cur_targets[0],
+                          (0, 1), (0, 1))
+                results.append(hit)
+                self.hitlist.extend(results)
+            else:
+                # process hit to get new targets
+                # get hits and sort on highest score
+                hit = sorted(results.real_hits.values(),key=attrgetter('score'), reverse=True)[0]
+                # process this best hit
+                hit.palindrome(cur_records_seq, cur_targets,self.settings)
+            # remove processed sequences: 
+            cur_targets = cur_targets[1:]
+            cur_records_seq = cur_records_seq[1:]
+                
+                 
+                
+            
+        self.logger.debug('Fixing done.')
+        return self.hitlist
+
         

@@ -7,11 +7,11 @@ as used by NCBI blastall version 2.2.21.
 
 from pyPaSWAS import parse_cli, set_logger, normalize_file_path
 from pyPaSWAS.Core import resource_filename
-from pyPaSWAS.Core.Exceptions import InvalidOptionException
-from pyPaSWAS.Core.Formatters import DefaultFormatter, SamFormatter,TrimmerFormatter, PlotterFormatter
-from pyPaSWAS.Core.Programs import Aligner,Trimmer, ComBaRMapper,  ComBaRIndexer, GenomePlotter
+from pyPaSWAS.Core.Exceptions import InvalidOptionException, ReaderException
+from pyPaSWAS.Core.Formatters import DefaultFormatter, SamFormatter,TrimmerFormatter, PlotterFormatter, FASTA
+from pyPaSWAS.Core.Programs import Aligner,Trimmer, ComBaRMapper,  ComBaRIndexer, GenomePlotter, Palindrome
 from pyPaSWAS.Core.Readers import BioPythonReader
-from pyPaSWAS.Core.Scores import BasicScore, CustomScore, DnaRnaScore, Blosum62Score, Blosum80Score, IrysScore
+from pyPaSWAS.Core.Scores import BasicScore, CustomScore, DnaRnaScore, Blosum62Score, Blosum80Score, IrysScore, PalindromeScore
 from pyPaSWAS.Core.HitList import HitList
 import logging
 import os.path
@@ -56,8 +56,13 @@ class Pypaswas(object):
         formatter = ''
         if self.output_format == 'SAM':
             formatter = SamFormatter(self.logger, results, self.outputfile)
+        elif self.output_format == 'GRAPH':
+            from pyPaSWAS.Core.GraphFormatter import GraphFormatter
+            formatter = GraphFormatter(self.logger, results, self.outputfile, self.settings)
         elif self.output_format == "trimmedFasta":
             formatter = TrimmerFormatter(self.logger, results, self.outputfile)
+        elif self.output_format == "FASTA":
+            formatter = FASTA(self.logger, results, self.outputfile)
         elif self.output_format == "plot":
             formatter = PlotterFormatter(self.logger, results, self.outputfile)
         else:
@@ -106,8 +111,13 @@ class Pypaswas(object):
         else:
             reader = BioPythonReader(self.logger, databasefile, self.settings.filetype2, self.settings.limit_length)
             reader.read_records(start, end)
+
             if self.score.score_type == 'DNA_RNA':
                 reader.complement_records()
+            elif self.score.score_type == 'PALINDROME':
+                reader.complement_records_only()
+            elif self.score.score_type == "IRYS":
+                reader.reverse_records()
             reader.sort_records()
             return reader.get_records()
 
@@ -118,6 +128,8 @@ class Pypaswas(object):
         score = None
         if matrix_name == 'DNA-RNA':
             score = DnaRnaScore(self.logger, self.settings)
+        elif matrix_name == 'PALINDROME':
+            score = PalindromeScore(self.logger, self.settings)
         elif matrix_name == 'BASIC':
             score = BasicScore(self.logger, self.settings)
         elif matrix_name == 'BLOSUM62':
@@ -144,6 +156,10 @@ class Pypaswas(object):
             self.output_format = 'trimmedFasta'
         elif self.settings.out_format.upper() == 'PLOT':
             self.output_format = 'plot'
+        elif self.settings.out_format.upper() == 'FASTA':
+            self.output_format = 'FASTA'
+        elif self.settings.out_format.upper() == "GRAPH":
+            self.output_format = 'GRAPH'
         else:
             raise InvalidOptionException('Invalid output format {0}.'.format(self.settings.out_format))
 
@@ -167,6 +183,17 @@ class Pypaswas(object):
             self.program = GenomePlotter(self.logger, self.score, self.settings, self.arguments)
             self.logger.warning("Removing limits on length of sequences for genome plotter!")
             self.settings.limit_length = 10**20
+        elif self.settings.program == "palindrome":
+            self.program = Palindrome(self.logger, self.score, self.settings)
+            self.logger.warning("Forcing output to FASTA")
+            self.output_format = "FASTA"
+            self.logger.warning("Forcing query step to 1")
+            self.settings.query_step = "1"
+            self.logger.warning("Forcing sequence step to 1")
+            self.settings.sequence_step = "1"
+            self.logger.warning("Forcing Matrix to PALINDROME")
+            self.settings.matrix_name = "PALINDROME"
+            self.score = PalindromeScore(self.logger, self.settings)
         else:
             raise InvalidOptionException('Invalid program selected {0}'.format(self.settings.program))
 
@@ -177,38 +204,54 @@ class Pypaswas(object):
         self.logger = set_logger(self.settings)
         self.logger.info("Initializing application...")
         self._set_outfile()
-        self._set_output_format()
         self._set_scoring_matrix()
         self.logger.info('Application initialized.')
         self.logger.info('Setting program...')
+        self._set_output_format()
         self._set_program()
         self.logger.info('Program set.')
         
         queriesToProcess = True
-        query_start = 0
-        query_end = int(self.settings.query_step)
+        
+        query_start = int(self.settings.start_query)
+        query_end = int(self.settings.start_query) + int(self.settings.query_step)
+        if query_end > int(self.settings.end_query) and int(self.settings.start_query) != int(self.settings.end_query):
+            query_end = int(self.settings.end_query)
+        
+        start_index = int(self.settings.start_target)
+
+        end_index = int(self.settings.start_target) + int(self.settings.sequence_step) 
+        if end_index > int(self.settings.end_target) and int(self.settings.start_target) != int(self.settings.end_target):
+            end_index = int(self.settings.end_target)
         
         results = HitList(self.logger)
         
         while queriesToProcess:
-            self.logger.info('Reading query sequences...')
-            query_sequences = self._get_query_sequences(self.arguments[0], start=query_start, end=query_end)
-            self.logger.info('Query sequences OK.')
-            query_start = query_start + int(self.settings.query_step)
-            query_end = query_end + int(self.settings.query_step)
+            self.logger.info('Reading query sequences {} {}...'.format(query_start, query_end))
+            try:
+                query_sequences = self._get_query_sequences(self.arguments[0], start=query_start, end=query_end)
+                self.logger.info('Query sequences OK.')
+            except ReaderException:
+                queriesToProcess = False
 
-            if len(query_sequences) == 0:
-                break
             sequencesToProcess = True
-            start_index = 0
-            end_index = int(self.settings.sequence_step)
-       
-            while sequencesToProcess:
-                self.logger.info('Reading target sequences...')
-                target_sequences = self._get_target_sequences(self.arguments[1], start=start_index, end=end_index)
-                self.logger.info('Target sequences OK.')
+            if not self.settings.program == "palindrome":
+                start_index = int(self.settings.start_target)
+                end_index = int(self.settings.start_target) + int(self.settings.sequence_step) 
+                if end_index > int(self.settings.end_target) and int(self.settings.start_target) != int(self.settings.end_target):
+                    end_index = int(self.settings.end_target)
+            
+            while queriesToProcess and sequencesToProcess:
+                
+                self.logger.info('Reading target sequences {}, {}...'.format(start_index,end_index))
+                try:
+                    target_sequences = self._get_target_sequences(self.arguments[1], start=start_index, end=end_index)
+                    self.logger.info('Target sequences OK.')
+                except ReaderException:
+                    sequencesToProcess = False
+                    
     
-                if len(target_sequences) == 0:
+                if not sequencesToProcess or not queriesToProcess or len(query_sequences) == 0 or len(target_sequences) == 0:
                     sequencesToProcess = False
                     self.logger.info('Processing done')
                 else:
@@ -216,12 +259,20 @@ class Pypaswas(object):
                                                                             len(target_sequences)))
                     results.extend(self.program.process(query_sequences, target_sequences, self))
                 
-                if len(target_sequences) <= end_index:
+                if sequencesToProcess and len(target_sequences) <= end_index:
+                    # for palindrome program, skip directly to next
                     sequencesToProcess = False
                     self.logger.info('Processing done')
 
                 start_index = start_index + int(self.settings.sequence_step)
                 end_index = end_index + int(self.settings.sequence_step)
+                if  self.settings.program == "palindrome" or (int(self.settings.end_target) > 0 and int(self.settings.end_target) < end_index):
+                    sequencesToProcess = False
+
+            if int(self.settings.end_query) > 0 and int(self.settings.end_query) < query_end:
+                queriesToProcess = False
+            query_start = query_start + int(self.settings.query_step)
+            query_end = query_end + int(self.settings.query_step)
 
 
         nhits = len(results.hits)

@@ -57,9 +57,10 @@ class Code(object):
                                                        MAX_SCORE=score.lower_limit_max_score,
                                                        GAP_SCORE=score.gap_score,
                                                        HIGHEST_SCORE=score.highest_score,
-                                                       MATRIX=score.__str__())
+                                                       MATRIX=score.__str__(),
+                                                       DIMENSION=score.dimensions)
 
-    def set_variable_code(self, number_sequences, number_targets, x_val, y_val):
+    def set_variable_code(self, number_sequences, number_targets, x_val, y_val, char_offset):
         '''Sets the variable part of the code'''
         #self.logger.debug('Setting the variable part of the cuda code\n\t(using: n_seq: {}, n_targets: {}, '
         #                  'x_val: {}, y_val: {})'.format(number_sequences, number_targets, x_val, y_val))
@@ -67,13 +68,14 @@ class Code(object):
         self.variable_part = variable_t.safe_substitute(N_SEQUENCES=number_sequences,
                                                         N_TARGETS=number_targets,
                                                         X=x_val,
-                                                        Y=y_val)
+                                                        Y=y_val,
+                                                        CHAR_OFFSET=char_offset)
 
     def get_code(self, score, number_sequences, number_targets, x_sequence_length, y_sequence_length):
         '''Retrieves the source for the cuda program'''
         #self.logger.debug('Formatting the cuda source code...')
         self.set_score_code(score)
-        self.set_variable_code(number_sequences, number_targets, x_sequence_length, y_sequence_length)
+        self.set_variable_code(number_sequences, number_targets, x_sequence_length, y_sequence_length, score.char_offset)
         #self.logger.debug('Formatting the cuda source code OK.')
         return self.variable_part + self.directions + self.score_part + self.shared_xy_code
 

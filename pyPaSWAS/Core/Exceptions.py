@@ -18,3 +18,8 @@ class CudaException(Exception):
     '''
     This class is used to warn the user that an exception in the cuda code has occurred.
     '''
+
+class ReaderException(Exception):
+    ''' 
+    This class is used to indicate no sequences left in file.
+    '''

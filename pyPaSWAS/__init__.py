@@ -98,7 +98,7 @@ def parse_cli(config_file):
                                'generated output.\nAvailable options are TXT and SAM.\nDefaults to txt',
                                dest='out_format', default=config.get('General', 'out_format'))
     general_options.add_option('-p', '--program', help='The program to be executed. Valid options are "aligner"'
-                               ', "trimmer" and "mapper" (experimental)', dest='program',
+                               ', "trimmer", "mapper", "plotter" and palindrome (experimental)', dest='program',
                                default=config.get('General', 'program'))
 
     general_options.add_option('-1', '--filetype1', help='File type of the first file. See bioPython IO for'
@@ -112,13 +112,29 @@ def parse_cli(config_file):
 
     parser.add_option_group(general_options)
 
+
+    input_options = optparse.OptionGroup(parser, 'start & stop indices for processing files. Handy for cluster processing. Leave all to zero to process all.')
+    input_options.add_option('--start_query', help='start index in the query file (1)', dest='start_query', default=config.get("Input", "start_query"))
+    input_options.add_option('--end_query', help='end index in the query file (1)', dest='end_query', default=config.get("Input", "end_query"))
+
+    input_options.add_option('--start_target', help='start index in the target file (2)', dest='start_target', default=config.get("Input", "start_target"))
+    input_options.add_option('--end_target', help='end index in the target file (2)', dest='end_target', default=config.get("Input", "end_target"))
+    input_options.add_option('--sequence_step', help='Number of sequences read from file 2 before processing. Handy when processing NGS files.',
+                              dest='sequence_step', default=config.get('Input', 'sequence_step'))
+    input_options.add_option('--query_step', help='Number of sequences read from file 1 before processing. Handy when processing NGS files.',
+                              dest='query_step', default=config.get('Input', 'query_step'))
+
+    parser.add_option_group(input_options)
+
+
+
     aligner_options = optparse.OptionGroup(parser, 'Options that affect the alignment.\nAligners include aligner'
                                            ' and mapper')
     aligner_options.add_option('--customMatrix', help='the custom matrix that should be used', dest='custom_matrix')
     aligner_options.add_option('-G', help='Float. Penalty for a gap', dest='gap_score',
                                default=config.get('Aligner', 'gap_score'))
     aligner_options.add_option('-M', '--matrixname', help='The scoring to be used. Valid options are '
-                               '"DNA-RNA", "BASIC", "Blosum62", "Blosum80" and "CUSTOM"', dest='matrix_name',
+                               '"DNA-RNA", "PALINDROME", "BASIC", "Blosum62", "Blosum80" and "CUSTOM"', dest='matrix_name',
                                default=config.get('Aligner', 'matrix_name'))
     aligner_options.add_option('-q', '--mismatch_score', help='Float. Penalty for mismatch', dest='mismatch_score',
                                default=config.get('Aligner', 'mismatch_score'))
@@ -181,11 +197,30 @@ def parse_cli(config_file):
     parser.add_option_group(mapper_options)
 
     plotter_options = optparse.OptionGroup(parser, 'Options related to the GenomePlotter. See mapper options')
-    mapper_options.add_option('--window_length', help='Precision of the plotter, given in the length of the window processed (in bases)', dest='window_length',
+    plotter_options.add_option('--window_length', help='Precision of the plotter, given in the length of the window processed (in bases)', dest='window_length',
                               default=config.get('Plotter', 'window_length'))
 
     parser.add_option_group(plotter_options)
 
+
+    palindrome_options = optparse.OptionGroup(parser, 'Options related to the Palindrome detector.')
+    palindrome_options.add_option('--query_coverage_slice', help='Minimum fraction of the read in the alignment needed to slice the read in half.', dest='query_coverage_slice',
+                              default=config.get('Palindrome', 'query_coverage_slice'))
+
+    palindrome_options.add_option('--minimum_read_length', help='Minimum length of the read in bp to the saved.', dest='minimum_read_length',
+                              default=config.get('Palindrome', 'minimum_read_length'))
+    parser.add_option_group(palindrome_options)
+
+
+    graph_options = optparse.OptionGroup(parser, 'Options to connect to a neo4j graph database and store mappings in a graph')
+    graph_options.add_option('--hostname',help='Neo4j database host', default=config.get("GraphDatabase", "hostname"), dest="hostname")
+    graph_options.add_option('--username',help='Neo4j user name', default=config.get("GraphDatabase", "username"), dest="username")
+    graph_options.add_option('--password',help='Neo4j password', default=config.get("GraphDatabase", "password"), dest="password")
+    graph_options.add_option('--target_node',help='Target node name', default=config.get("GraphDatabase", "target_node"), dest="target_node")
+    graph_options.add_option('--sequence_node',help='Sequence node name', default=config.get("GraphDatabase", "sequence_node"), dest="sequence_node")
+
+    parser.add_option_group(graph_options)
+    
     device_options = optparse.OptionGroup(parser, 'Options that affect the usage and settings of the '
                                           'parallel devices')
     device_options.add_option('--device', help='the device on which the computations will be performed. '
@@ -211,12 +246,9 @@ def parse_cli(config_file):
                               dest='max_genome_length', default=config.get('Device', 'max_genome_length'))
     device_options.add_option('--recompile', help='Recompile CUDA code? Set to F(alse) when sequences are of similar length: much faster.',
                               dest='recompile', default=config.get('Device', 'recompile'))
-    device_options.add_option('--sequence_step', help='Number of sequences read from file 2 before processing. Handy when processing NGS files.',
-                              dest='sequence_step', default=config.get('Device', 'sequence_step'))
-    device_options.add_option('--query_step', help='Number of sequences read from file 1 before processing. Handy when processing NGS files.',
-                              dest='query_step', default=config.get('Device', 'query_step'))
     device_options.add_option('--short_sequences', help='Set to T(true) when aligning short sequences (trimming?) to maximize memory usage.',
                               dest='short_sequences', default=config.get('Device', 'short_sequences'))
+
     parser.add_option_group(device_options)
     
     

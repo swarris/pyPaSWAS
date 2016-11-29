@@ -19,4 +19,4 @@
 #define gapScore ${GAP_SCORE}f
 #define HIGHEST_SCORE ${HIGHEST_SCORE}f
 
-__constant__ float scoringsMatrix[26][26] = ${MATRIX};
+__constant__ float scoringsMatrix[${DIMENSION}][${DIMENSION}] = ${MATRIX};
