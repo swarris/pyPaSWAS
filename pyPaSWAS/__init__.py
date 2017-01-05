@@ -181,27 +181,6 @@ def parse_cli(config_file):
                               dest='base_score', default=config.get('Filter', 'base_score'))
     parser.add_option_group(filter_options)
 
-    mapper_options = optparse.OptionGroup(parser, 'Options related to Composition based read mapper.')
-    mapper_options.add_option('--maximum_distance', help='Maximum distance in composition for a position to be considered a seed', dest='maximum_distance',
-                              default=config.get('Mapper', 'maximum_distance'))
-    mapper_options.add_option('--qgram', help='QGram number, should be >= 1', dest='qgram',
-                              default=config.get('Mapper', 'qgram'))
-
-    mapper_options.add_option('--compressed_index', help='Used compressed index. Compressing an index saves disk space, but creates a memory leak. Obsolete for CUDA/OpenCL', dest='compressed_index',
-                              default=config.get('Mapper', 'compressed_index'))
-    mapper_options.add_option('--reads_to_process', help='Number of reads of same length to process at once on parallel device. Keep low when the device times out.', dest='reads_to_process',
-                              default=config.get('Mapper', 'reads_to_process'))
-    mapper_options.add_option('--fraction_of_seeds', help='Seeding can give many possible locations, for example with reads from repeat regions. This option controls the maximum number of seeds to be processed after sorting them on distance.', dest='fraction_of_seeds',
-                              default=config.get('Mapper', 'fraction_of_seeds'))
-    
-    parser.add_option_group(mapper_options)
-
-    plotter_options = optparse.OptionGroup(parser, 'Options related to the GenomePlotter. See mapper options')
-    plotter_options.add_option('--window_length', help='Precision of the plotter, given in the length of the window processed (in bases)', dest='window_length',
-                              default=config.get('Plotter', 'window_length'))
-
-    parser.add_option_group(plotter_options)
-
 
     palindrome_options = optparse.OptionGroup(parser, 'Options related to the Palindrome detector.')
     palindrome_options.add_option('--query_coverage_slice', help='Minimum fraction of the read in the alignment needed to slice the read in half.', dest='query_coverage_slice',

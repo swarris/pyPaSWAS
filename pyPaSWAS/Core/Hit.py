@@ -266,7 +266,6 @@ class Hit(object):
         return '\t'.join([identifier, self._get_sam_flag(), target_id,
                           hit_pos, Hit._get_sam_mapq(), self._get_sam_cigar(),
                           '*', str(0), str(0), str(sam_sequence), '*', self._get_sam_alignment_score(),
-                          self._get_sam_euclidian_distance(),
                           self._get_sam_relative_score(),
                           self._get_sam_relative_base_score(),
                           self._get_sam_query_coverage(),
@@ -368,11 +367,6 @@ class Hit(object):
             cigar_parts.append(str(number_of_remaining_bases) + 'S')
         return ''.join(cigar_parts)
 
-    def _get_sam_euclidian_distance(self):
-        '''returns the computed distance as an optional sam field
-        '''
-        return "AD:f:" + str(self.get_euclidian_distance())
-
     def _get_sam_relative_score(self):
         '''returns the computed relative score as an optional sam field
         '''
@@ -440,15 +434,4 @@ class Hit(object):
                 targets.append(SWSeqRecord(self.sequence_info.seq[self.seq_location[0]:self.seq_location[1]].reverse_complement(), self.sequence_info.id + "_M_RC"))
             """    
 
-
-
-class Distance(Hit):
-    def __init__(self, logger, sequence_info, target_info, sequence_location, target_location):
-       Hit.__init__(self, logger, sequence_info, target_info, sequence_location, target_location)
-
-    @staticmethod
-    def _is_a_valid_location(location, sequence_length):
-        ''' Verifies wether or not a location is valid.
-        '''
-        return isinstance(location, tuple) and len(location) == 2 and location[0] <= location[1] 
 
