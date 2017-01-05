@@ -26,7 +26,7 @@ class Pypaswas(object):
     An effort is made to comply as much as possible with the options and arguments
     as used by NCBI blastall version 2.2.21.
     '''
-    def __init__(self):
+    def __init__(self, config=None):
         self.outputfile = None
         self.score = None
         self.output_format = None
@@ -34,7 +34,8 @@ class Pypaswas(object):
         self.logger = None
         self.program = None
         # Default settings are stored in:
-        self.config_file = resource_filename(__name__, '/Core/cfg/defaults.cfg')
+        if config == None:
+            self.config_file = resource_filename(__name__, '/Core/cfg/defaults.cfg')
         self._get_default_logger()
         self.settings = None
         self.arguments = None
