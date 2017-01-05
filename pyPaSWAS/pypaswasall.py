@@ -36,6 +36,9 @@ class Pypaswas(object):
         # Default settings are stored in:
         if config == None:
             self.config_file = resource_filename(__name__, '/Core/cfg/defaults.cfg')
+        else:
+            self.config_file = config
+
         self._get_default_logger()
         self.settings = None
         self.arguments = None
