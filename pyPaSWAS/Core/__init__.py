@@ -8,8 +8,8 @@ NO_DIRECTION = 0
 UPPER_LEFT_DIRECTION = 1
 UPPER_DIRECTION = 2
 LEFT_DIRECTION = 3
-STOP_DIRECTION = 4
-IN_ALIGNMENT = 13
+STOP_DIRECTION = 254
+IN_ALIGNMENT = 255
 
 def read_file(filename):
     ''' Reads a file and returns its contents as a single string '''
