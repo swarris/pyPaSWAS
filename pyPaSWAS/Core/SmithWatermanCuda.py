@@ -76,6 +76,10 @@ class SmithWatermanCuda(SmithWaterman):
             self.d_targets.free()
         if (self.d_matrix is not None):
             self.d_matrix.free()
+        if (self.gap_extension and self.d_matrix_i is not None):
+            self.d_matrix_i.free()
+        if (self.gap_extension and self.d_matrix_j is not None):
+            self.d_matrix_j.free()
         if (self.d_global_maxima is not None):
             self.d_global_maxima.free()
         if (self.d_global_direction is not None):
@@ -112,6 +116,10 @@ class SmithWatermanCuda(SmithWaterman):
                   self.length_of_y_sequences * self.number_targets)
         self.d_matrix = driver.mem_alloc(memory)  #@UndefinedVariable @IgnorePep8
         mem_size += memory
+        if self.gap_extension:
+            self.d_matrix_i = driver.mem_alloc(memory)  #@UndefinedVariable @IgnorePep8
+            self.d_matrix_j = driver.mem_alloc(memory)  #@UndefinedVariable @IgnorePep8
+            mem_size += 2*memory
 
         # Maximum global device memory
         memory = (SmithWaterman.float_size * self.x_div_shared_x * self.number_of_sequences *
@@ -184,17 +192,31 @@ class SmithWatermanCuda(SmithWaterman):
         dim_block = (self.shared_x, self.shared_y, 1)
 
         try:
-            calculate_score_function = self.module.get_function("calculateScore")
-            calculate_score_function(self.d_matrix, 
-                                     numpy.int32(idx), 
-                                     numpy.int32(idy),
-                                     numpy.int32(number_of_blocks), 
-                                     self.d_sequences, 
-                                     self.d_targets,
-                                     self.d_global_maxima, 
-                                     self.d_global_direction,
-                                     block=dim_block, 
-                                     grid=dim_grid_sw)
+            if self.gap_extension:
+                calculate_score_function = self.module.get_function("calculateScoreAffineGap")
+                calculate_score_function(self.d_matrix,self.d_matrix_i,self.d_matrix_j, 
+                                         numpy.int32(idx), 
+                                         numpy.int32(idy),
+                                         numpy.int32(number_of_blocks), 
+                                         self.d_sequences, 
+                                         self.d_targets,
+                                         self.d_global_maxima, 
+                                         self.d_global_direction,
+                                         block=dim_block, 
+                                         grid=dim_grid_sw)
+            else:
+                calculate_score_function = self.module.get_function("calculateScore")
+                calculate_score_function(self.d_matrix, 
+                                         numpy.int32(idx), 
+                                         numpy.int32(idy),
+                                         numpy.int32(number_of_blocks), 
+                                         self.d_sequences, 
+                                         self.d_targets,
+                                         self.d_global_maxima, 
+                                         self.d_global_direction,
+                                         block=dim_block, 
+                                         grid=dim_grid_sw)
+                
             driver.Context.synchronize()  #@UndefinedVariable @IgnorePep8            
         # TODO: catch proper exception
         except Exception as exception:

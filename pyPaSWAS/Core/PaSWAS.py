@@ -51,11 +51,16 @@ class Code(object):
         '''
         #self.logger.debug('Sourcing the scorepart of the cuda code')
         score_part_t = Template(read_file(self.score_source))
+        gap_extension = 0.0
+        if score.gap_extension != None:
+            gap_extension = score.gap_extension
+            
         self.score_part = score_part_t.safe_substitute(SCORE_TYPE=score.score_type,
                                                        LOWER_LIMIT=score.lower_limit_score,
                                                        MINIMUM_SCORE=score.minimum_score,
                                                        MAX_SCORE=score.lower_limit_max_score,
                                                        GAP_SCORE=score.gap_score,
+                                                       GAP_EXTENSION=gap_extension,
                                                        HIGHEST_SCORE=score.highest_score,
                                                        MATRIX=score.__str__(),
                                                        DIMENSION=score.dimensions)

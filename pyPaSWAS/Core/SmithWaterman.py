@@ -98,6 +98,10 @@ class SmithWaterman(object):
         self.d_targets = None
         # d_matrix is used to store the SM scoring
         self.d_matrix = None
+        # d_matrix_i is used to store the SM scoring with affine gap
+        self.d_matrix_i = None
+        # d_matrix_j is used to store the SM scoring with affine gap
+        self.d_matrix_j = None
         # d_global_maxima holds the maximum values found during the SM calculations
         self.d_global_maxima = None
 
@@ -138,7 +142,13 @@ class SmithWaterman(object):
         self.maximum_number_starting_points =100
         # Changed from ... = StartingPoint.size
         self.size_of_startingpoint = self.starting_point.size
-
+        
+        # check for gap extension penalty:
+        self.gap_extension = score.gap_extension != None
+        if self.gap_extension:
+            self.logger.info("Gap extension penalty detected: using affine gap scoring algorithm")
+        else:       
+            self.logger.info("No gap extension penalty detected: using original PaSWAS scoring algorithm")
         # Defines the number of elements processed in the X direction.
         # Don't edit unless you really know what you are doing!
         self.shared_x = 8

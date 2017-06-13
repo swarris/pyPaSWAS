@@ -17,6 +17,8 @@
 
 /** score used for a gap */
 #define gapScore ${GAP_SCORE}f
+#define gapExtension ${GAP_EXTENSION}f
+
 #define HIGHEST_SCORE ${HIGHEST_SCORE}f
 
 constant float scoringsMatrix[${DIMENSION}][${DIMENSION}] = ${MATRIX};

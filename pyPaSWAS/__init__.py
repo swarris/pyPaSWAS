@@ -133,6 +133,8 @@ def parse_cli(config_file):
     aligner_options.add_option('--customMatrix', help='the custom matrix that should be used', dest='custom_matrix')
     aligner_options.add_option('-G', help='Float. Penalty for a gap', dest='gap_score',
                                default=config.get('Aligner', 'gap_score'))
+    aligner_options.add_option('-g', help='Float. Penalty for a gap extension. Set to zero to ignore this (faster)', dest='gap_extension',
+                               default=config.get('Aligner', 'gap_extension'))
     aligner_options.add_option('-M', '--matrixname', help='The scoring to be used. Valid options are '
                                '"DNA-RNA", "PALINDROME", "BASIC", "Blosum62", "Blosum80" and "CUSTOM"', dest='matrix_name',
                                default=config.get('Aligner', 'matrix_name'))

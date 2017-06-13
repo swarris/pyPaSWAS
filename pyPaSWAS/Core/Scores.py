@@ -24,6 +24,7 @@ class Score(object):
         self._set_score_type()
         self.set_dimensions(255)
         self.set_gap_score(settings.gap_score)
+        self.set_gap_extension(settings.gap_extension)
         self.set_lower_limit_score(settings.lower_limit_score)
         self.set_lower_limit_max_score(settings.lower_limit_score)
         self.set_minimum_score(settings.minimum_score)
@@ -49,6 +50,12 @@ class Score(object):
         :param gap_score:
         '''
         self.gap_score = float(gap_score) if gap_score else None
+
+    def set_gap_extension(self, gap_extension):
+        '''
+        :param gap_extension: gap extension penalty
+        '''
+        self.gap_extension = float(gap_extension) if gap_extension and float(gap_extension) != 0 else None
 
     def set_lower_limit_max_score(self, lower_limit_max_score):
         '''
