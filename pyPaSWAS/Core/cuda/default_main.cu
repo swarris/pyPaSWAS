@@ -326,8 +326,10 @@ __global__ void calculateScoreAffineGap(GlobalMatrix *matrix, GlobalMatrix *matr
      * Neighboring cells
      */
     __shared__ float s_matrix[SHARED_X+1][SHARED_Y+1];
-    __shared__ float s_matrix_i[SHARED_X+1][SHARED_Y+1];
-    __shared__ float s_matrix_j[SHARED_X+1][SHARED_Y+1];
+    __shared__ float *s_matrix_i[SHARED_Y+1]= s_matrix;
+    __shared__ float *s_matrix_j[SHARED_Y+1]= s_matrix;
+//    __shared__ float s_matrix_i[SHARED_X+1][SHARED_Y+1];
+//    __shared__ float s_matrix_j[SHARED_X+1][SHARED_Y+1];
     /**
      * shared memory block for storing the maximum value of each neighboring cell.
      * Careful: the s_maxima[SHARED_X][SHARED_Y] does not contain the maximum value
@@ -345,6 +347,9 @@ __global__ void calculateScoreAffineGap(GlobalMatrix *matrix, GlobalMatrix *matr
     unsigned int bIDx = blockIdx.x;
     unsigned int bIDy = blockIdx.y%NUMBER_TARGETS;///numberOfBlocks;
     unsigned char direction = NO_DIRECTION;
+    unsigned char direction_i = NO_DIRECTION;
+    unsigned char direction_j = NO_DIRECTION;
+
 
 
     // indices of the current characters in both sequences.
@@ -368,7 +373,7 @@ __global__ void calculateScoreAffineGap(GlobalMatrix *matrix, GlobalMatrix *matr
         }
     }
     // local scorings variables:
-    float currentScore, m_M, m_I, m_J;
+    float currentScore,currentScore_i, currentScore_j, m_M, m_I, m_J;
     float innerScore = 0.0f;
     /**
      * tXM1 and tYM1 are to store the current value of the thread Index. tIDx and tIDy are
@@ -468,59 +473,68 @@ __global__ void calculateScoreAffineGap(GlobalMatrix *matrix, GlobalMatrix *matr
 
         	if (currentScore < m_I) { // score comes from I matrix (gap in x)
         		currentScore = m_I;
-        		direction = MAIN_I_DIRECTION;
+        		direction = B_DIRECTION;
         	}
         	if (currentScore < m_J) { // score comes from J matrix (gap in y)
         		currentScore = m_J;
-        		direction = MAIN_J_DIRECTION;
+        		direction = C_DIRECTION;
         	}
         	if (currentScore < m_M) { // score comes from m matrix (match)
         		currentScore = m_M;
-        		direction = MAIN_MAIN_DIRECTION;
+        		direction = A_DIRECTION;
         	}
         	s_matrix[tIDx][tIDy] = innerScore == FILL_SCORE ? 0.0 : currentScore+innerScore; // copy score to matrix
 
         	// now do I matrix:
-        	currentScore = AFFINE_GAP_INIT;
+        	currentScore_i = AFFINE_GAP_INIT;
         	m_M = gapScore + gapExtension + s_matrix[tIDx][tYM1];
 			m_I = gapExtension + s_matrix_i[tIDx][tYM1];
 			m_J = gapScore + gapExtension + s_matrix_j[tIDx][tYM1];
 
-			if (currentScore < m_I) { // score comes from I matrix (gap in x)
-        		currentScore = m_I;
-        		direction |= I_I_DIRECTION;
+			if (currentScore_i < m_I) { // score comes from I matrix (gap in x)
+        		currentScore_i = m_I;
+        		direction_i = B_DIRECTION;
         	}
-        	if (currentScore < m_J) { // score comes from J matrix (gap in y)
-        		currentScore = m_J;
-        		direction |= I_J_DIRECTION;
+        	if (currentScore_i < m_J) { // score comes from J matrix (gap in y)
+        		currentScore_i = m_J;
+        		direction_i = C_DIRECTION;
         	}
         	if (currentScore < m_M) { // score comes from m matrix (match)
         		currentScore = m_M;
-        		direction |= I_MAIN_DIRECTION;
+        		direction_i= A_DIRECTION;
         	}
-        	s_matrix_i[tIDx][tIDy] = currentScore < 0 ? AFFINE_GAP_INIT : currentScore; // copy score to matrix
+        	s_matrix_i[tIDx][tIDy] = currentScore_i < 0 ? AFFINE_GAP_INIT : currentScore_i; // copy score to matrix
 
         	// now do J matrix:
-        	currentScore = AFFINE_GAP_INIT;
+        	currentScore_j = AFFINE_GAP_INIT;
         	m_M = gapScore + gapExtension + s_matrix[tXM1][tIDy];
 			m_I = gapScore + gapExtension + s_matrix_i[tXM1][tIDy];
 			m_J = gapExtension + s_matrix_j[tXM1][tIDy];
 
-			if (currentScore < m_I) { // score comes from I matrix (gap in x)
-        		currentScore = m_I;
-        		direction |= J_I_DIRECTION;
+			if (currentScore_j < m_I) { // score comes from I matrix (gap in x)
+        		currentScore_j = m_I;
+        		direction_j = B_DIRECTION;
         	}
-        	if (currentScore < m_J) { // score comes from J matrix (gap in y)
-        		currentScore = m_J;
-        		direction |= J_J_DIRECTION;
+        	if (currentScore_j < m_J) { // score comes from J matrix (gap in y)
+        		currentScore_j = m_J;
+        		direction_j = C_DIRECTION;
         	}
         	if (currentScore < m_M) { // score comes from m matrix (match)
-        		currentScore = m_M;
-        		direction |= J_MAIN_DIRECTION;
+        		currentScore_j = m_M;
+        		direction_j = A_DIRECTION;
         	}
-        	s_matrix_j[tIDx][tIDy] = currentScore < 0 ? AFFINE_GAP_INIT : currentScore; // copy score to matrix
+        	s_matrix_j[tIDx][tIDy] = currentScore_j < 0 ? AFFINE_GAP_INIT : currentScore_j; // copy score to matrix
 
-        	currentScore = max(s_matrix[tIDx][tIDy],max(s_matrix_i[tIDx][tIDy],s_matrix_j[tIDx][tIDy]));
+        	currentScore = max(currentScore,max(currentScore_i,currentScore_j));
+        	if (currentScore == s_matrix[tIDx][tIDy]) {// direction from main
+        		direction = direction | MAIN_MATRIX;
+        	}
+        	else if(currentScore == s_matrix_i[tIDx][tIDy]) {// direction from I
+        		direction = direction_i | I_MATRIX;
+        	}
+        	else { // direction from J
+        		direction = direction_j | J_MATRIX;
+        	}
         }
 
         else if (i-1 == tXM1 + tYM1 ){
@@ -744,7 +758,8 @@ __global__ void tracebackAffineGap(GlobalMatrix *matrix,unsigned int x, unsigned
 
         s_matrix[tIDx][tIDy] = (*matrix).metaMatrix[bIDx][bIDy].matrix[blockx][blocky].value[tIDx][tIDy];
 
-        unsigned char direction = MAIN_MASK & globalDirection->direction[bIDx][bIDy].localDirection[blockx][blocky].value[tIDx][tIDy];
+        unsigned char direction = DIRECTION_MASK & globalDirection->direction[bIDx][bIDy].localDirection[blockx][blocky].value[tIDx][tIDy];
+//unsigned char matrix_source = MATRIX_MASK & globalDirection->direction[bIDx][bIDy].localDirection[blockx][blocky].value[tIDx][tIDy];
 
 
         // wait until all elements have been copied to the shared memory block
@@ -753,7 +768,7 @@ __global__ void tracebackAffineGap(GlobalMatrix *matrix,unsigned int x, unsigned
 
         for (int i=DIAGONAL-1; i >= 0; --i) {
 
-            if ((i == tIDx + tIDy) && direction == MAIN_MAIN_DIRECTION && s_matrix[tIDx][tIDy] >= LOWER_LIMIT_SCORE * s_maxima[0] && s_matrix[tIDx][tIDy] >= s_maxPossibleScore[0]) {
+            if ((i == tIDx + tIDy) && direction == UPPER_LEFT_DIRECTION && s_matrix[tIDx][tIDy] >= LOWER_LIMIT_SCORE * s_maxima[0] && s_matrix[tIDx][tIDy] >= s_maxPossibleScore[0]) {
                 // found starting point!
                 // reserve index:
                 unsigned int index = atomicAdd(indexIncrement, 1);
@@ -858,7 +873,5 @@ __global__ void tracebackAffineGap(GlobalMatrix *matrix,unsigned int x, unsigned
         /**** sync barrier ****/
         __syncthreads();
     }
-}
-
 }
 

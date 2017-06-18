@@ -194,7 +194,7 @@ class SmithWatermanCuda(SmithWaterman):
         try:
             if self.gap_extension:
                 calculate_score_function = self.module.get_function("calculateScoreAffineGap")
-                calculate_score_function(self.d_matrix,self.d_matrix_i,self.d_matrix_j, 
+                calculate_score_function(self.d_matrix, 
                                          numpy.int32(idx), 
                                          numpy.int32(idy),
                                          numpy.int32(number_of_blocks), 
