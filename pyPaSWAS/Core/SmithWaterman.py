@@ -22,6 +22,7 @@ from pyPaSWAS.Core.Exceptions import InvalidOptionException
 from pyPaSWAS.Core import STOP_DIRECTION, LEFT_DIRECTION, NO_DIRECTION, UPPER_DIRECTION, UPPER_LEFT_DIRECTION, IN_ALIGNMENT
 
 
+
 class SmithWaterman(object):
     """
     Smith-Waterman class for communicating between GPU and CPU.
@@ -607,7 +608,7 @@ class SmithWaterman(object):
             if (idy > 0):
                 idy -= 1
 
- #       self.logger.debug("{}".format(self._get_direction_byte_array()))
+        #self.logger.debug("{}".format(self._get_direction_byte_array()))
     
     def _is_in_alignment(self, show, block_x, block_y, value_x, value_y, direction):
         ''' Checks to see if printing the alignment should continue. This method should be implemented by subclasses
@@ -631,7 +632,7 @@ class SmithWaterman(object):
         self.logger.debug('Printing alignments.')
         starting_points = self._get_starting_point_byte_array()
         #starting_point = StartingPoint(self.logger)
-
+        
         number_of_starting_points = self._get_number_of_starting_points()
         self.logger.debug('Number of starting points is: {0}.'.format(number_of_starting_points))
         if number_of_starting_points >= (self.maximum_number_starting_points * self.number_of_sequences * self.number_targets):
@@ -641,12 +642,13 @@ class SmithWaterman(object):
         max_score = 0
 
         direction_array = self._get_direction_byte_array()
-        
+        self.logger.debug(direction_array)
         starting_points_list = []
         for i in range(0,number_of_starting_points):
             starting_point = StartingPoint(self.logger)
             starting_point.parse_byte_string(starting_points, i)
             starting_points_list.append(starting_point)
+            
 
         starting_points_list.sort(key=lambda s: s.score)
         
@@ -681,6 +683,7 @@ class SmithWaterman(object):
             local_index = 0
             s_end = block_x * self.shared_x + value_x
             t_end = block_y * self.shared_y + value_y
+
             
             # @TO-DO: this is bugfix for the read mapping algorithm. Should not happen, so fix this where it should be fixed
             if start_seq + sequence_starting_point >= len(sequences) or start_target + target_starting_point >= len(targets):

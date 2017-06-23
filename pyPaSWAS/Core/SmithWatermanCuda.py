@@ -194,7 +194,7 @@ class SmithWatermanCuda(SmithWaterman):
         try:
             if self.gap_extension:
                 calculate_score_function = self.module.get_function("calculateScoreAffineGap")
-                calculate_score_function(self.d_matrix, 
+                calculate_score_function(self.d_matrix,self.d_matrix_i,self.d_matrix_j, 
                                          numpy.int32(idx), 
                                          numpy.int32(idy),
                                          numpy.int32(number_of_blocks), 
@@ -229,8 +229,9 @@ class SmithWatermanCuda(SmithWaterman):
         dim_block = (self.shared_x, self.shared_y, 1)
         
         try:
-            traceback_function = self.module.get_function("traceback")
-            traceback_function(self.d_matrix,
+            if self.gap_extension:
+                traceback_function = self.module.get_function("tracebackAffineGap")
+                traceback_function(self.d_matrix,self.d_matrix_i,self.d_matrix_j,
                                numpy.int32(idx),
                                numpy.int32(idy),
                                numpy.int32(number_of_blocks),
@@ -242,6 +243,21 @@ class SmithWatermanCuda(SmithWaterman):
                                self.d_max_possible_score_zero_copy,
                                block=dim_block,
                                grid=dim_grid_sw)
+            else:
+                traceback_function = self.module.get_function("traceback")
+                traceback_function(self.d_matrix,
+                   numpy.int32(idx),
+                   numpy.int32(idy),
+                   numpy.int32(number_of_blocks),
+                   self.d_global_maxima,
+                   self.d_global_direction,
+                   self.d_global_direction_zero_copy,
+                   self.d_index_increment,
+                   self.d_starting_points_zero_copy,
+                   self.d_max_possible_score_zero_copy,
+                   block=dim_block,
+                   grid=dim_grid_sw)
+
             driver.Context.synchronize()  #@UndefinedVariable @IgnorePep8
         except Exception as exception:
             self.logger.error('Something went wrong during traceback: {}...'.format(exception))
