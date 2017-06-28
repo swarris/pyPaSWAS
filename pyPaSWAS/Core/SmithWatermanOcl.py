@@ -39,7 +39,7 @@ class SmithWatermanOcl(SmithWaterman):
         self._initialize_device(int(self.settings.device_number))
     
     def _init_oclcode(self):
-                # Compiling part of the CUDA code in advance
+                # Compiling part of the OpenCL code in advance
         self.oclcode.set_shared_xy_code(self.shared_x, self.shared_y)
         self.oclcode.set_direction_code(NO_DIRECTION, UPPER_LEFT_DIRECTION,
                                          UPPER_DIRECTION, LEFT_DIRECTION,
@@ -162,6 +162,18 @@ class SmithWatermanOcl(SmithWaterman):
             except:
                 pass
             self.d_matrix.release()
+        if (self.gap_extension and self.d_matrix_i is not None):
+            try:
+                self.d_matrix_i.finish()
+            except:
+                pass
+            self.d_matrix_i.release()
+        if (self.gap_extension and self.d_matrix_j is not None):
+            try:
+                self.d_matrix_j.finish()
+            except:
+                pass
+            self.d_matrix_j.release()
         if (self.d_global_maxima is not None):
             try: 
                 self.d_global_maxima.finish()
@@ -448,6 +460,12 @@ class SmithWatermanGPU(SmithWatermanOcl):
         self.length_of_y_sequences * self.number_targets)
         self.d_matrix = cl.Buffer(self.ctx, cl.mem_flags.READ_WRITE, size=memory)
         mem_size += memory
+        if self.gap_extension:
+            self.d_matrix_i = cl.Buffer(self.ctx, cl.mem_flags.READ_WRITE, size=memory)
+            mem_size += memory
+            self.d_matrix_j = cl.Buffer(self.ctx, cl.mem_flags.READ_WRITE, size=memory)
+            mem_size += memory
+            
         
         # Maximum global device memory
         memory = (SmithWaterman.float_size * self.x_div_shared_x * self.number_of_sequences *
@@ -477,17 +495,32 @@ class SmithWatermanGPU(SmithWatermanOcl):
         dim_block = (self.shared_x, self.shared_y)
         dim_grid_sw = (self.number_of_sequences * self.shared_x, self.number_targets * number_of_blocks * self.shared_y)
         
-        self.program.calculateScore(self.queue, 
-                                    dim_grid_sw, 
-                                    dim_block, 
-                                    self.d_matrix, 
-                                    numpy.int32(idx), 
-                                    numpy.int32(idy),
-                                    numpy.int32(number_of_blocks), 
-                                    self.d_sequences, 
-                                    self.d_targets,
-                                    self.d_global_maxima, 
-                                    self.d_global_direction_zero_copy)
+        if self.gap_extension:
+            self.program.calculateScore(self.queue, 
+                                        dim_grid_sw, 
+                                        dim_block, 
+                                        self.d_matrix, 
+                                        self.d_matrix_i, 
+                                        self.d_matrix_j, 
+                                        numpy.int32(idx), 
+                                        numpy.int32(idy),
+                                        numpy.int32(number_of_blocks), 
+                                        self.d_sequences, 
+                                        self.d_targets,
+                                        self.d_global_maxima, 
+                                        self.d_global_direction_zero_copy)
+        else:
+            self.program.calculateScore(self.queue, 
+                                        dim_grid_sw, 
+                                        dim_block, 
+                                        self.d_matrix, 
+                                        numpy.int32(idx), 
+                                        numpy.int32(idy),
+                                        numpy.int32(number_of_blocks), 
+                                        self.d_sequences, 
+                                        self.d_targets,
+                                        self.d_global_maxima, 
+                                        self.d_global_direction_zero_copy)
                                     
                                     
     
@@ -495,16 +528,30 @@ class SmithWatermanGPU(SmithWatermanOcl):
         ''' Executes a single run of the traceback kernel'''
         dim_block = (self.shared_x, self.shared_y)
         dim_grid_sw = (self.number_of_sequences * self.shared_x, self.number_targets * number_of_blocks * self.shared_y)
-        self.program.traceback(self.queue, dim_grid_sw, dim_block,
-                               self.d_matrix,
-                               numpy.int32(idx),
-                               numpy.int32(idy),
-                               numpy.int32(number_of_blocks),
-                               self.d_global_maxima,
-                               self.d_global_direction_zero_copy,
-                               self.d_index_increment,
-                               self.d_starting_points_zero_copy,
-                               self.d_max_possible_score_zero_copy)
+        if self.gap_extension:
+            self.program.traceback(self.queue, dim_grid_sw, dim_block,
+                                   self.d_matrix,
+                                   self.d_matrix_i,
+                                   self.d_matrix_j,
+                                   numpy.int32(idx),
+                                   numpy.int32(idy),
+                                   numpy.int32(number_of_blocks),
+                                   self.d_global_maxima,
+                                   self.d_global_direction_zero_copy,
+                                   self.d_index_increment,
+                                   self.d_starting_points_zero_copy,
+                                   self.d_max_possible_score_zero_copy)
+        else:
+            self.program.traceback(self.queue, dim_grid_sw, dim_block,
+                                   self.d_matrix,
+                                   numpy.int32(idx),
+                                   numpy.int32(idy),
+                                   numpy.int32(number_of_blocks),
+                                   self.d_global_maxima,
+                                   self.d_global_direction_zero_copy,
+                                   self.d_index_increment,
+                                   self.d_starting_points_zero_copy,
+                                   self.d_max_possible_score_zero_copy)
                             
     
 class SmithWatermanNVIDIA(SmithWatermanGPU):

@@ -842,8 +842,6 @@ __global__ void tracebackAffineGap(GlobalMatrix *matrix, GlobalMatrix *matrix_i,
 
     __syncthreads();
 
-    //globalDirectionZeroCopy->direction[bIDx][bIDy].localDirection[blockx][blocky].value[tIDx][tIDy] = DIRECTION_MASK & globalDirection->direction[bIDx][bIDy].localDirection[blockx][blocky].value[tIDx][tIDy];;
-    //return;
 
     if (s_maxima[0]>= MINIMUM_SCORE) { // if the maximum score is below threshold, there is nothing to do
         unsigned char direction = DIRECTION_MASK & globalDirection->direction[bIDx][bIDy].localDirection[blockx][blocky].value[tIDx][tIDy];
@@ -903,21 +901,18 @@ __global__ void tracebackAffineGap(GlobalMatrix *matrix, GlobalMatrix *matrix_i,
 
         }
 
-
-        // copy end score to the scorings matrix:
-        if (s_matrix[tIDx][tIDy] < 0) {
+        if (matrix_source == MAIN_MATRIX) {
             (*matrix).metaMatrix[bIDx][bIDy].matrix[blockx][blocky].value[tIDx][tIDy] = s_matrix[tIDx][tIDy];
-//            globalDirectionZeroCopy->direction[bIDx][bIDy].localDirection[blockx][blocky].value[tIDx][tIDy] = direction;
+            globalDirectionZeroCopy->direction[bIDx][bIDy].localDirection[blockx][blocky].value[tIDx][tIDy] = direction;
         }
-        else if (s_matrix_i[tIDx][tIDy] < 0 && s_matrix_i[tIDx][tIDy] > AFFINE_GAP_INIT && matrix_source == I_MATRIX) {
+        else if (matrix_source == I_MATRIX) {
             (*matrix_i).metaMatrix[bIDx][bIDy].matrix[blockx][blocky].value[tIDx][tIDy] = s_matrix_i[tIDx][tIDy];
-//            globalDirectionZeroCopy->direction[bIDx][bIDy].localDirection[blockx][blocky].value[tIDx][tIDy] = direction;
+            globalDirectionZeroCopy->direction[bIDx][bIDy].localDirection[blockx][blocky].value[tIDx][tIDy] = direction;
         }
-        else if (s_matrix_j[tIDx][tIDy] < 0 && s_matrix_j[tIDx][tIDy] > AFFINE_GAP_INIT && matrix_source == J_MATRIX) {
+        else if (matrix_source == J_MATRIX) {
             (*matrix_j).metaMatrix[bIDx][bIDy].matrix[blockx][blocky].value[tIDx][tIDy] = s_matrix_j[tIDx][tIDy];
-//            globalDirectionZeroCopy->direction[bIDx][bIDy].localDirection[blockx][blocky].value[tIDx][tIDy] = direction;
+            globalDirectionZeroCopy->direction[bIDx][bIDy].localDirection[blockx][blocky].value[tIDx][tIDy] = direction;
         }
-        globalDirectionZeroCopy->direction[bIDx][bIDy].localDirection[blockx][blocky].value[tIDx][tIDy] = direction;
         /**** sync barrier ****/
         __syncthreads();
     }

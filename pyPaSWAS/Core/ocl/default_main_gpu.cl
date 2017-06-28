@@ -15,6 +15,9 @@
 #define FILL_CHARACTER '\0'
 #define FILL_SCORE -1E10
 
+/** Set init for affine gap matrices */
+#define AFFINE_GAP_INIT -1E10f
+
 /** this value is used to allocate enough memory to store the starting points */
 #define MAXIMUM_NUMBER_STARTING_POINTS (NUMBER_SEQUENCES*NUMBER_TARGETS*1000)
 
@@ -253,6 +256,264 @@ __kernel void calculateScore(
     barrier(CLK_LOCAL_MEM_FENCE);
 }
 
+__kernel void calculateScoreAffineGap(
+		__global GlobalMatrix *matrix, 
+		__global GlobalMatrix *matrix_i, 
+		__global GlobalMatrix *matrix_j, 
+		unsigned int x, 
+		unsigned int y, 
+		unsigned int numberOfBlocks,
+		__global char *sequences, 
+		__global char *targets, 
+		__global GlobalMaxima *globalMaxima, 
+		__global GlobalDirection *globalDirection) {
+	
+	/**
+     * shared memory block for calculations. It requires
+     * extra (+1 in both directions) space to hold
+     * Neighboring cells
+     */
+	__local float s_matrix[SHARED_X+1][SHARED_Y+1];
+	__local float s_matrix_i[SHARED_X+1][SHARED_Y+1];
+	__local float s_matrix_j[SHARED_X+1][SHARED_Y+1];
+    /**
+     * shared memory block for storing the maximum value of each neighboring cell.
+     * Careful: the s_maxima[SHARED_X][SHARED_Y] does not contain the maximum value
+     * after the calculation loop! This value is determined at the end of this
+     * function.
+     */
+	__local float s_maxima[SHARED_X][SHARED_Y];
+
+    // calculate indices:
+    //unsigned int yDIVnumSeq = (blockIdx.y/NUMBER_SEQUENCES);
+    // 1 is in y-direction and 0 is in x-direction
+    unsigned int blockx = x - get_group_id(1)/NUMBER_TARGETS;//yDIVnumSeq;
+    unsigned int blocky = y + get_group_id(1)/NUMBER_TARGETS;//yDIVnumSeq;
+    unsigned int tIDx = get_local_id(0);
+    unsigned int tIDy = get_local_id(1);
+    unsigned int bIDx = get_group_id(0);
+    unsigned int bIDy = get_group_id(1)%NUMBER_TARGETS;///numberOfBlocks;
+    unsigned char direction = NO_DIRECTION;
+    unsigned char direction_i = NO_DIRECTION;
+    unsigned char direction_j = NO_DIRECTION;
+
+    // indices of the current characters in both sequences.
+    int seqIndex1 = tIDx + bIDx * X + blockx * SHARED_X;
+    int seqIndex2 = tIDy + bIDy * Y + blocky * SHARED_Y;
+
+
+    /* the next block is to get the maximum value from surrounding blocks. This maximum values is compared to the
+     * first element in the shared score matrix s_matrix.
+     */
+    float maxPrev = 0.0f;
+    if (!tIDx && !tIDy) {
+        if (blockx && blocky) {
+            maxPrev = fmax(fmax(globalMaxima->blockMaxima[bIDx][bIDy].value[blockx-1][blocky-1], globalMaxima->blockMaxima[bIDx][bIDy].value[blockx-1][blocky]), globalMaxima->blockMaxima[bIDx][bIDy].value[blockx][blocky-1]);
+        }
+        else if (blockx) {
+            maxPrev = globalMaxima->blockMaxima[bIDx][bIDy].value[blockx-1][blocky];
+        }
+        else if (blocky) {
+            maxPrev = globalMaxima->blockMaxima[bIDx][bIDy].value[blockx][blocky-1];
+        }
+    }
+    // local scorings variables:
+    float currentScore,currentScore_i, currentScore_j, m_M, m_I, m_J;
+    float innerScore = 0.0f;
+    /**
+     * tXM1 and tYM1 are to store the current value of the thread Index. tIDx and tIDy are
+     * both increased with 1 later on.
+     */
+    unsigned int tXM1 = tIDx;
+    unsigned int tYM1 = tIDy;
+
+    // shared location for the parts of the 2 sequences, for faster retrieval later on:
+    __local char s_seq1[SHARED_X];
+    __local char s_seq2[SHARED_Y];
+
+    // copy sequence data to shared memory (shared is much faster than global)
+    if (!tIDy)
+        s_seq1[tIDx] = sequences[seqIndex1];
+    if (!tIDx)
+        s_seq2[tIDy] = targets[seqIndex2];
+
+    // init matrices
+    s_matrix[tIDx][tIDy] = 0.0f;
+    s_matrix_i[tIDx][tIDy] = AFFINE_GAP_INIT;
+    s_matrix_j[tIDx][tIDy] = AFFINE_GAP_INIT;
+    s_maxima[tIDx][tIDy] = 0.0f;
+
+    if (tIDx == SHARED_X-1  && ! tIDy){
+        s_matrix[SHARED_X][0] = 0.0f;
+        s_matrix_i[SHARED_X][0] = AFFINE_GAP_INIT;
+        s_matrix_j[SHARED_X][0] = AFFINE_GAP_INIT;
+    }
+    if (tIDy == SHARED_Y-1  && ! tIDx) {
+        s_matrix[0][SHARED_Y] = 0.0f;
+        s_matrix_i[0][SHARED_Y] = AFFINE_GAP_INIT;
+        s_matrix_j[0][SHARED_Y] = AFFINE_GAP_INIT;
+    }
+
+    /**** sync barrier ****/
+    s_matrix[tIDx][tIDy] = 0.0f;
+    barrier(CLK_LOCAL_MEM_FENCE);
+
+    // initialize outer parts of the matrix:
+    if (!tIDx || !tIDy) {
+        if (tIDx == SHARED_X-1) {
+            s_matrix[tIDx+1][tIDy] = 0.0f;
+            s_matrix_i[tIDx+1][tIDy] = AFFINE_GAP_INIT;
+            s_matrix_j[tIDx+1][tIDy] = AFFINE_GAP_INIT;
+        }
+        if (tIDy == SHARED_Y-1) {
+            s_matrix[tIDx][tIDy+1] = 0.0f;
+            s_matrix_i[tIDx][tIDy+1] = AFFINE_GAP_INIT;
+            s_matrix_j[tIDx][tIDy+1] = AFFINE_GAP_INIT;
+        }
+        if (blockx && !tIDx) {
+            s_matrix[0][tIDy+1] = (*matrix).metaMatrix[bIDx][bIDy].matrix[blockx-1][blocky].value[SHARED_X-1][tIDy];
+            s_matrix_i[0][tIDy+1] = (*matrix_i).metaMatrix[bIDx][bIDy].matrix[blockx-1][blocky].value[SHARED_X-1][tIDy];
+            s_matrix_j[0][tIDy+1] = (*matrix_j).metaMatrix[bIDx][bIDy].matrix[blockx-1][blocky].value[SHARED_X-1][tIDy];
+        }
+        if (blocky && !tIDy) {
+            s_matrix[tIDx+1][0] = (*matrix).metaMatrix[bIDx][bIDy].matrix[blockx][blocky-1].value[tIDx][SHARED_Y-1];
+            s_matrix_i[tIDx+1][0] = (*matrix_i).metaMatrix[bIDx][bIDy].matrix[blockx][blocky-1].value[tIDx][SHARED_Y-1];
+            s_matrix_j[tIDx+1][0] = (*matrix_j).metaMatrix[bIDx][bIDy].matrix[blockx][blocky-1].value[tIDx][SHARED_Y-1];
+        }
+        if (blockx && blocky && !tIDx && !tIDy){
+            s_matrix[0][0] = (*matrix).metaMatrix[bIDx][bIDy].matrix[blockx-1][blocky-1].value[SHARED_X-1][SHARED_Y-1];
+            s_matrix_i[0][0] = (*matrix_i).metaMatrix[bIDx][bIDy].matrix[blockx-1][blocky-1].value[SHARED_X-1][SHARED_Y-1];
+            s_matrix_j[0][0] = (*matrix_j).metaMatrix[bIDx][bIDy].matrix[blockx-1][blocky-1].value[SHARED_X-1][SHARED_Y-1];
+        }
+    }
+    // set inner score (aka sequence match/mismatch score):
+    char charS1 = s_seq1[tIDx];
+    char charS2 = s_seq2[tIDy];
+    
+ 	innerScore = charS1 == FILL_CHARACTER || charS2 == FILL_CHARACTER ? FILL_SCORE : scoringsMatrix[charS1-characterOffset][charS2-characterOffset];
+
+    // transpose the index
+    ++tIDx;
+    ++tIDy;
+    // set shared matrix to zero (starting point!)
+    s_matrix[tIDx][tIDy] = 0.0f;
+    s_matrix_i[tIDx][tIDy] = AFFINE_GAP_INIT;
+    s_matrix_j[tIDx][tIDy] = AFFINE_GAP_INIT;
+
+
+    // wait until all elements have been copied to the shared memory block
+        /**** sync barrier ****/
+    barrier(CLK_LOCAL_MEM_FENCE);
+
+    currentScore = 0.0f;
+
+    for (int i=0; i < DIAGONAL; ++i) {
+        if (i == tXM1+ tYM1) {
+        	m_M = s_matrix[tXM1][tYM1]+innerScore;
+        	m_I = s_matrix_i[tXM1][tYM1]+innerScore;
+        	m_J = s_matrix_j[tXM1][tYM1]+innerScore;
+
+        	if (currentScore < m_I) { // score comes from I matrix (gap in x)
+        		currentScore = m_I;
+        		direction = B_DIRECTION;
+        	}
+        	if (currentScore < m_J) { // score comes from J matrix (gap in y)
+        		currentScore = m_J;
+        		direction = C_DIRECTION;
+        	}
+        	if (currentScore < m_M) { // score comes from m matrix (match)
+        		currentScore = m_M;
+        		direction = A_DIRECTION;
+        	}
+        	s_matrix[tIDx][tIDy] = innerScore == FILL_SCORE || innerScore < 0? 0.0 : currentScore; // copy score to matrix
+
+
+        	// now do I matrix:
+        	currentScore_i = AFFINE_GAP_INIT;
+        	m_M = gapScore + gapExtension + s_matrix[tIDx][tYM1];
+			m_I = gapExtension + s_matrix_i[tIDx][tYM1];
+			m_J = gapScore + gapExtension + s_matrix_j[tIDx][tYM1];
+
+			if (currentScore_i < m_I) { // score comes from I matrix (gap in x)
+        		currentScore_i = m_I;
+        		direction_i = B_DIRECTION;
+        	}
+        	if (currentScore_i < m_J) { // score comes from J matrix (gap in y)
+        		currentScore_i = m_J;
+        		direction_i = C_DIRECTION;
+        	}
+        	if (currentScore_i < m_M) { // score comes from m matrix (match)
+        		currentScore_i = m_M;
+        		direction_i= A_DIRECTION;
+        	}
+        	s_matrix_i[tIDx][tIDy] = currentScore_i < 0 ? AFFINE_GAP_INIT : currentScore_i; // copy score to matrix
+
+        	// now do J matrix:
+        	currentScore_j = AFFINE_GAP_INIT;
+        	m_M = gapScore + gapExtension + s_matrix[tXM1][tIDy];
+			m_I = gapScore + gapExtension + s_matrix_i[tXM1][tIDy];
+			m_J = gapExtension + s_matrix_j[tXM1][tIDy];
+
+			if (currentScore_j < m_I) { // score comes from I matrix (gap in x)
+        		currentScore_j = m_I;
+        		direction_j = B_DIRECTION;
+        	}
+        	if (currentScore_j < m_J) { // score comes from J matrix (gap in y)
+        		currentScore_j = m_J;
+        		direction_j = C_DIRECTION;
+        	}
+        	if (currentScore < m_M) { // score comes from m matrix (match)
+        		currentScore_j = m_M;
+        		direction_j = A_DIRECTION;
+        	}
+        	s_matrix_j[tIDx][tIDy] = currentScore_j < 0 ? AFFINE_GAP_INIT : currentScore_j; // copy score to matrix
+        	currentScore = fmax(currentScore,max(currentScore_i,currentScore_j));
+        	if (currentScore > 0) {
+				if (currentScore == s_matrix[tIDx][tIDy]) {// direction from main
+					direction = direction | MAIN_MATRIX;
+				}
+				else if(currentScore == s_matrix_i[tIDx][tIDy]) {// direction from I
+					direction = direction_i | I_MATRIX;
+				}
+				else { // direction from J
+					direction = direction_j | J_MATRIX;
+				}
+        	}
+        }
+
+        else if (i-1 == tXM1 + tYM1 ){
+                // use this to find fmax
+            if (i==1) {
+                s_maxima[0][0] = fmax(maxPrev, currentScore);
+            }
+            else if (!tXM1 && tYM1) {
+                s_maxima[0][tYM1] = fmax(s_maxima[0][tYM1-1], currentScore);
+            }
+            else if (!tYM1 && tXM1) {
+                s_maxima[tXM1][0] = fmax(s_maxima[tXM1-1][0], currentScore);
+            }
+            else if (tXM1 && tYM1 ){
+                s_maxima[tXM1][tYM1] = fmax(s_maxima[tXM1-1][tYM1], fmax(s_maxima[tXM1][tYM1-1], currentScore));
+            }
+        }
+        // wait until all threads have calculated their new score
+            /**** sync barrier ****/
+        barrier(CLK_LOCAL_MEM_FENCE);
+    }
+    // copy end score to the scorings matrix:
+    (*matrix).metaMatrix[bIDx][bIDy].matrix[blockx][blocky].value[tXM1][tYM1] = s_matrix[tIDx][tIDy];
+    (*matrix_i).metaMatrix[bIDx][bIDy].matrix[blockx][blocky].value[tXM1][tYM1] = s_matrix_i[tIDx][tIDy];
+    (*matrix_j).metaMatrix[bIDx][bIDy].matrix[blockx][blocky].value[tXM1][tYM1] = s_matrix_j[tIDx][tIDy];
+    (*globalDirection).direction[bIDx][bIDy].localDirection[blockx][blocky].value[tXM1][tYM1] = direction;
+
+    if (tIDx==SHARED_X && tIDy==SHARED_Y)
+        globalMaxima->blockMaxima[bIDx][bIDy].value[blockx][blocky] = fmax(currentScore, fmax(s_maxima[SHARED_X-2][SHARED_Y-1], s_maxima[SHARED_X-1][SHARED_Y-2]));
+
+    // wait until all threads have copied their score:
+        /**** sync barrier ****/
+    barrier(CLK_LOCAL_MEM_FENCE);
+}
+
 
 __kernel void traceback(
 		__global GlobalMatrix *matrix, 
@@ -478,5 +739,243 @@ __kernel void traceback(
     }
 }
 
+__kernel unsigned char tracebackStepLeftUp(unsigned int blockx, unsigned int blocky, float s_matrix[][SHARED_Y+1], GlobalMatrix *matrix, unsigned char direction){
+    unsigned int tIDx = get_local_id(0);
+    unsigned int tIDy = get_local_id(1);
+    unsigned int bIDx = get_group_id(0);
+    unsigned int bIDy = get_group_id(1)%NUMBER_TARGETS;
+    unsigned char dir = direction;
+    float value;
+
+	if (tIDx && tIDy){
+		value = s_matrix[tIDx-1][tIDy-1];
+		if (value == 0.0f)
+			dir = STOP_DIRECTION;
+		else
+#ifdef NVIDIA			
+			s_matrix[tIDx-1][tIDy-1] = __int_as_float(SIGN_BIT_MASK | __float_as_int(value));
+#else
+		s_matrix[tIDx-1][tIDy-1] = as_float(SIGN_BIT_MASK | as_int(value));
+#endif		
+	}
+	else if (!tIDx && tIDy && blockx) {
+		value = (*matrix).metaMatrix[bIDx][bIDy].matrix[blockx-1][blocky].value[SHARED_X-1][tIDy-1];
+		if (value == 0.0f)
+			dir = STOP_DIRECTION;
+		else
+#ifdef NVIDIA			
+			(*matrix).metaMatrix[bIDx][bIDy].matrix[blockx-1][blocky].value[SHARED_X-1][tIDy-1] = __int_as_float(SIGN_BIT_MASK | __float_as_int(value));
+#else
+			(*matrix).metaMatrix[bIDx][bIDy].matrix[blockx-1][blocky].value[SHARED_X-1][tIDy-1] = as_float(SIGN_BIT_MASK | as_int(value));
+#endif			
+	}
+	else if (!tIDx && !tIDy && blockx && blocky) {
+		value = (*matrix).metaMatrix[bIDx][bIDy].matrix[blockx-1][blocky-1].value[SHARED_X-1][SHARED_Y-1];
+		if (value == 0.0f)
+			dir = STOP_DIRECTION;
+		else
+#ifdef NVIDIA
+			(*matrix).metaMatrix[bIDx][bIDy].matrix[blockx-1][blocky-1].value[SHARED_X-1][SHARED_Y-1] = __int_as_float(SIGN_BIT_MASK | __float_as_int(value));
+#else
+			(*matrix).metaMatrix[bIDx][bIDy].matrix[blockx-1][blocky-1].value[SHARED_X-1][SHARED_Y-1] = as_float(SIGN_BIT_MASK | as_int(value));
+#endif
+	}
+	else if (tIDx && !tIDy && blocky) {
+		value = (*matrix).metaMatrix[bIDx][bIDy].matrix[blockx][blocky-1].value[tIDx-1][SHARED_Y-1];
+		if (value == 0.0f)
+			dir = STOP_DIRECTION;
+		else
+#ifdef NVIDIA
+			(*matrix).metaMatrix[bIDx][bIDy].matrix[blockx][blocky-1].value[tIDx-1][SHARED_Y-1] = __int_as_float(SIGN_BIT_MASK | __float_as_int(value));
+#else
+			(*matrix).metaMatrix[bIDx][bIDy].matrix[blockx][blocky-1].value[tIDx-1][SHARED_Y-1] = as_float(SIGN_BIT_MASK | as_int(value));
+#endif
+	}
+	return dir;
+
+}
+
+__kernel unsigned char tracebackStepUp(unsigned int blockx, unsigned int blocky, float s_matrix[][SHARED_Y+1], GlobalMatrix *matrix, unsigned char direction){
+    unsigned int tIDx = get_local_id(0);
+    unsigned int tIDy = get_local_id(1);
+    unsigned int bIDx = get_group_id(0);
+    unsigned int bIDy = get_group_id(1)%NUMBER_TARGETS;
+    unsigned char dir = direction;
+    float value;
+
+    if (!tIDy) {
+        if (blocky) {
+            value = (*matrix).metaMatrix[bIDx][bIDy].matrix[blockx][blocky-1].value[tIDx][SHARED_Y-1];
+#ifdef NVIDIA
+            (*matrix).metaMatrix[bIDx][bIDy].matrix[blockx][blocky-1].value[tIDx][SHARED_Y-1] = __int_as_float(SIGN_BIT_MASK | __float_as_int(value));
+#else
+            (*matrix).metaMatrix[bIDx][bIDy].matrix[blockx][blocky-1].value[tIDx][SHARED_Y-1] = as_float(SIGN_BIT_MASK | as_int(value));
+#endif
+        }
+    }
+    else {
+        value = s_matrix[tIDx][tIDy-1];
+        s_matrix[tIDx][tIDy-1] = __int_as_float(SIGN_BIT_MASK | __float_as_int(value));
+    }
+	return dir;
+
+}
+
+__kernel unsigned char tracebackStepLeft(unsigned int blockx, unsigned int blocky, float s_matrix[][SHARED_Y+1], GlobalMatrix *matrix, unsigned char direction){
+    unsigned int tIDx = get_local_id(0);
+    unsigned int tIDy = get_local_id(1);
+    unsigned int bIDx = get_group_id(0);
+    unsigned int bIDy = get_group_id(1)%NUMBER_TARGETS;
+    unsigned char dir = direction;
+    float value;
+
+    if (!tIDx){
+        if (blockx) {
+            value = (*matrix).metaMatrix[bIDx][bIDy].matrix[blockx-1][blocky].value[SHARED_X-1][tIDy];
+#ifdef NVIDIA
+            (*matrix).metaMatrix[bIDx][bIDy].matrix[blockx-1][blocky].value[SHARED_X-1][tIDy] = __int_as_float(SIGN_BIT_MASK | __float_as_int(value));
+#else
+            (*matrix).metaMatrix[bIDx][bIDy].matrix[blockx-1][blocky].value[SHARED_X-1][tIDy] = as_float(SIGN_BIT_MASK | as_int(value));
+#endif
+        }
+    }
+    else {
+        value = s_matrix[tIDx-1][tIDy];
+#ifdef NVIDIA
+        s_matrix[tIDx-1][tIDy] = __int_as_float(SIGN_BIT_MASK | __float_as_int(value));
+#else
+        s_matrix[tIDx-1][tIDy] = as_float(SIGN_BIT_MASK | as_int(value));
+#endif
+    }
+
+
+    return dir;
+
+}
+
+__kernel void tracebackAffineGap(
+		__global GlobalMatrix *matrix,
+		__global GlobalMatrix *matrix_i, 
+		__global GlobalMatrix *matrix_j, 		
+		unsigned int x, 
+		unsigned int y, 
+		unsigned int numberOfBlocks, 
+		__global GlobalMaxima *globalMaxima,
+		__global GlobalDirection *globalDirection, 
+		volatile __global unsigned int *indexIncrement,
+		__global StartingPoints *startingPoints, 
+		__global float *maxPossibleScore) {
+
+	/**
+     * shared memory block for calculations. It requires
+     * extra (+1 in both directions) space to hold
+     * Neighboring cells
+     */
+	__local float s_matrix[SHARED_X+1][SHARED_Y+1];
+	__local float s_matrix_i[SHARED_X+1][SHARED_Y+1];
+	__local float s_matrix_j[SHARED_X+1][SHARED_Y+1];
+    /**
+     * shared memory for storing the maximum value of this alignment.
+     */
+	__local float s_maxima[1];
+	__local float s_maxPossibleScore[1];
+
+    // calculate indices:
+    unsigned int yDIVnumSeq = (get_group_id(1)/NUMBER_TARGETS);
+    unsigned int blockx = x - yDIVnumSeq;
+    unsigned int blocky = y + yDIVnumSeq;
+    unsigned int tIDx = get_local_id(0);
+    unsigned int tIDy = get_local_id(1);
+    unsigned int bIDx = get_group_id(0);
+    unsigned int bIDy = get_group_id(1)%NUMBER_TARGETS;
+    
+    float value = 0.0;
+
+    if (!tIDx && !tIDy) {
+        s_maxima[0] = globalMaxima->blockMaxima[bIDx][bIDy].value[XdivSHARED_X-1][YdivSHARED_Y-1];
+        s_maxPossibleScore[0] = maxPossibleScore[bIDy*NUMBER_SEQUENCES+bIDx];
+    }
+
+    barrier(CLK_LOCAL_MEM_FENCE);
+    if (s_maxima[0]>= MINIMUM_SCORE) { // if the maximum score is below threshold, there is nothing to do
+        unsigned char direction = DIRECTION_MASK & globalDirection->direction[bIDx][bIDy].localDirection[blockx][blocky].value[tIDx][tIDy];
+        unsigned char matrix_source = MATRIX_MASK & globalDirection->direction[bIDx][bIDy].localDirection[blockx][blocky].value[tIDx][tIDy];
+
+    	s_matrix[tIDx][tIDy] = (*matrix).metaMatrix[bIDx][bIDy].matrix[blockx][blocky].value[tIDx][tIDy];
+        s_matrix_i[tIDx][tIDy] = (*matrix_i).metaMatrix[bIDx][bIDy].matrix[blockx][blocky].value[tIDx][tIDy];
+        s_matrix_j[tIDx][tIDy] = (*matrix_j).metaMatrix[bIDx][bIDy].matrix[blockx][blocky].value[tIDx][tIDy];
+
+
+        // wait until all elements have been copied to the shared memory block
+        /**** sync barrier ****/
+        barrier(CLK_LOCAL_MEM_FENCE);
+
+        for (int i=DIAGONAL-1; i >= 0; --i) {
+
+            if ((i == tIDx + tIDy) && matrix_source == MAIN_MATRIX && s_matrix[tIDx][tIDy] >= LOWER_LIMIT_SCORE * s_maxima[0] && s_matrix[tIDx][tIDy] >= s_maxPossibleScore[0]) {
+                // found starting point!
+                // reserve index:
+                unsigned int index = atom_inc(&indexIncrement[0]);
+                StartingPoint start;
+                //__global StartingPoint *start = &(startingPoints->startingPoint[index]);
+                start.sequence = bIDx;
+                start.target = bIDy;
+                start.blockX = blockx;
+                start.blockY = blocky;
+                start.valueX = tIDx;
+                start.valueY = tIDy;
+                start.score = s_matrix[tIDx][tIDy];
+                start.maxScore = s_maxima[0];
+                start.posScore = s_maxPossibleScore[0];
+                startingPoints->startingPoint[index] = start;
+                // mark this value:             
+#ifdef NVIDIA
+                s_matrix[tIDx][tIDy] = __int_as_float(SIGN_BIT_MASK | __float_as_int(s_matrix[tIDx][tIDy]));
+#else
+				s_matrix[tIDx][tIDy] = as_float(SIGN_BIT_MASK | as_int(s_matrix[tIDx][tIDy]));
+#endif
+               
+            }
+                
+            barrier(CLK_LOCAL_MEM_FENCE);
+
+            if ((i == tIDx + tIDy) && (
+            		(s_matrix[tIDx][tIDy] < 0 && matrix_source == MAIN_MATRIX) ||
+            		(s_matrix_i[tIDx][tIDy] < 0 && s_matrix_i[tIDx][tIDy] > AFFINE_GAP_INIT && matrix_source == I_MATRIX) ||
+            		(s_matrix_j[tIDx][tIDy] < 0 && s_matrix_j[tIDx][tIDy] > AFFINE_GAP_INIT && matrix_source == J_MATRIX)
+					)) {
+					// check which matrix to go to:
+					switch (direction) {
+					case A_DIRECTION : // M
+						direction = tracebackStepLeftUp(blockx, blocky, s_matrix, matrix, direction);
+						break;
+					case B_DIRECTION : // I
+						direction = tracebackStepUp(blockx, blocky, s_matrix_i, matrix_i, direction);
+						break;
+					case C_DIRECTION : // J
+						direction = tracebackStepLeft(blockx, blocky, s_matrix_j, matrix_j, direction);
+						break;
+						}
+			}
+            barrier(CLK_LOCAL_MEM_FENCE);
+        }
+
+        // copy end score to the scorings matrix:
+        if (matrix_source == MAIN_MATRIX) {
+            (*matrix).metaMatrix[bIDx][bIDy].matrix[blockx][blocky].value[tIDx][tIDy] = s_matrix[tIDx][tIDy];
+            globalDirectionZeroCopy->direction[bIDx][bIDy].localDirection[blockx][blocky].value[tIDx][tIDy] = direction;
+        }
+        else if (matrix_source == I_MATRIX) {
+            (*matrix_i).metaMatrix[bIDx][bIDy].matrix[blockx][blocky].value[tIDx][tIDy] = s_matrix_i[tIDx][tIDy];
+            globalDirectionZeroCopy->direction[bIDx][bIDy].localDirection[blockx][blocky].value[tIDx][tIDy] = direction;
+        }
+        else if (matrix_source == J_MATRIX) {
+            (*matrix_j).metaMatrix[bIDx][bIDy].matrix[blockx][blocky].value[tIDx][tIDy] = s_matrix_j[tIDx][tIDy];
+            globalDirectionZeroCopy->direction[bIDx][bIDy].localDirection[blockx][blocky].value[tIDx][tIDy] = direction;
+        }
+        /**** sync barrier ****/
+        barrier(CLK_LOCAL_MEM_FENCE);
+    }
+}
 
 
