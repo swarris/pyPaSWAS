@@ -739,119 +739,6 @@ __kernel void traceback(
     }
 }
 
-__kernel unsigned char tracebackStepLeftUp(unsigned int blockx, unsigned int blocky, float s_matrix[][SHARED_Y+1], GlobalMatrix *matrix, unsigned char direction){
-    unsigned int tIDx = get_local_id(0);
-    unsigned int tIDy = get_local_id(1);
-    unsigned int bIDx = get_group_id(0);
-    unsigned int bIDy = get_group_id(1)%NUMBER_TARGETS;
-    unsigned char dir = direction;
-    float value;
-
-	if (tIDx && tIDy){
-		value = s_matrix[tIDx-1][tIDy-1];
-		if (value == 0.0f)
-			dir = STOP_DIRECTION;
-		else
-#ifdef NVIDIA			
-			s_matrix[tIDx-1][tIDy-1] = __int_as_float(SIGN_BIT_MASK | __float_as_int(value));
-#else
-		s_matrix[tIDx-1][tIDy-1] = as_float(SIGN_BIT_MASK | as_int(value));
-#endif		
-	}
-	else if (!tIDx && tIDy && blockx) {
-		value = (*matrix).metaMatrix[bIDx][bIDy].matrix[blockx-1][blocky].value[SHARED_X-1][tIDy-1];
-		if (value == 0.0f)
-			dir = STOP_DIRECTION;
-		else
-#ifdef NVIDIA			
-			(*matrix).metaMatrix[bIDx][bIDy].matrix[blockx-1][blocky].value[SHARED_X-1][tIDy-1] = __int_as_float(SIGN_BIT_MASK | __float_as_int(value));
-#else
-			(*matrix).metaMatrix[bIDx][bIDy].matrix[blockx-1][blocky].value[SHARED_X-1][tIDy-1] = as_float(SIGN_BIT_MASK | as_int(value));
-#endif			
-	}
-	else if (!tIDx && !tIDy && blockx && blocky) {
-		value = (*matrix).metaMatrix[bIDx][bIDy].matrix[blockx-1][blocky-1].value[SHARED_X-1][SHARED_Y-1];
-		if (value == 0.0f)
-			dir = STOP_DIRECTION;
-		else
-#ifdef NVIDIA
-			(*matrix).metaMatrix[bIDx][bIDy].matrix[blockx-1][blocky-1].value[SHARED_X-1][SHARED_Y-1] = __int_as_float(SIGN_BIT_MASK | __float_as_int(value));
-#else
-			(*matrix).metaMatrix[bIDx][bIDy].matrix[blockx-1][blocky-1].value[SHARED_X-1][SHARED_Y-1] = as_float(SIGN_BIT_MASK | as_int(value));
-#endif
-	}
-	else if (tIDx && !tIDy && blocky) {
-		value = (*matrix).metaMatrix[bIDx][bIDy].matrix[blockx][blocky-1].value[tIDx-1][SHARED_Y-1];
-		if (value == 0.0f)
-			dir = STOP_DIRECTION;
-		else
-#ifdef NVIDIA
-			(*matrix).metaMatrix[bIDx][bIDy].matrix[blockx][blocky-1].value[tIDx-1][SHARED_Y-1] = __int_as_float(SIGN_BIT_MASK | __float_as_int(value));
-#else
-			(*matrix).metaMatrix[bIDx][bIDy].matrix[blockx][blocky-1].value[tIDx-1][SHARED_Y-1] = as_float(SIGN_BIT_MASK | as_int(value));
-#endif
-	}
-	return dir;
-
-}
-
-__kernel unsigned char tracebackStepUp(unsigned int blockx, unsigned int blocky, float s_matrix[][SHARED_Y+1], GlobalMatrix *matrix, unsigned char direction){
-    unsigned int tIDx = get_local_id(0);
-    unsigned int tIDy = get_local_id(1);
-    unsigned int bIDx = get_group_id(0);
-    unsigned int bIDy = get_group_id(1)%NUMBER_TARGETS;
-    unsigned char dir = direction;
-    float value;
-
-    if (!tIDy) {
-        if (blocky) {
-            value = (*matrix).metaMatrix[bIDx][bIDy].matrix[blockx][blocky-1].value[tIDx][SHARED_Y-1];
-#ifdef NVIDIA
-            (*matrix).metaMatrix[bIDx][bIDy].matrix[blockx][blocky-1].value[tIDx][SHARED_Y-1] = __int_as_float(SIGN_BIT_MASK | __float_as_int(value));
-#else
-            (*matrix).metaMatrix[bIDx][bIDy].matrix[blockx][blocky-1].value[tIDx][SHARED_Y-1] = as_float(SIGN_BIT_MASK | as_int(value));
-#endif
-        }
-    }
-    else {
-        value = s_matrix[tIDx][tIDy-1];
-        s_matrix[tIDx][tIDy-1] = __int_as_float(SIGN_BIT_MASK | __float_as_int(value));
-    }
-	return dir;
-
-}
-
-__kernel unsigned char tracebackStepLeft(unsigned int blockx, unsigned int blocky, float s_matrix[][SHARED_Y+1], GlobalMatrix *matrix, unsigned char direction){
-    unsigned int tIDx = get_local_id(0);
-    unsigned int tIDy = get_local_id(1);
-    unsigned int bIDx = get_group_id(0);
-    unsigned int bIDy = get_group_id(1)%NUMBER_TARGETS;
-    unsigned char dir = direction;
-    float value;
-
-    if (!tIDx){
-        if (blockx) {
-            value = (*matrix).metaMatrix[bIDx][bIDy].matrix[blockx-1][blocky].value[SHARED_X-1][tIDy];
-#ifdef NVIDIA
-            (*matrix).metaMatrix[bIDx][bIDy].matrix[blockx-1][blocky].value[SHARED_X-1][tIDy] = __int_as_float(SIGN_BIT_MASK | __float_as_int(value));
-#else
-            (*matrix).metaMatrix[bIDx][bIDy].matrix[blockx-1][blocky].value[SHARED_X-1][tIDy] = as_float(SIGN_BIT_MASK | as_int(value));
-#endif
-        }
-    }
-    else {
-        value = s_matrix[tIDx-1][tIDy];
-#ifdef NVIDIA
-        s_matrix[tIDx-1][tIDy] = __int_as_float(SIGN_BIT_MASK | __float_as_int(value));
-#else
-        s_matrix[tIDx-1][tIDy] = as_float(SIGN_BIT_MASK | as_int(value));
-#endif
-    }
-
-
-    return dir;
-
-}
 
 __kernel void tracebackAffineGap(
 		__global GlobalMatrix *matrix,
@@ -947,13 +834,92 @@ __kernel void tracebackAffineGap(
 					// check which matrix to go to:
 					switch (direction) {
 					case A_DIRECTION : // M
-						direction = tracebackStepLeftUp(blockx, blocky, s_matrix, matrix, direction);
+						if (tIDx && tIDy){
+							value = s_matrix[tIDx-1][tIDy-1];
+							if (value == 0.0f)
+								direction = STOP_DIRECTION;
+							else
+#ifdef NVIDIA			
+								s_matrix[tIDx-1][tIDy-1] = __int_as_float(SIGN_BIT_MASK | __float_as_int(value));
+#else
+								s_matrix[tIDx-1][tIDy-1] = as_float(SIGN_BIT_MASK | as_int(value));
+#endif		
+						}
+						else if (!tIDx && tIDy && blockx) {
+							value = (*matrix).metaMatrix[bIDx][bIDy].matrix[blockx-1][blocky].value[SHARED_X-1][tIDy-1];
+							if (value == 0.0f)
+								direction = STOP_DIRECTION;
+							else
+#ifdef NVIDIA			
+								(*matrix).metaMatrix[bIDx][bIDy].matrix[blockx-1][blocky].value[SHARED_X-1][tIDy-1] = __int_as_float(SIGN_BIT_MASK | __float_as_int(value));
+#else
+								(*matrix).metaMatrix[bIDx][bIDy].matrix[blockx-1][blocky].value[SHARED_X-1][tIDy-1] = as_float(SIGN_BIT_MASK | as_int(value));
+#endif			
+						}
+						else if (!tIDx && !tIDy && blockx && blocky) {
+							value = (*matrix).metaMatrix[bIDx][bIDy].matrix[blockx-1][blocky-1].value[SHARED_X-1][SHARED_Y-1];
+							if (value == 0.0f)
+								direction = STOP_DIRECTION;
+							else
+#ifdef NVIDIA
+								(*matrix).metaMatrix[bIDx][bIDy].matrix[blockx-1][blocky-1].value[SHARED_X-1][SHARED_Y-1] = __int_as_float(SIGN_BIT_MASK | __float_as_int(value));
+#else
+								(*matrix).metaMatrix[bIDx][bIDy].matrix[blockx-1][blocky-1].value[SHARED_X-1][SHARED_Y-1] = as_float(SIGN_BIT_MASK | as_int(value));
+#endif
+						}
+						else if (tIDx && !tIDy && blocky) {
+							value = (*matrix).metaMatrix[bIDx][bIDy].matrix[blockx][blocky-1].value[tIDx-1][SHARED_Y-1];
+							if (value == 0.0f)
+								direction = STOP_DIRECTION;
+							else
+#ifdef NVIDIA
+								(*matrix).metaMatrix[bIDx][bIDy].matrix[blockx][blocky-1].value[tIDx-1][SHARED_Y-1] = __int_as_float(SIGN_BIT_MASK | __float_as_int(value));
+#else
+								(*matrix).metaMatrix[bIDx][bIDy].matrix[blockx][blocky-1].value[tIDx-1][SHARED_Y-1] = as_float(SIGN_BIT_MASK | as_int(value));
+#endif
+						}
+
+//direction = tracebackStepLeftUp(blockx, blocky, s_matrix, matrix, direction);
 						break;
 					case B_DIRECTION : // I
-						direction = tracebackStepUp(blockx, blocky, s_matrix_i, matrix_i, direction);
+						if (!tIDy) {
+							if (blocky) {
+								value = (*matrix_i).metaMatrix[bIDx][bIDy].matrix[blockx][blocky-1].value[tIDx][SHARED_Y-1];
+#ifdef NVIDIA
+								(*matrix_i).metaMatrix[bIDx][bIDy].matrix[blockx][blocky-1].value[tIDx][SHARED_Y-1] = __int_as_float(SIGN_BIT_MASK | __float_as_int(value));
+#else
+								(*matrix_i).metaMatrix[bIDx][bIDy].matrix[blockx][blocky-1].value[tIDx][SHARED_Y-1] = as_float(SIGN_BIT_MASK | as_int(value));
+#endif
+							}
+						}
+						else {
+							value = s_matrix_i[tIDx][tIDy-1];
+							s_matrix_i[tIDx][tIDy-1] = __int_as_float(SIGN_BIT_MASK | __float_as_int(value));
+						}
+
+						//direction = tracebackStepUp(blockx, blocky, s_matrix_i, matrix_i, direction);
 						break;
 					case C_DIRECTION : // J
-						direction = tracebackStepLeft(blockx, blocky, s_matrix_j, matrix_j, direction);
+						if (!tIDx){
+							if (blockx) {
+								value = (*matrix_j).metaMatrix[bIDx][bIDy].matrix[blockx-1][blocky].value[SHARED_X-1][tIDy];
+#ifdef NVIDIA
+								(*matrix_j).metaMatrix[bIDx][bIDy].matrix[blockx-1][blocky].value[SHARED_X-1][tIDy] = __int_as_float(SIGN_BIT_MASK | __float_as_int(value));
+#else
+								(*matrix_j).metaMatrix[bIDx][bIDy].matrix[blockx-1][blocky].value[SHARED_X-1][tIDy] = as_float(SIGN_BIT_MASK | as_int(value));
+#endif
+							}
+						}
+						else {
+							value = s_matrix_j[tIDx-1][tIDy];
+#ifdef NVIDIA
+							s_matrix_j[tIDx-1][tIDy] = __int_as_float(SIGN_BIT_MASK | __float_as_int(value));
+#else
+							s_matrix_j[tIDx-1][tIDy] = as_float(SIGN_BIT_MASK | as_int(value));
+#endif
+						}
+
+						//direction = tracebackStepLeft(blockx, blocky, s_matrix_j, matrix_j, direction);
 						break;
 						}
 			}
@@ -963,15 +929,15 @@ __kernel void tracebackAffineGap(
         // copy end score to the scorings matrix:
         if (matrix_source == MAIN_MATRIX) {
             (*matrix).metaMatrix[bIDx][bIDy].matrix[blockx][blocky].value[tIDx][tIDy] = s_matrix[tIDx][tIDy];
-            globalDirectionZeroCopy->direction[bIDx][bIDy].localDirection[blockx][blocky].value[tIDx][tIDy] = direction;
+            globalDirection->direction[bIDx][bIDy].localDirection[blockx][blocky].value[tIDx][tIDy] = direction;
         }
         else if (matrix_source == I_MATRIX) {
             (*matrix_i).metaMatrix[bIDx][bIDy].matrix[blockx][blocky].value[tIDx][tIDy] = s_matrix_i[tIDx][tIDy];
-            globalDirectionZeroCopy->direction[bIDx][bIDy].localDirection[blockx][blocky].value[tIDx][tIDy] = direction;
+            globalDirection->direction[bIDx][bIDy].localDirection[blockx][blocky].value[tIDx][tIDy] = direction;
         }
         else if (matrix_source == J_MATRIX) {
             (*matrix_j).metaMatrix[bIDx][bIDy].matrix[blockx][blocky].value[tIDx][tIDy] = s_matrix_j[tIDx][tIDy];
-            globalDirectionZeroCopy->direction[bIDx][bIDy].localDirection[blockx][blocky].value[tIDx][tIDy] = direction;
+            globalDirection->direction[bIDx][bIDy].localDirection[blockx][blocky].value[tIDx][tIDy] = direction;
         }
         /**** sync barrier ****/
         barrier(CLK_LOCAL_MEM_FENCE);
