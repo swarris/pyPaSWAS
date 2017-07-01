@@ -303,15 +303,10 @@ __kernel void calculateScoreAffineGap(
 		        	currentScore_i = AFFINE_GAP_INIT;
 		        	m_M = gapScore + gapExtension + (*matrix).metaMatrix[bIDx][bIDy].value[aIDx][aYM1];
 					m_I = gapExtension + (*matrix_i).metaMatrix[bIDx][bIDy].value[aIDx][aYM1];
-					m_J = gapScore + gapExtension + (*matrix_j).metaMatrix[bIDx][bIDy].value[aIDx][aYM1];
 
 					if (currentScore_i < m_I) { // score comes from I matrix (gap in x)
 		        		currentScore_i = m_I;
 		        		direction_i = B_DIRECTION;
-		        	}
-		        	if (currentScore_i < m_J) { // score comes from J matrix (gap in y)
-		        		currentScore_i = m_J;
-		        		direction_i = C_DIRECTION;
 		        	}
 		        	if (currentScore_i < m_M) { // score comes from m matrix (match)
 		        		currentScore_i = m_M;
@@ -322,23 +317,18 @@ __kernel void calculateScoreAffineGap(
 		        	// now do J matrix:
 		        	currentScore_j = AFFINE_GAP_INIT;
 		        	m_M = gapScore + gapExtension + (*matrix).metaMatrix[bIDx][bIDy].value[aXM1][aIDy];
-					m_I = gapScore + gapExtension + (*matrix_i).metaMatrix[bIDx][bIDy].value[aXM1][aIDy];
 					m_J = gapExtension + (*matrix_j).metaMatrix[bIDx][bIDy].value[aXM1][aIDy];
 
-					if (currentScore_j < m_I) { // score comes from I matrix (gap in x)
-		        		currentScore_j = m_I;
-		        		direction_j = B_DIRECTION;
-		        	}
 		        	if (currentScore_j < m_J) { // score comes from J matrix (gap in y)
 		        		currentScore_j = m_J;
 		        		direction_j = C_DIRECTION;
 		        	}
-		        	if (currentScore < m_M) { // score comes from m matrix (match)
+		        	if (currentScore_j < m_M) { // score comes from m matrix (match)
 		        		currentScore_j = m_M;
 		        		direction_j = A_DIRECTION;
 		        	}
 		        	(*matrix_j).metaMatrix[bIDx][bIDy].value[aIDx][aIDy] = currentScore_j < 0 ? AFFINE_GAP_INIT : currentScore_j; // copy score to matrix
-		        	currentScore = fmax(currentScore,max(currentScore_i,currentScore_j));
+		        	currentScore = fmax(currentScore,fmax(currentScore_i,currentScore_j));
 		        	if (currentScore > 0) {
 						if (currentScore == (*matrix).metaMatrix[bIDx][bIDy].value[aIDx][aIDy]) {// direction from main
 							direction = direction | MAIN_MATRIX;
@@ -346,7 +336,7 @@ __kernel void calculateScoreAffineGap(
 						else if(currentScore == (*matrix_i).metaMatrix[bIDx][bIDy].value[aIDx][aIDy]) {// direction from I
 							direction = direction_i | I_MATRIX;
 						}
-						else { // direction from J
+						else if (currentScore == (*matrix_j).metaMatrix[bIDx][bIDy].value[aIDx][aIDy]) { // direction from J
 							direction = direction_j | J_MATRIX;
 						}
 		        	}
@@ -598,8 +588,8 @@ __kernel void tracebackAffineGap(
 									break;
 								}
 		            		}
+		            		
 		            		globalDirection->direction[bIDx][bIDy].value[aXM1][aYM1] = direction;
-		            	
 						}
 					}
 					

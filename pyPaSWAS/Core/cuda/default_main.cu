@@ -487,15 +487,10 @@ __global__ void calculateScoreAffineGap(GlobalMatrix *matrix, GlobalMatrix *matr
         	currentScore_i = AFFINE_GAP_INIT;
         	m_M = gapScore + gapExtension + s_matrix[tIDx][tYM1];
 			m_I = gapExtension + s_matrix_i[tIDx][tYM1];
-			m_J = gapScore + gapExtension + s_matrix_j[tIDx][tYM1];
 
 			if (currentScore_i < m_I) { // score comes from I matrix (gap in x)
         		currentScore_i = m_I;
         		direction_i = B_DIRECTION;
-        	}
-        	if (currentScore_i < m_J) { // score comes from J matrix (gap in y)
-        		currentScore_i = m_J;
-        		direction_i = C_DIRECTION;
         	}
         	if (currentScore_i < m_M) { // score comes from m matrix (match)
         		currentScore_i = m_M;
@@ -506,18 +501,13 @@ __global__ void calculateScoreAffineGap(GlobalMatrix *matrix, GlobalMatrix *matr
         	// now do J matrix:
         	currentScore_j = AFFINE_GAP_INIT;
         	m_M = gapScore + gapExtension + s_matrix[tXM1][tIDy];
-			m_I = gapScore + gapExtension + s_matrix_i[tXM1][tIDy];
 			m_J = gapExtension + s_matrix_j[tXM1][tIDy];
 
-			if (currentScore_j < m_I) { // score comes from I matrix (gap in x)
-        		currentScore_j = m_I;
-        		direction_j = B_DIRECTION;
-        	}
         	if (currentScore_j < m_J) { // score comes from J matrix (gap in y)
         		currentScore_j = m_J;
         		direction_j = C_DIRECTION;
         	}
-        	if (currentScore < m_M) { // score comes from m matrix (match)
+        	if (currentScore_j < m_M) { // score comes from m matrix (match)
         		currentScore_j = m_M;
         		direction_j = A_DIRECTION;
         	}
@@ -530,7 +520,7 @@ __global__ void calculateScoreAffineGap(GlobalMatrix *matrix, GlobalMatrix *matr
 				else if(currentScore == s_matrix_i[tIDx][tIDy]) {// direction from I
 					direction = direction_i | I_MATRIX;
 				}
-				else { // direction from J
+				else  if(currentScore == s_matrix_j[tIDx][tIDy]){ // direction from J
 					direction = direction_j | J_MATRIX;
 				}
         	}

@@ -405,10 +405,10 @@ __kernel void calculateScoreAffineGap(
         /**** sync barrier ****/
     barrier(CLK_LOCAL_MEM_FENCE);
 
-    currentScore = 0.0f;
 
     for (int i=0; i < DIAGONAL; ++i) {
         if (i == tXM1+ tYM1) {
+            currentScore = 0.0f;
         	m_M = s_matrix[tXM1][tYM1]+innerScore;
         	m_I = s_matrix_i[tXM1][tYM1]+innerScore;
         	m_J = s_matrix_j[tXM1][tYM1]+innerScore;
@@ -427,20 +427,14 @@ __kernel void calculateScoreAffineGap(
         	}
         	s_matrix[tIDx][tIDy] = innerScore == FILL_SCORE || innerScore < 0? 0.0 : currentScore; // copy score to matrix
 
-
         	// now do I matrix:
         	currentScore_i = AFFINE_GAP_INIT;
         	m_M = gapScore + gapExtension + s_matrix[tIDx][tYM1];
 			m_I = gapExtension + s_matrix_i[tIDx][tYM1];
-			m_J = gapScore + gapExtension + s_matrix_j[tIDx][tYM1];
 
 			if (currentScore_i < m_I) { // score comes from I matrix (gap in x)
         		currentScore_i = m_I;
         		direction_i = B_DIRECTION;
-        	}
-        	if (currentScore_i < m_J) { // score comes from J matrix (gap in y)
-        		currentScore_i = m_J;
-        		direction_i = C_DIRECTION;
         	}
         	if (currentScore_i < m_M) { // score comes from m matrix (match)
         		currentScore_i = m_M;
@@ -451,23 +445,19 @@ __kernel void calculateScoreAffineGap(
         	// now do J matrix:
         	currentScore_j = AFFINE_GAP_INIT;
         	m_M = gapScore + gapExtension + s_matrix[tXM1][tIDy];
-			m_I = gapScore + gapExtension + s_matrix_i[tXM1][tIDy];
 			m_J = gapExtension + s_matrix_j[tXM1][tIDy];
 
-			if (currentScore_j < m_I) { // score comes from I matrix (gap in x)
-        		currentScore_j = m_I;
-        		direction_j = B_DIRECTION;
-        	}
-        	if (currentScore_j < m_J) { // score comes from J matrix (gap in y)
+			if (currentScore_j < m_J) { // score comes from J matrix (gap in y)
         		currentScore_j = m_J;
         		direction_j = C_DIRECTION;
         	}
-        	if (currentScore < m_M) { // score comes from m matrix (match)
+        	if (currentScore_j < m_M) { // score comes from m matrix (match)
         		currentScore_j = m_M;
         		direction_j = A_DIRECTION;
         	}
         	s_matrix_j[tIDx][tIDy] = currentScore_j < 0 ? AFFINE_GAP_INIT : currentScore_j; // copy score to matrix
-        	currentScore = fmax(currentScore,max(currentScore_i,currentScore_j));
+
+        	currentScore = fmax(currentScore,fmax(currentScore_i,currentScore_j));
         	if (currentScore > 0) {
 				if (currentScore == s_matrix[tIDx][tIDy]) {// direction from main
 					direction = direction | MAIN_MATRIX;
@@ -475,7 +465,7 @@ __kernel void calculateScoreAffineGap(
 				else if(currentScore == s_matrix_i[tIDx][tIDy]) {// direction from I
 					direction = direction_i | I_MATRIX;
 				}
-				else { // direction from J
+				else if(currentScore == s_matrix_j[tIDx][tIDy]){ // direction from J
 					direction = direction_j | J_MATRIX;
 				}
         	}
