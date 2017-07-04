@@ -405,33 +405,5 @@ class Hit(object):
                 char = 'I'
         return char
     
-    def palindrome(self, records_seq, targets, settings):
-        if self.query_coverage > float(settings.query_coverage_slice):
-            records_seq.append(SWSeqRecord(self.sequence_info.seq[:len(self.sequence_info.seq)/2], self.sequence_info.id + "_a1"))
-            records_seq.append(SWSeqRecord(self.sequence_info.seq[len(self.sequence_info.seq)/2:], self.sequence_info.id + "_a2"))
-
-            targets.append(SWSeqRecord(self.sequence_info.seq[:len(self.sequence_info.seq)/2].reverse_complement(), self.sequence_info.id + "_a1_RC"))
-            targets.append(SWSeqRecord(self.sequence_info.seq[len(self.sequence_info.seq)/2:].reverse_complement(), self.sequence_info.id + "_a2_RC"))
-        else:
-            snip = (self.seq_location[1]-self.seq_location[0])/2
-            if snip - self.seq_location[0] > int(settings.minimum_read_length):
-                records_seq.append(SWSeqRecord(self.sequence_info.seq[:snip], self.sequence_info.id + "_b1"))
-                targets.append(SWSeqRecord(self.sequence_info.seq[:snip].reverse_complement(), self.sequence_info.id + "_b1_RC"))
-            if self.seq_location[1] - snip > int(settings.minimum_read_length):
-                records_seq.append(SWSeqRecord(self.sequence_info.seq[snip:], self.sequence_info.id + "_b2"))
-                targets.append(SWSeqRecord(self.sequence_info.seq[snip:].reverse_complement(), self.sequence_info.id + "_b2_RC"))
-            
-            """
-            if self.seq_location[0] > 50:
-                records_seq.append(SWSeqRecord(self.sequence_info.seq[:self.seq_location[0]], self.sequence_info.id + "_F"))
-                targets.append(SWSeqRecord(self.sequence_info.seq[:self.seq_location[0]].reverse_complement(), self.sequence_info.id + "_F_RC"))
-            if len(self.sequence_info.seq) - self.seq_location[1] > 50:
-                records_seq.append(SWSeqRecord(self.sequence_info.seq[self.seq_location[1]:], self.sequence_info.id + "_L"))
-                targets.append(SWSeqRecord(self.sequence_info.seq[self.seq_location[1]:].reverse_complement(), self.sequence_info.id + "_L_RC"))
-
-            if self.seq_location[1] - self.seq_location[0] > 50:
-                records_seq.append(SWSeqRecord(self.sequence_info.seq[self.seq_location[0]:self.seq_location[1]], self.sequence_info.id + "_M"))
-                targets.append(SWSeqRecord(self.sequence_info.seq[self.seq_location[0]:self.seq_location[1]].reverse_complement(), self.sequence_info.id + "_M_RC"))
-            """    
 
 

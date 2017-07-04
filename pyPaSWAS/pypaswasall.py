@@ -9,9 +9,9 @@ from pyPaSWAS import parse_cli, set_logger, normalize_file_path
 from pyPaSWAS.Core import resource_filename
 from pyPaSWAS.Core.Exceptions import InvalidOptionException, ReaderException
 from pyPaSWAS.Core.Formatters import DefaultFormatter, SamFormatter,TrimmerFormatter, FASTA
-from pyPaSWAS.Core.Programs import Aligner,Trimmer, Palindrome
+from pyPaSWAS.Core.Programs import Aligner,Trimmer
 from pyPaSWAS.Core.Readers import BioPythonReader
-from pyPaSWAS.Core.Scores import BasicScore, CustomScore, DnaRnaScore, Blosum62Score, Blosum80Score, IrysScore, PalindromeScore
+from pyPaSWAS.Core.Scores import BasicScore, CustomScore, DnaRnaScore, Blosum62Score, Blosum80Score, IrysScore
 from pyPaSWAS.Core.HitList import HitList
 import logging
 import os.path
@@ -169,17 +169,6 @@ class Pypaswas(object):
             self.program = Aligner(self.logger, self.score, self.settings)
         elif self.settings.program == 'trimmer':
             self.program = Trimmer(self.logger, self.score, self.settings)
-        elif self.settings.program == "palindrome":
-            self.program = Palindrome(self.logger, self.score, self.settings)
-            self.logger.warning("Forcing output to FASTA")
-            self.output_format = "FASTA"
-            self.logger.warning("Forcing query step to 1")
-            self.settings.query_step = "1"
-            self.logger.warning("Forcing sequence step to 1")
-            self.settings.sequence_step = "1"
-            self.logger.warning("Forcing Matrix to PALINDROME")
-            self.settings.matrix_name = "PALINDROME"
-            self.score = PalindromeScore(self.logger, self.settings)
         else:
             raise InvalidOptionException('Invalid program selected {0}'.format(self.settings.program))
 

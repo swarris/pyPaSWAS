@@ -378,9 +378,4 @@ class IrysScore(Score):
                 else:
                     self.matrix[row][col] = str(float(self.mismatch_score) * abs(row-col))
         
-class PalindromeScore(DnaRnaScore):
-    def __init__(self, logger, settings):
-        DnaRnaScore.__init__(self, logger, settings)
 
-    def _set_score_type(self):
-        self.score_type = 'PALINDROME'

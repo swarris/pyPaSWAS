@@ -136,7 +136,7 @@ def parse_cli(config_file):
     aligner_options.add_option('-g', help='Float. Penalty for a gap extension. Set to zero to ignore this (faster)', dest='gap_extension',
                                default=config.get('Aligner', 'gap_extension'))
     aligner_options.add_option('-M', '--matrixname', help='The scoring to be used. Valid options are '
-                               '"DNA-RNA", "PALINDROME", "BASIC", "Blosum62", "Blosum80" and "CUSTOM"', dest='matrix_name',
+                               '"DNA-RNA", "BASIC", "Blosum62", "Blosum80" and "CUSTOM"', dest='matrix_name',
                                default=config.get('Aligner', 'matrix_name'))
     aligner_options.add_option('-q', '--mismatch_score', help='Float. Penalty for mismatch', dest='mismatch_score',
                                default=config.get('Aligner', 'mismatch_score'))
@@ -182,15 +182,6 @@ def parse_cli(config_file):
                               ', for example 5.0 in case of DNA',
                               dest='base_score', default=config.get('Filter', 'base_score'))
     parser.add_option_group(filter_options)
-
-
-    palindrome_options = optparse.OptionGroup(parser, 'Options related to the Palindrome detector.')
-    palindrome_options.add_option('--query_coverage_slice', help='Minimum fraction of the read in the alignment needed to slice the read in half.', dest='query_coverage_slice',
-                              default=config.get('Palindrome', 'query_coverage_slice'))
-
-    palindrome_options.add_option('--minimum_read_length', help='Minimum length of the read in bp to the saved.', dest='minimum_read_length',
-                              default=config.get('Palindrome', 'minimum_read_length'))
-    parser.add_option_group(palindrome_options)
 
 
     graph_options = optparse.OptionGroup(parser, 'Options to connect to a neo4j graph database and store mappings in a graph')
