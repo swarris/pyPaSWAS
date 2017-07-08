@@ -642,13 +642,12 @@ class SmithWaterman(object):
         max_score = 0
 
         direction_array = self._get_direction_byte_array()
-        #self.logger.debug(direction_array)
+#        self.logger.debug(direction_array)
         starting_points_list = []
         for i in range(0,number_of_starting_points):
             starting_point = StartingPoint(self.logger)
             starting_point.parse_byte_string(starting_points, i)
             starting_points_list.append(starting_point)
-            
 
         starting_points_list.sort(key=lambda s: s.score)
         

@@ -286,58 +286,59 @@ __kernel void calculateScoreAffineGap(
 
 		        	if (currentScore < m_I) { // score comes from I matrix (gap in x)
 		        		currentScore = m_I;
-		        		direction = B_DIRECTION;
+		        		direction = A_DIRECTION | MAIN_MATRIX;
 		        	}
 		        	if (currentScore < m_J) { // score comes from J matrix (gap in y)
 		        		currentScore = m_J;
-		        		direction = C_DIRECTION;
+		        		direction = A_DIRECTION | MAIN_MATRIX;
 		        	}
 		        	if (currentScore < m_M) { // score comes from m matrix (match)
 		        		currentScore = m_M;
-		        		direction = A_DIRECTION;
+		        		direction = A_DIRECTION | MAIN_MATRIX;
 		        	}
-		        	(*matrix).metaMatrix[bIDx][bIDy].value[aIDx][aIDy] = innerScore == FILL_SCORE || innerScore < 0? 0.0 : currentScore; // copy score to matrix
+		        	(*matrix).metaMatrix[bIDx][bIDy].value[aIDx][aIDy] = innerScore == FILL_SCORE ? 0.0 : currentScore; // copy score to matrix
 
 
 		        	// now do I matrix:
 		        	currentScore_i = AFFINE_GAP_INIT;
-		        	m_M = gapScore + gapExtension + (*matrix).metaMatrix[bIDx][bIDy].value[aIDx][aYM1];
+		        	m_M = gapScore + (*matrix).metaMatrix[bIDx][bIDy].value[aIDx][aYM1];
 					m_I = gapExtension + (*matrix_i).metaMatrix[bIDx][bIDy].value[aIDx][aYM1];
 
 					if (currentScore_i < m_I) { // score comes from I matrix (gap in x)
 		        		currentScore_i = m_I;
-		        		direction_i = B_DIRECTION;
+		        		direction_i = B_DIRECTION | I_MATRIX;
 		        	}
 		        	if (currentScore_i < m_M) { // score comes from m matrix (match)
 		        		currentScore_i = m_M;
-		        		direction_i= A_DIRECTION;
+		        		direction_i= B_DIRECTION | I_MATRIX;
 		        	}
 		        	(*matrix_i).metaMatrix[bIDx][bIDy].value[aIDx][aIDy] = currentScore_i < 0 ? AFFINE_GAP_INIT : currentScore_i; // copy score to matrix
 
 		        	// now do J matrix:
 		        	currentScore_j = AFFINE_GAP_INIT;
-		        	m_M = gapScore + gapExtension + (*matrix).metaMatrix[bIDx][bIDy].value[aXM1][aIDy];
+		        	m_M = gapScore + (*matrix).metaMatrix[bIDx][bIDy].value[aXM1][aIDy];
 					m_J = gapExtension + (*matrix_j).metaMatrix[bIDx][bIDy].value[aXM1][aIDy];
 
 		        	if (currentScore_j < m_J) { // score comes from J matrix (gap in y)
 		        		currentScore_j = m_J;
-		        		direction_j = C_DIRECTION;
+		        		direction_j = C_DIRECTION | J_MATRIX;
 		        	}
 		        	if (currentScore_j < m_M) { // score comes from m matrix (match)
 		        		currentScore_j = m_M;
-		        		direction_j = A_DIRECTION;
+		        		direction_j = C_DIRECTION | J_MATRIX;
 		        	}
 		        	(*matrix_j).metaMatrix[bIDx][bIDy].value[aIDx][aIDy] = currentScore_j < 0 ? AFFINE_GAP_INIT : currentScore_j; // copy score to matrix
 		        	currentScore = fmax(currentScore,fmax(currentScore_i,currentScore_j));
+		        	
 		        	if (currentScore > 0) {
 						if (currentScore == (*matrix).metaMatrix[bIDx][bIDy].value[aIDx][aIDy]) {// direction from main
-							direction = direction | MAIN_MATRIX;
+							direction = direction;
 						}
 						else if(currentScore == (*matrix_i).metaMatrix[bIDx][bIDy].value[aIDx][aIDy]) {// direction from I
-							direction = direction_i | I_MATRIX;
+							direction = direction_i;
 						}
 						else if (currentScore == (*matrix_j).metaMatrix[bIDx][bIDy].value[aIDx][aIDy]) { // direction from J
-							direction = direction_j | J_MATRIX;
+							direction = direction_j;
 						}
 		        	}
 					
@@ -563,8 +564,8 @@ __kernel void tracebackAffineGap(
 		            		((*matrix_j).metaMatrix[bIDx][bIDy].value[aIDx][aIDy] < 0 && (*matrix_j).metaMatrix[bIDx][bIDy].value[aIDx][aIDy] > AFFINE_GAP_INIT && matrix_source == J_MATRIX)
 							) {
 							// check which matrix to go to:
-		            			switch (direction) {
-		            			case A_DIRECTION : // M
+		            			switch (matrix_source) {
+		            			case MAIN_MATRIX : // M
 		            				score = (*matrix).metaMatrix[bIDx][bIDy].value[aIDx-1][aIDy-1];
 		            				if (score == 0.0f)
 		            					direction = STOP_DIRECTION;
@@ -572,19 +573,22 @@ __kernel void tracebackAffineGap(
 										getSemaphore(&((*globalSemaphores).semaphores[bIDx][bIDy].semaphore[aXM1-1][aYM1-1].s[0]));
 										(*matrix).metaMatrix[bIDx][bIDy].value[aIDx-1][aIDy-1] = as_float(SIGN_BIT_MASK | as_int(score));
 										releaseSemaphore(&((*globalSemaphores).semaphores[bIDx][bIDy].semaphore[aXM1-1][aYM1-1].s[0]));
+										direction= A_DIRECTION;
 									}
 		            				break;
-		            			case B_DIRECTION : // I
+		            			case I_MATRIX : // I
 		            				score = (*matrix_i).metaMatrix[bIDx][bIDy].value[aIDx][aIDy-1];
 									getSemaphore(&((*globalSemaphores).semaphores[bIDx][bIDy].semaphore[aXM1][aYM1-1].s[0]));
 									(*matrix_i).metaMatrix[bIDx][bIDy].value[aIDx][aIDy-1] = as_float(SIGN_BIT_MASK | as_int(score));
 									releaseSemaphore(&((*globalSemaphores).semaphores[bIDx][bIDy].semaphore[aXM1][aYM1-1].s[0]));
+									direction= B_DIRECTION;
 									break;
-		            			case C_DIRECTION : // J
+		            			case J_MATRIX : // J
 		            				score = (*matrix_j).metaMatrix[bIDx][bIDy].value[aIDx-1][aIDy];
 									getSemaphore(&((*globalSemaphores).semaphores[bIDx][bIDy].semaphore[aXM1-1][aYM1].s[0]));
 									(*matrix_j).metaMatrix[bIDx][bIDy].value[aIDx-1][aIDy] = as_float(SIGN_BIT_MASK | as_int(score));
 									releaseSemaphore(&((*globalSemaphores).semaphores[bIDx][bIDy].semaphore[aXM1-1][aYM1].s[0]));
+									direction= C_DIRECTION;
 									break;
 								}
 		            		}

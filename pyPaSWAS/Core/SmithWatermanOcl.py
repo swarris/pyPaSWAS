@@ -396,6 +396,7 @@ class SmithWatermanCPU(SmithWatermanOcl):
                                                                    self.length_of_x_sequences,
                                                                    self.length_of_y_sequences), dtype=numpy.byte)[0]
         return self.h_global_direction_zero_copy
+
     
     def _get_direction(self, direction_array, sequence, target, block_x, block_y, value_x, value_y):
         return direction_array[sequence][target][block_x*self.shared_x + value_x][block_y*self.shared_y + value_y]
@@ -423,6 +424,10 @@ class SmithWatermanCPU(SmithWatermanOcl):
                                         self.d_targets,
                                         self.d_global_maxima, 
                                         self.d_global_direction_zero_copy)
+#            direction_array = self._get_direction_byte_array()
+#            from pprint import pprint
+#            pprint(direction_array[0][0], width=1000)
+
         else:
             self.program.calculateScore(self.queue, 
                                     dim_grid_sw, 

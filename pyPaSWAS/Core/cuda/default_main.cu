@@ -470,18 +470,17 @@ __global__ void calculateScoreAffineGap(GlobalMatrix *matrix, GlobalMatrix *matr
 
         	if (currentScore < m_I) { // score comes from I matrix (gap in x)
         		currentScore = m_I;
-        		direction = B_DIRECTION;
+        		direction = A_DIRECTION | MAIN_MATRIX;
         	}
         	if (currentScore < m_J) { // score comes from J matrix (gap in y)
         		currentScore = m_J;
-        		direction = C_DIRECTION;
+        		direction = A_DIRECTION | MAIN_MATRIX;
         	}
         	if (currentScore < m_M) { // score comes from m matrix (match)
         		currentScore = m_M;
-        		direction = A_DIRECTION;
+        		direction = A_DIRECTION | MAIN_MATRIX;
         	}
-        	s_matrix[tIDx][tIDy] = innerScore == FILL_SCORE || innerScore < 0? 0.0 : currentScore; // copy score to matrix
-
+        	s_matrix[tIDx][tIDy] = innerScore == FILL_SCORE ? 0.0 : currentScore; // copy score to matrix
 
         	// now do I matrix:
         	currentScore_i = AFFINE_GAP_INIT;
@@ -490,11 +489,11 @@ __global__ void calculateScoreAffineGap(GlobalMatrix *matrix, GlobalMatrix *matr
 
 			if (currentScore_i < m_I) { // score comes from I matrix (gap in x)
         		currentScore_i = m_I;
-        		direction_i = B_DIRECTION;
+        		direction_i = B_DIRECTION | I_MATRIX;
         	}
         	if (currentScore_i < m_M) { // score comes from m matrix (match)
         		currentScore_i = m_M;
-        		direction_i= A_DIRECTION;
+        		direction_i= B_DIRECTION | I_MATRIX;
         	}
         	s_matrix_i[tIDx][tIDy] = currentScore_i < 0 ? AFFINE_GAP_INIT : currentScore_i; // copy score to matrix
 
@@ -505,23 +504,24 @@ __global__ void calculateScoreAffineGap(GlobalMatrix *matrix, GlobalMatrix *matr
 
         	if (currentScore_j < m_J) { // score comes from J matrix (gap in y)
         		currentScore_j = m_J;
-        		direction_j = C_DIRECTION;
+        		direction_j = C_DIRECTION | J_MATRIX;
         	}
         	if (currentScore_j < m_M) { // score comes from m matrix (match)
         		currentScore_j = m_M;
-        		direction_j = A_DIRECTION;
+        		direction_j = C_DIRECTION | J_MATRIX;
         	}
         	s_matrix_j[tIDx][tIDy] = currentScore_j < 0 ? AFFINE_GAP_INIT : currentScore_j; // copy score to matrix
-        	currentScore = max(currentScore,max(currentScore_i,currentScore_j));
+
+        	currentScore = fmax(currentScore,fmax(currentScore_i,currentScore_j));
         	if (currentScore > 0) {
 				if (currentScore == s_matrix[tIDx][tIDy]) {// direction from main
-					direction = direction | MAIN_MATRIX;
+					direction = direction;
 				}
 				else if(currentScore == s_matrix_i[tIDx][tIDy]) {// direction from I
-					direction = direction_i | I_MATRIX;
+					direction = direction_i;
 				}
-				else  if(currentScore == s_matrix_j[tIDx][tIDy]){ // direction from J
-					direction = direction_j | J_MATRIX;
+				else if(currentScore == s_matrix_j[tIDx][tIDy]){ // direction from J
+					direction = direction_j;
 				}
         	}
         }
