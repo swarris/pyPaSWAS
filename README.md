@@ -4,7 +4,7 @@ pyPaSWAS
 
 Extented python version of PaSWAS. Original paper in PLOS ONE: http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0122524
 
-For DNA/RNA/protein sequence alignment and trimming.
+For DNA/RNA/protein sequence alignment and trimming. 
 
 PaSWAS was developed in C and CUDA/OpenCL. This version uses the CUDA/OpenCL code from PaSWAS and integrates the sequence alignment software with Python. It supports:
 - text output
@@ -12,6 +12,7 @@ PaSWAS was developed in C and CUDA/OpenCL. This version uses the CUDA/OpenCL cod
 - logging
 - command line options and configuration files
 - Several internal programs: aligner (default) and trimmer 
+- Affine gap penalty method
 
 Platforms supported:
 - NVIDIA GPU using CUDA (compute capability 1.3 and higher) 
@@ -103,6 +104,7 @@ Table 1. Key command line options
 |-1	| --filetype1	| File type of the first input file. See bioPython IO for available options. Default fasta| 
 |-2	| --filetype2	| File type of the second input file. See bioPython IO for available options. Default fasta| 
 |-G	| 	| Float value for the gap penalty. Default -5| 
+|-g |   | Float value for the gap extension penalty. Memory usage will increase when setting this to anything other than zero.  Default 0 | 
 |-q	| 	| Float value for a mismatch. Default -3| 
 |-r	| 	| Float value for a match. Default 1| 
 |	| --any	| Float value for an ambiguous nucleotide. Default 1| 
