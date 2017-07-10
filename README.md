@@ -1,6 +1,6 @@
 pyPaSWAS
 ========
-[![DOI](https://zenodo.org/badge/21912/swarris/pyPaSWAS.svg)](https://zenodo.org/badge/latestdoi/21912/swarris/pyPaSWAS)
+[![DOI](https://zenodo.org/badge/28648467.svg)](https://zenodo.org/badge/latestdoi/28648467)
 
 Extented python version of PaSWAS. Original paper in PLOS ONE: http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0122524
 
