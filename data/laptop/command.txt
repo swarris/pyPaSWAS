@@ -1,0 +1,1 @@
+for i in `ls *fasta_*.fasta`; do echo $i; time python ~/git/pyPaSWAS/pypaswas.py -M BLOSUM80 canisLupusAnkyrin.fasta $i -L log.txt --device_type=GPU --platform_name=NVIDIA --framework=OpenCL -o speed.txt ; done > timingOpencl 2> timingOpencl.txt &

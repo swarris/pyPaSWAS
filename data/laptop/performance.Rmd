@@ -1,0 +1,225 @@
+---
+output: pdf_document
+---
+# pyOpenCL and pyCUDA performance data
+
+```{r echo=FALSE}
+library(knitr)
+cpu = read.csv("sorted.cpu.csv", sep="\t", header=FALSE, check.names=FALSE)
+cpuSingle = read.csv("sorted.cpuSingle.csv", sep="\t", header=FALSE, check.names=FALSE)
+cpuOclSingle = read.csv("sorted.cpuOclSingle.csv", sep="\t", header=FALSE, check.names=FALSE)
+cpuOcl = read.csv("sorted.cpuOcl.csv", sep="\t", header=FALSE, check.names=FALSE)
+gpuOcl = read.csv("sorted.gpuOcl.csv", sep="\t", header=FALSE, check.names=FALSE)
+gpuCuda = read.csv("sorted.gpuCuda.csv", sep="\t", header=FALSE, check.names=FALSE)
+
+cellUpdates = read.csv("../desktop/cellUpdates.csv", sep="\t", header=FALSE, check.names=FALSE)
+cellUpdates = cellUpdates[order(cellUpdates[,1]),]
+cellUpdates[,2] = cellUpdates[,2]/1e9
+
+cpu = cpu[order(cpu[,1]),]
+cpuSingle = cpuSingle[order(cpuSingle[,1]),]
+cpuOclSingle = cpuOclSingle[order(cpuOclSingle[,1]),]
+cpuOcl = cpuOcl[order(cpuOcl[,1]),]
+gpuOcl = gpuOcl[order(gpuOcl[,1]),]
+gpuCuda = gpuCuda[order(gpuCuda[,1]),]
+
+
+
+# each points consists of 8 query sequences:
+cpu[,1] = cpu[,1]*8
+cpuSingle[,1] = cpuSingle[,1]*8
+cpuOclSingle[,1] = cpuOclSingle[,1]*8
+cpuOcl[,1] = cpuOcl[,1]*8
+gpuOcl[,1] = gpuOcl[,1]*8
+gpuCuda[,1] = gpuCuda[,1]*8
+
+cpu = cbind(cpu, cellUpdates[,2]/cpu[,2])
+cpuSingle = cbind(cpuSingle, cellUpdates[,2]/cpuSingle[,2])
+cpuOclSingle = cbind(cpuOclSingle, cellUpdates[,2]/cpuOclSingle[,2])
+cpuOcl = cbind(cpuOcl, cellUpdates[,2]/cpuOcl[,2])
+gpuOcl = cbind(gpuOcl, cellUpdates[,2]/gpuOcl[,2])
+gpuCuda = cbind(gpuCuda, cellUpdates[,2]/gpuCuda[,2])
+
+
+# remove 0 value
+cpu = cpu[cpu$V1>0,]
+cpuSingle = cpuSingle[cpuSingle$V1>0,]
+cpuOclSingle = cpuOclSingle[cpuOclSingle$V1>0,]
+cpuOcl = cpuOcl[cpuOcl$V1>0,]
+gpuOcl = gpuOcl[gpuOcl$V1>0,]
+gpuCuda = gpuCuda[gpuCuda$V1>0,]
+
+scaleX = seq(0, max(cpuOclSingle$V1)+80, (max(cpuOclSingle$V1)+80)/11)
+scaleY = seq(0, 1100,100)
+```
+
+## Laptop 
+
+These configurations are used:
+
+A) CPU, cpu-OpenCL, 1 core
+B) CPU, cpu-OpenCL, 8 cores
+C) CPU, gpu-OpenCL, 1 core
+D) CPU, gpu-OpenCL, 8 cores
+E) GPU, gpu-OpenCL 
+F) GPU, CUDA
+
+Definitions:
+
+- GPU: NVIDIA GT 650M
+- CPU: Intel i7
+- CUDA: PaSWAS Smith-Waterman code base
+- gpu-OpenCL: for GPU optimized OpenCL code base
+- cpu-OpenCL: for CPU optimized OpenCL code base
+
+
+## Timing measurements
+
+We would like to show the ability of pyPaSWAS to align protein sequences on different devices using one of the three possible implementions and also perform performance (timing) measurements on these alignments. There is no underlying biological question. Protein sequences were chosen and not DNA/RNA, because the latter are also in the PaSWAS paper.
+
+The timing is done on 8x10, 8x20, 8x30, ..., 8x340 protein alignments.
+
+
+```{r echo=FALSE, out.width = '450pt', fig.asp=2}
+#plot(cpuOclSingle, xlab='Number of alignments processed', ylab='Time (s)',main ='Time spent on Smith-Waterman calculations', pch='o')
+#par(oma=c(0,0,0,0), mar=c(5,5,5,5))
+par(xpd=FALSE, family="sans")
+plot(scaleX, scaleY, xlab='Number of alignments processed', ylab='Time (s)', type='n', xaxt="n",xaxs="i", yaxs="i", las=1)
+axis(side=1, at=cpuOclSingle$V1)
+grid(nx=(max(cpuOclSingle$V1)+80)/80, ny=2*(length(scaleY)-1))
+#par(xpd=TRUE)
+points(cpuOclSingle, pch=0, cex=1)
+points(cpuSingle, col='red', pch=1, cex=1)
+points(cpuOcl, col='chocolate4', pch=2, cex=1)
+points(cpu, col='blue', pch=3, cex=1)
+points(gpuOcl, col='darkviolet', pch=4, cex=1)
+points(gpuCuda, col='darkmagenta', pch=5, cex=1)
+
+textX = rev(c(max(gpuCuda$V1),max(cpuOcl$V1),max(cpuOclSingle$V1),max(cpu$V1),max(cpuSingle$V1)))
+textY = rev(c(max(gpuCuda$V2),max(cpuOcl$V2),max(cpuOclSingle$V2),max(cpu$V2),max(cpuSingle$V2)))
+
+text(textX, textY, labels = rev(c("F", "D", "C","B","A")), 
+       col=rev(c('darkmagenta','chocolate4','black','blue','red')), cex=1.5, pos=3)
+
+text(max(gpuOcl$V1), max(gpuOcl$V2), labels = c("E"), 
+       col=c('darkviolet'), cex=1.5, pos=1)
+
+
+#legend(-100, 1400, title = "CPU configurations", rev(c(  
+#                  "(D) gpu-OpenCL, 8 cores", 
+#                  "(C) gpu-OpenCL, 1 core",
+#                  "(B) cpu-OpenCL, 8 cores", 
+#                  "(A) cpu-OpenCL, 1 core"
+#                  )), 
+#       col=rev(c('chocolate4','black','blue','red')), pch=rev(c('#','o','*','x')), cex=1.0, pt.cex=1.0,
+#       ncol=2)
+
+#legend(2000, 1400, title = "GPU configurations", rev(c("(F) CUDA",
+#                  "(E) gpu-OpenCL"
+#                  )), 
+#       col=rev(c('darkmagenta','darkviolet')), pch=rev(c('-','+')), cex=1.0, pt.cex=1.0,
+#       ncol=1)
+
+```
+
+```{r echo=FALSE, out.width = '450pt', fig.asp=1}
+par(xpd=FALSE, family="sans")
+scaleX = seq(0, max(cpuOclSingle$V1)+80, (max(cpuOclSingle$V1)+80)/9)
+scaleY = seq(0, max(gpuOcl[,3]),length.out = length(scaleX))
+
+plot(scaleX, scaleY, xlab='Number of alignments processed', ylab='Giga Cell updates / second', type='n', xaxt="n",xaxs="i", yaxs="i", las=1)
+axis(side=1, at=cpuOclSingle$V1)
+grid(nx=(max(cpuOclSingle$V1)+80)/80, ny=2*(length(scaleY)-1))
+#par(xpd=TRUE)
+points(cpuOclSingle[,1],cpuOclSingle[,3], pch=0, cex=1)
+points(cpuSingle[,1],cpuSingle[,3], col='red', pch=1, cex=1)
+points(cpuOcl[,1],cpuOcl[,3], col='chocolate4', pch=2, cex=1)
+points(cpu[,1],cpu[,3], col='blue', pch=3, cex=1)
+points(gpuOcl[,1],gpuOcl[,3], col='darkviolet', pch=4, cex=1)
+points(gpuCuda[,1],gpuCuda[,3], col='darkmagenta', pch=5, cex=1)
+
+textX = rev(c(max(gpuCuda$V1),max(cpuOcl$V1),max(cpuOclSingle$V1),max(cpu$V1),max(cpuSingle$V1)))
+textY = rev(c(max(gpuCuda[,3]),max(cpuOcl[,3]),max(cpuOclSingle[,3]),max(cpu[,3]),max(cpuSingle[,3])))
+
+text(textX, textY, labels = rev(c("F", "D", "C","B","A")), 
+       col=rev(c('darkmagenta','chocolate4','black','blue','red')), cex=1.5, pos=3)
+
+text(max(gpuOcl$V1), max(gpuOcl[,3]), labels = c("E"), 
+       col=c('darkviolet'), cex=1.5, pos=1)
+
+```
+
+Comments:
+
+- The lines are not completely straight because:
+    1) lengths of sequences vary, 
+    2) CUDA / OpenCL devices perform optimalizations on code and execution
+    3) fluctations due to other processes running on the devive
+- The axes and data are chosen in such a way that using the CPU for Smith-Waterman on a single core is the (much) worse performaning setup (= implementation + device + data) of all. It also shows that parallel processing on the GPU in these setups is the fastest way of doing SW. 
+
+
+## Speed-up compared to CUDA
+
+To show the speed-up of each of the configuration compared to the GPU, CUDA configuration, each timing measurement is compared to the timing of the GPU, CUDA configuration.
+
+```{r echo=FALSE}
+plot(c(0,max(cpuOclSingle$V1)),c(0,3), pch='o', cex=0.6, xlab="Number of alignments processed", ylab="Speed-up compared to CUDA", type="n", xaxt="n")
+axis(side=1, at=cpuOclSingle$V1)
+points(cpuOclSingle$V1,gpuCuda$V2/cpuOclSingle$V2, pch='o', cex=0.6)
+points(cpuSingle$V1,gpuCuda$V2/cpuSingle$V2, col='red', pch='x', cex=0.6)
+points(cpuOcl$V1,gpuCuda$V2/cpuOcl$V2, col='chocolate4', pch='#', cex=0.6)
+points(cpu$V1,gpuCuda$V2/cpu$V2, col='blue', pch='*', cex=0.6)
+points(gpuOcl$V1,gpuCuda$V2/gpuOcl$V2, col='darkviolet', pch='+', cex=0.6)
+points(gpuCuda$V1,gpuCuda$V2/gpuCuda$V2, col='darkmagenta', pch='-', cex=0.6)
+grid()
+legend(0, 3, c("GPU, CUDA",
+                  "GPU, gpu-OpenCL",  
+                  "CPU, gpu-OpenCL, 8 cores", 
+                  "CPU, gpu-OpenCL, 1 core",
+                  "CPU, cpu-OpenCL, 8 cores", 
+                  "CPU, cpu-OpenCL, 1 core"
+), 
+col=c('darkmagenta','darkviolet','chocolate4','black','blue','red'), pch=c('-','+','#','o','*','x'), cex=0.6,ncol=3)
+```
+
+```{r echo=FALSE}
+plot(c(min(cpuOclSingle$V1),max(cpuOclSingle$V1)),c(0.05,5), pch='o', cex=0.6, xlab="Number of alignments processed", ylab="Speed-up compared to CUDA (log-scale)", type="n", log="y")
+points(cpuOclSingle$V1,gpuCuda$V2/cpuOclSingle$V2, pch='o', cex=0.6)
+points(cpuSingle$V1,gpuCuda$V2/cpuSingle$V2, col='red', pch='x', cex=0.6)
+points(cpuOcl$V1,gpuCuda$V2/cpuOcl$V2, col='chocolate4', pch='#', cex=0.6)
+points(cpu$V1,gpuCuda$V2/cpu$V2, col='blue', pch='*', cex=0.6)
+points(gpuOcl$V1,gpuCuda$V2/gpuOcl$V2, col='darkviolet', pch='+', cex=0.6)
+points(gpuCuda$V1,gpuCuda$V2/gpuCuda$V2, col='darkmagenta', pch='-', cex=0.6)
+grid()
+legend(0, 5, c("GPU, CUDA",
+                  "GPU, gpu-OpenCL",  
+                  "CPU, gpu-OpenCL, 8 cores", 
+                  "CPU, gpu-OpenCL, 1 core",
+                  "CPU, cpu-OpenCL, 8 cores", 
+                  "CPU, cpu-OpenCL, 1 core"
+), 
+col=c('darkmagenta','darkviolet','chocolate4','black','blue','red'), pch=c('-','+','#','o','*','x'), cex=0.6,ncol=3)
+```
+
+Comments:
+
+- GPU + OpenCL is the fasted in this setup
+- plot quantifies speed differences between setup with CUDA and other setups 
+- Speed-up for each of the setups is stable across different number of alignments performed: this plot can be summarized in a table:
+
+
+```{r echo=FALSE}
+Configuration = c("GPU, CUDA",
+                  "GPU, gpu-OpenCL",  
+                  "CPU, gpu-OpenCL, 8 cores", 
+                  "CPU, gpu-OpenCL, 1 core",
+                  "CPU, cpu-OpenCL, 8 cores", 
+                  "CPU, cpu-OpenCL, 1 core"
+)
+Timing = c(max(gpuCuda$V2),max(gpuOcl$V2),max(cpuOcl$V2),max(cpuOclSingle$V2),max(cpu$V2),max(cpuSingle$V2))
+GCUPS = c(max(gpuCuda[,3]),max(gpuOcl[,3]),max(cpuOcl[,3]),max(cpuOclSingle[,3]),max(cpu[,3]),max(cpuSingle[,3]))
+Speedup = c(max(gpuCuda$V2/gpuCuda$V2),max(gpuCuda$V2/gpuOcl$V2),max(gpuCuda$V2/cpuOcl$V2),max(gpuCuda$V2/cpuOclSingle$V2),max(gpuCuda$V2/cpu$V2),max(gpuCuda$V2/cpuSingle$V2))
+
+kable(data.frame(Configuration, Timing, GCUPS,Speedup), digits=2)
+
+```

@@ -1,0 +1,421 @@
+canisLupusAnkyrinPRED.fasta_0.fasta
+Traceback (most recent call last):
+  File "/home/marcelk/Development/pyPaSWAS/pypaswas.py", line 2, in <module>
+    from pyPaSWAS.pypaswasall import Pypaswas
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/__init__.py", line 4, in <module>
+    from Core.Exceptions import InvalidOptionException
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/Core/__init__.py", line 4, in <module>
+    from pkg_resources import resource_filename  # @UnresolvedImport  # pylint: disable=E0611
+ImportError: No module named pkg_resources
+Command exited with non-zero status 1
+0.00user 0.00system 0:00.03elapsed 51%CPU (0avgtext+0avgdata 6488maxresident)k
+5312inputs+0outputs (10major+821minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_100.fasta
+Traceback (most recent call last):
+  File "/home/marcelk/Development/pyPaSWAS/pypaswas.py", line 2, in <module>
+    from pyPaSWAS.pypaswasall import Pypaswas
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/__init__.py", line 4, in <module>
+    from Core.Exceptions import InvalidOptionException
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/Core/__init__.py", line 4, in <module>
+    from pkg_resources import resource_filename  # @UnresolvedImport  # pylint: disable=E0611
+ImportError: No module named pkg_resources
+Command exited with non-zero status 1
+0.00user 0.00system 0:00.01elapsed 92%CPU (0avgtext+0avgdata 6572maxresident)k
+0inputs+0outputs (0major+819minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_10.fasta
+Traceback (most recent call last):
+  File "/home/marcelk/Development/pyPaSWAS/pypaswas.py", line 2, in <module>
+    from pyPaSWAS.pypaswasall import Pypaswas
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/__init__.py", line 4, in <module>
+    from Core.Exceptions import InvalidOptionException
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/Core/__init__.py", line 4, in <module>
+    from pkg_resources import resource_filename  # @UnresolvedImport  # pylint: disable=E0611
+ImportError: No module named pkg_resources
+Command exited with non-zero status 1
+0.01user 0.00system 0:00.01elapsed 100%CPU (0avgtext+0avgdata 6516maxresident)k
+0inputs+0outputs (0major+819minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_110.fasta
+Traceback (most recent call last):
+  File "/home/marcelk/Development/pyPaSWAS/pypaswas.py", line 2, in <module>
+    from pyPaSWAS.pypaswasall import Pypaswas
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/__init__.py", line 4, in <module>
+    from Core.Exceptions import InvalidOptionException
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/Core/__init__.py", line 4, in <module>
+    from pkg_resources import resource_filename  # @UnresolvedImport  # pylint: disable=E0611
+ImportError: No module named pkg_resources
+Command exited with non-zero status 1
+0.00user 0.00system 0:00.01elapsed 72%CPU (0avgtext+0avgdata 6512maxresident)k
+0inputs+0outputs (0major+821minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_120.fasta
+Traceback (most recent call last):
+  File "/home/marcelk/Development/pyPaSWAS/pypaswas.py", line 2, in <module>
+    from pyPaSWAS.pypaswasall import Pypaswas
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/__init__.py", line 4, in <module>
+    from Core.Exceptions import InvalidOptionException
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/Core/__init__.py", line 4, in <module>
+    from pkg_resources import resource_filename  # @UnresolvedImport  # pylint: disable=E0611
+ImportError: No module named pkg_resources
+Command exited with non-zero status 1
+0.00user 0.00system 0:00.01elapsed 72%CPU (0avgtext+0avgdata 6428maxresident)k
+0inputs+0outputs (0major+819minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_130.fasta
+Traceback (most recent call last):
+  File "/home/marcelk/Development/pyPaSWAS/pypaswas.py", line 2, in <module>
+    from pyPaSWAS.pypaswasall import Pypaswas
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/__init__.py", line 4, in <module>
+    from Core.Exceptions import InvalidOptionException
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/Core/__init__.py", line 4, in <module>
+    from pkg_resources import resource_filename  # @UnresolvedImport  # pylint: disable=E0611
+ImportError: No module named pkg_resources
+Command exited with non-zero status 1
+0.00user 0.00system 0:00.01elapsed 72%CPU (0avgtext+0avgdata 6552maxresident)k
+0inputs+0outputs (0major+820minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_140.fasta
+Traceback (most recent call last):
+  File "/home/marcelk/Development/pyPaSWAS/pypaswas.py", line 2, in <module>
+    from pyPaSWAS.pypaswasall import Pypaswas
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/__init__.py", line 4, in <module>
+    from Core.Exceptions import InvalidOptionException
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/Core/__init__.py", line 4, in <module>
+    from pkg_resources import resource_filename  # @UnresolvedImport  # pylint: disable=E0611
+ImportError: No module named pkg_resources
+Command exited with non-zero status 1
+0.00user 0.00system 0:00.01elapsed 80%CPU (0avgtext+0avgdata 6480maxresident)k
+0inputs+0outputs (0major+820minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_150.fasta
+Traceback (most recent call last):
+  File "/home/marcelk/Development/pyPaSWAS/pypaswas.py", line 2, in <module>
+    from pyPaSWAS.pypaswasall import Pypaswas
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/__init__.py", line 4, in <module>
+    from Core.Exceptions import InvalidOptionException
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/Core/__init__.py", line 4, in <module>
+    from pkg_resources import resource_filename  # @UnresolvedImport  # pylint: disable=E0611
+ImportError: No module named pkg_resources
+Command exited with non-zero status 1
+0.00user 0.00system 0:00.01elapsed 80%CPU (0avgtext+0avgdata 6524maxresident)k
+0inputs+0outputs (0major+820minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_160.fasta
+Traceback (most recent call last):
+  File "/home/marcelk/Development/pyPaSWAS/pypaswas.py", line 2, in <module>
+    from pyPaSWAS.pypaswasall import Pypaswas
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/__init__.py", line 4, in <module>
+    from Core.Exceptions import InvalidOptionException
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/Core/__init__.py", line 4, in <module>
+    from pkg_resources import resource_filename  # @UnresolvedImport  # pylint: disable=E0611
+ImportError: No module named pkg_resources
+Command exited with non-zero status 1
+0.00user 0.00system 0:00.00elapsed 88%CPU (0avgtext+0avgdata 6432maxresident)k
+0inputs+0outputs (0major+816minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_170.fasta
+Traceback (most recent call last):
+  File "/home/marcelk/Development/pyPaSWAS/pypaswas.py", line 2, in <module>
+    from pyPaSWAS.pypaswasall import Pypaswas
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/__init__.py", line 4, in <module>
+    from Core.Exceptions import InvalidOptionException
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/Core/__init__.py", line 4, in <module>
+    from pkg_resources import resource_filename  # @UnresolvedImport  # pylint: disable=E0611
+ImportError: No module named pkg_resources
+Command exited with non-zero status 1
+0.00user 0.00system 0:00.00elapsed 88%CPU (0avgtext+0avgdata 6444maxresident)k
+0inputs+0outputs (0major+817minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_180.fasta
+Traceback (most recent call last):
+  File "/home/marcelk/Development/pyPaSWAS/pypaswas.py", line 2, in <module>
+    from pyPaSWAS.pypaswasall import Pypaswas
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/__init__.py", line 4, in <module>
+    from Core.Exceptions import InvalidOptionException
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/Core/__init__.py", line 4, in <module>
+    from pkg_resources import resource_filename  # @UnresolvedImport  # pylint: disable=E0611
+ImportError: No module named pkg_resources
+Command exited with non-zero status 1
+0.00user 0.00system 0:00.00elapsed 88%CPU (0avgtext+0avgdata 6476maxresident)k
+0inputs+0outputs (0major+819minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_190.fasta
+Traceback (most recent call last):
+  File "/home/marcelk/Development/pyPaSWAS/pypaswas.py", line 2, in <module>
+    from pyPaSWAS.pypaswasall import Pypaswas
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/__init__.py", line 4, in <module>
+    from Core.Exceptions import InvalidOptionException
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/Core/__init__.py", line 4, in <module>
+    from pkg_resources import resource_filename  # @UnresolvedImport  # pylint: disable=E0611
+ImportError: No module named pkg_resources
+Command exited with non-zero status 1
+0.00user 0.00system 0:00.00elapsed 88%CPU (0avgtext+0avgdata 6516maxresident)k
+0inputs+0outputs (0major+819minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_200.fasta
+Traceback (most recent call last):
+  File "/home/marcelk/Development/pyPaSWAS/pypaswas.py", line 2, in <module>
+    from pyPaSWAS.pypaswasall import Pypaswas
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/__init__.py", line 4, in <module>
+    from Core.Exceptions import InvalidOptionException
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/Core/__init__.py", line 4, in <module>
+    from pkg_resources import resource_filename  # @UnresolvedImport  # pylint: disable=E0611
+ImportError: No module named pkg_resources
+Command exited with non-zero status 1
+0.00user 0.00system 0:00.00elapsed 100%CPU (0avgtext+0avgdata 6484maxresident)k
+0inputs+0outputs (0major+819minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_20.fasta
+Traceback (most recent call last):
+  File "/home/marcelk/Development/pyPaSWAS/pypaswas.py", line 2, in <module>
+    from pyPaSWAS.pypaswasall import Pypaswas
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/__init__.py", line 4, in <module>
+    from Core.Exceptions import InvalidOptionException
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/Core/__init__.py", line 4, in <module>
+    from pkg_resources import resource_filename  # @UnresolvedImport  # pylint: disable=E0611
+ImportError: No module named pkg_resources
+Command exited with non-zero status 1
+0.00user 0.00system 0:00.00elapsed 100%CPU (0avgtext+0avgdata 6500maxresident)k
+0inputs+0outputs (0major+819minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_210.fasta
+Traceback (most recent call last):
+  File "/home/marcelk/Development/pyPaSWAS/pypaswas.py", line 2, in <module>
+    from pyPaSWAS.pypaswasall import Pypaswas
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/__init__.py", line 4, in <module>
+    from Core.Exceptions import InvalidOptionException
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/Core/__init__.py", line 4, in <module>
+    from pkg_resources import resource_filename  # @UnresolvedImport  # pylint: disable=E0611
+ImportError: No module named pkg_resources
+Command exited with non-zero status 1
+0.00user 0.00system 0:00.00elapsed 100%CPU (0avgtext+0avgdata 6572maxresident)k
+0inputs+0outputs (0major+822minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_220.fasta
+Traceback (most recent call last):
+  File "/home/marcelk/Development/pyPaSWAS/pypaswas.py", line 2, in <module>
+    from pyPaSWAS.pypaswasall import Pypaswas
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/__init__.py", line 4, in <module>
+    from Core.Exceptions import InvalidOptionException
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/Core/__init__.py", line 4, in <module>
+    from pkg_resources import resource_filename  # @UnresolvedImport  # pylint: disable=E0611
+ImportError: No module named pkg_resources
+Command exited with non-zero status 1
+0.00user 0.00system 0:00.01elapsed 92%CPU (0avgtext+0avgdata 6516maxresident)k
+0inputs+0outputs (0major+821minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_230.fasta
+Traceback (most recent call last):
+  File "/home/marcelk/Development/pyPaSWAS/pypaswas.py", line 2, in <module>
+    from pyPaSWAS.pypaswasall import Pypaswas
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/__init__.py", line 4, in <module>
+    from Core.Exceptions import InvalidOptionException
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/Core/__init__.py", line 4, in <module>
+    from pkg_resources import resource_filename  # @UnresolvedImport  # pylint: disable=E0611
+ImportError: No module named pkg_resources
+Command exited with non-zero status 1
+0.00user 0.00system 0:00.00elapsed 100%CPU (0avgtext+0avgdata 6468maxresident)k
+0inputs+0outputs (0major+819minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_240.fasta
+Traceback (most recent call last):
+  File "/home/marcelk/Development/pyPaSWAS/pypaswas.py", line 2, in <module>
+    from pyPaSWAS.pypaswasall import Pypaswas
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/__init__.py", line 4, in <module>
+    from Core.Exceptions import InvalidOptionException
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/Core/__init__.py", line 4, in <module>
+    from pkg_resources import resource_filename  # @UnresolvedImport  # pylint: disable=E0611
+ImportError: No module named pkg_resources
+Command exited with non-zero status 1
+0.00user 0.00system 0:00.00elapsed 57%CPU (0avgtext+0avgdata 6484maxresident)k
+0inputs+0outputs (0major+820minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_250.fasta
+Traceback (most recent call last):
+  File "/home/marcelk/Development/pyPaSWAS/pypaswas.py", line 2, in <module>
+    from pyPaSWAS.pypaswasall import Pypaswas
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/__init__.py", line 4, in <module>
+    from Core.Exceptions import InvalidOptionException
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/Core/__init__.py", line 4, in <module>
+    from pkg_resources import resource_filename  # @UnresolvedImport  # pylint: disable=E0611
+ImportError: No module named pkg_resources
+Command exited with non-zero status 1
+0.00user 0.00system 0:00.00elapsed 100%CPU (0avgtext+0avgdata 6480maxresident)k
+0inputs+0outputs (0major+817minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_260.fasta
+Traceback (most recent call last):
+  File "/home/marcelk/Development/pyPaSWAS/pypaswas.py", line 2, in <module>
+    from pyPaSWAS.pypaswasall import Pypaswas
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/__init__.py", line 4, in <module>
+    from Core.Exceptions import InvalidOptionException
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/Core/__init__.py", line 4, in <module>
+    from pkg_resources import resource_filename  # @UnresolvedImport  # pylint: disable=E0611
+ImportError: No module named pkg_resources
+Command exited with non-zero status 1
+0.00user 0.00system 0:00.00elapsed 57%CPU (0avgtext+0avgdata 6440maxresident)k
+0inputs+0outputs (0major+818minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_270.fasta
+Traceback (most recent call last):
+  File "/home/marcelk/Development/pyPaSWAS/pypaswas.py", line 2, in <module>
+    from pyPaSWAS.pypaswasall import Pypaswas
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/__init__.py", line 4, in <module>
+    from Core.Exceptions import InvalidOptionException
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/Core/__init__.py", line 4, in <module>
+    from pkg_resources import resource_filename  # @UnresolvedImport  # pylint: disable=E0611
+ImportError: No module named pkg_resources
+Command exited with non-zero status 1
+0.00user 0.00system 0:00.00elapsed 100%CPU (0avgtext+0avgdata 6436maxresident)k
+0inputs+0outputs (0major+818minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_280.fasta
+Traceback (most recent call last):
+  File "/home/marcelk/Development/pyPaSWAS/pypaswas.py", line 2, in <module>
+    from pyPaSWAS.pypaswasall import Pypaswas
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/__init__.py", line 4, in <module>
+    from Core.Exceptions import InvalidOptionException
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/Core/__init__.py", line 4, in <module>
+    from pkg_resources import resource_filename  # @UnresolvedImport  # pylint: disable=E0611
+ImportError: No module named pkg_resources
+Command exited with non-zero status 1
+0.00user 0.00system 0:00.00elapsed 57%CPU (0avgtext+0avgdata 6484maxresident)k
+0inputs+0outputs (0major+819minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_290.fasta
+Traceback (most recent call last):
+  File "/home/marcelk/Development/pyPaSWAS/pypaswas.py", line 2, in <module>
+    from pyPaSWAS.pypaswasall import Pypaswas
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/__init__.py", line 4, in <module>
+    from Core.Exceptions import InvalidOptionException
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/Core/__init__.py", line 4, in <module>
+    from pkg_resources import resource_filename  # @UnresolvedImport  # pylint: disable=E0611
+ImportError: No module named pkg_resources
+Command exited with non-zero status 1
+0.00user 0.00system 0:00.00elapsed 57%CPU (0avgtext+0avgdata 6572maxresident)k
+0inputs+0outputs (0major+819minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_300.fasta
+Traceback (most recent call last):
+  File "/home/marcelk/Development/pyPaSWAS/pypaswas.py", line 2, in <module>
+    from pyPaSWAS.pypaswasall import Pypaswas
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/__init__.py", line 4, in <module>
+    from Core.Exceptions import InvalidOptionException
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/Core/__init__.py", line 4, in <module>
+    from pkg_resources import resource_filename  # @UnresolvedImport  # pylint: disable=E0611
+ImportError: No module named pkg_resources
+Command exited with non-zero status 1
+0.00user 0.00system 0:00.00elapsed 66%CPU (0avgtext+0avgdata 6524maxresident)k
+0inputs+0outputs (0major+819minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_30.fasta
+Traceback (most recent call last):
+  File "/home/marcelk/Development/pyPaSWAS/pypaswas.py", line 2, in <module>
+    from pyPaSWAS.pypaswasall import Pypaswas
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/__init__.py", line 4, in <module>
+    from Core.Exceptions import InvalidOptionException
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/Core/__init__.py", line 4, in <module>
+    from pkg_resources import resource_filename  # @UnresolvedImport  # pylint: disable=E0611
+ImportError: No module named pkg_resources
+Command exited with non-zero status 1
+0.00user 0.00system 0:00.00elapsed 57%CPU (0avgtext+0avgdata 6464maxresident)k
+0inputs+0outputs (0major+821minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_310.fasta
+Traceback (most recent call last):
+  File "/home/marcelk/Development/pyPaSWAS/pypaswas.py", line 2, in <module>
+    from pyPaSWAS.pypaswasall import Pypaswas
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/__init__.py", line 4, in <module>
+    from Core.Exceptions import InvalidOptionException
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/Core/__init__.py", line 4, in <module>
+    from pkg_resources import resource_filename  # @UnresolvedImport  # pylint: disable=E0611
+ImportError: No module named pkg_resources
+Command exited with non-zero status 1
+0.00user 0.00system 0:00.00elapsed 66%CPU (0avgtext+0avgdata 6436maxresident)k
+0inputs+0outputs (0major+816minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_320.fasta
+Traceback (most recent call last):
+  File "/home/marcelk/Development/pyPaSWAS/pypaswas.py", line 2, in <module>
+    from pyPaSWAS.pypaswasall import Pypaswas
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/__init__.py", line 4, in <module>
+    from Core.Exceptions import InvalidOptionException
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/Core/__init__.py", line 4, in <module>
+    from pkg_resources import resource_filename  # @UnresolvedImport  # pylint: disable=E0611
+ImportError: No module named pkg_resources
+Command exited with non-zero status 1
+0.00user 0.00system 0:00.00elapsed 66%CPU (0avgtext+0avgdata 6496maxresident)k
+0inputs+0outputs (0major+818minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_330.fasta
+Traceback (most recent call last):
+  File "/home/marcelk/Development/pyPaSWAS/pypaswas.py", line 2, in <module>
+    from pyPaSWAS.pypaswasall import Pypaswas
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/__init__.py", line 4, in <module>
+    from Core.Exceptions import InvalidOptionException
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/Core/__init__.py", line 4, in <module>
+    from pkg_resources import resource_filename  # @UnresolvedImport  # pylint: disable=E0611
+ImportError: No module named pkg_resources
+Command exited with non-zero status 1
+0.00user 0.00system 0:00.01elapsed 92%CPU (0avgtext+0avgdata 6488maxresident)k
+0inputs+0outputs (0major+821minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_340.fasta
+Traceback (most recent call last):
+  File "/home/marcelk/Development/pyPaSWAS/pypaswas.py", line 2, in <module>
+    from pyPaSWAS.pypaswasall import Pypaswas
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/__init__.py", line 4, in <module>
+    from Core.Exceptions import InvalidOptionException
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/Core/__init__.py", line 4, in <module>
+    from pkg_resources import resource_filename  # @UnresolvedImport  # pylint: disable=E0611
+ImportError: No module named pkg_resources
+Command exited with non-zero status 1
+0.00user 0.00system 0:00.00elapsed 57%CPU (0avgtext+0avgdata 6496maxresident)k
+0inputs+0outputs (0major+818minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_40.fasta
+Traceback (most recent call last):
+  File "/home/marcelk/Development/pyPaSWAS/pypaswas.py", line 2, in <module>
+    from pyPaSWAS.pypaswasall import Pypaswas
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/__init__.py", line 4, in <module>
+    from Core.Exceptions import InvalidOptionException
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/Core/__init__.py", line 4, in <module>
+    from pkg_resources import resource_filename  # @UnresolvedImport  # pylint: disable=E0611
+ImportError: No module named pkg_resources
+Command exited with non-zero status 1
+0.00user 0.00system 0:00.00elapsed 57%CPU (0avgtext+0avgdata 6468maxresident)k
+0inputs+0outputs (0major+818minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_50.fasta
+Traceback (most recent call last):
+  File "/home/marcelk/Development/pyPaSWAS/pypaswas.py", line 2, in <module>
+    from pyPaSWAS.pypaswasall import Pypaswas
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/__init__.py", line 4, in <module>
+    from Core.Exceptions import InvalidOptionException
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/Core/__init__.py", line 4, in <module>
+    from pkg_resources import resource_filename  # @UnresolvedImport  # pylint: disable=E0611
+ImportError: No module named pkg_resources
+Command exited with non-zero status 1
+0.00user 0.00system 0:00.00elapsed 57%CPU (0avgtext+0avgdata 6516maxresident)k
+0inputs+0outputs (0major+819minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_60.fasta
+Traceback (most recent call last):
+  File "/home/marcelk/Development/pyPaSWAS/pypaswas.py", line 2, in <module>
+    from pyPaSWAS.pypaswasall import Pypaswas
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/__init__.py", line 4, in <module>
+    from Core.Exceptions import InvalidOptionException
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/Core/__init__.py", line 4, in <module>
+    from pkg_resources import resource_filename  # @UnresolvedImport  # pylint: disable=E0611
+ImportError: No module named pkg_resources
+Command exited with non-zero status 1
+0.00user 0.00system 0:00.00elapsed 57%CPU (0avgtext+0avgdata 6436maxresident)k
+0inputs+0outputs (0major+818minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_70.fasta
+Traceback (most recent call last):
+  File "/home/marcelk/Development/pyPaSWAS/pypaswas.py", line 2, in <module>
+    from pyPaSWAS.pypaswasall import Pypaswas
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/__init__.py", line 4, in <module>
+    from Core.Exceptions import InvalidOptionException
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/Core/__init__.py", line 4, in <module>
+    from pkg_resources import resource_filename  # @UnresolvedImport  # pylint: disable=E0611
+ImportError: No module named pkg_resources
+Command exited with non-zero status 1
+0.00user 0.00system 0:00.00elapsed 57%CPU (0avgtext+0avgdata 6468maxresident)k
+0inputs+0outputs (0major+819minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_80.fasta
+Traceback (most recent call last):
+  File "/home/marcelk/Development/pyPaSWAS/pypaswas.py", line 2, in <module>
+    from pyPaSWAS.pypaswasall import Pypaswas
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/__init__.py", line 4, in <module>
+    from Core.Exceptions import InvalidOptionException
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/Core/__init__.py", line 4, in <module>
+    from pkg_resources import resource_filename  # @UnresolvedImport  # pylint: disable=E0611
+ImportError: No module named pkg_resources
+Command exited with non-zero status 1
+0.00user 0.00system 0:00.00elapsed 66%CPU (0avgtext+0avgdata 6468maxresident)k
+0inputs+0outputs (0major+818minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_90.fasta
+Traceback (most recent call last):
+  File "/home/marcelk/Development/pyPaSWAS/pypaswas.py", line 2, in <module>
+    from pyPaSWAS.pypaswasall import Pypaswas
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/__init__.py", line 4, in <module>
+    from Core.Exceptions import InvalidOptionException
+  File "/home/marcelk/Development/pyPaSWAS/pyPaSWAS/Core/__init__.py", line 4, in <module>
+    from pkg_resources import resource_filename  # @UnresolvedImport  # pylint: disable=E0611
+ImportError: No module named pkg_resources
+Command exited with non-zero status 1
+0.00user 0.00system 0:00.00elapsed 66%CPU (0avgtext+0avgdata 6476maxresident)k
+0inputs+0outputs (0major+818minor)pagefaults 0swaps
+

@@ -1,0 +1,139 @@
+canisLupusAnkyrinPRED.fasta_0.fasta
+0.55user 0.44system 0:00.46elapsed 216%CPU (0avgtext+0avgdata 73020maxresident)k
+0inputs+8outputs (0major+14525minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_100.fasta
+/home/marcelk/Development/python/pygpu/lib/python2.7/site-packages/pyopencl-2016.1-py2.7-linux-x86_64.egg/pyopencl/__init__.py:207: CompilerWarning: Non-empty compiler output encountered. Set the environment variable PYOPENCL_COMPILER_OUTPUT=1 to see more.
+  "to see more.", CompilerWarning)
+423.88user 2.74system 0:59.24elapsed 720%CPU (0avgtext+0avgdata 1117448maxresident)k
+0inputs+128outputs (0major+38839minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_10.fasta
+/home/marcelk/Development/python/pygpu/lib/python2.7/site-packages/pyopencl-2016.1-py2.7-linux-x86_64.egg/pyopencl/__init__.py:207: CompilerWarning: Non-empty compiler output encountered. Set the environment variable PYOPENCL_COMPILER_OUTPUT=1 to see more.
+  "to see more.", CompilerWarning)
+99.16user 0.94system 0:15.12elapsed 661%CPU (0avgtext+0avgdata 1064024maxresident)k
+0inputs+32outputs (0major+21307minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_110.fasta
+/home/marcelk/Development/python/pygpu/lib/python2.7/site-packages/pyopencl-2016.1-py2.7-linux-x86_64.egg/pyopencl/__init__.py:207: CompilerWarning: Non-empty compiler output encountered. Set the environment variable PYOPENCL_COMPILER_OUTPUT=1 to see more.
+  "to see more.", CompilerWarning)
+429.55user 2.40system 0:59.78elapsed 722%CPU (0avgtext+0avgdata 1115092maxresident)k
+0inputs+128outputs (0major+36311minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_120.fasta
+/home/marcelk/Development/python/pygpu/lib/python2.7/site-packages/pyopencl-2016.1-py2.7-linux-x86_64.egg/pyopencl/__init__.py:207: CompilerWarning: Non-empty compiler output encountered. Set the environment variable PYOPENCL_COMPILER_OUTPUT=1 to see more.
+  "to see more.", CompilerWarning)
+454.84user 2.73system 1:03.31elapsed 722%CPU (0avgtext+0avgdata 1119240maxresident)k
+0inputs+128outputs (0major+34611minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_130.fasta
+/home/marcelk/Development/python/pygpu/lib/python2.7/site-packages/pyopencl-2016.1-py2.7-linux-x86_64.egg/pyopencl/__init__.py:207: CompilerWarning: Non-empty compiler output encountered. Set the environment variable PYOPENCL_COMPILER_OUTPUT=1 to see more.
+  "to see more.", CompilerWarning)
+494.29user 2.86system 1:08.11elapsed 729%CPU (0avgtext+0avgdata 1113028maxresident)k
+0inputs+128outputs (0major+37302minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_140.fasta
+/home/marcelk/Development/python/pygpu/lib/python2.7/site-packages/pyopencl-2016.1-py2.7-linux-x86_64.egg/pyopencl/__init__.py:207: CompilerWarning: Non-empty compiler output encountered. Set the environment variable PYOPENCL_COMPILER_OUTPUT=1 to see more.
+  "to see more.", CompilerWarning)
+508.12user 3.09system 1:10.50elapsed 725%CPU (0avgtext+0avgdata 1117528maxresident)k
+0inputs+136outputs (0major+36869minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_150.fasta
+/home/marcelk/Development/python/pygpu/lib/python2.7/site-packages/pyopencl-2016.1-py2.7-linux-x86_64.egg/pyopencl/__init__.py:207: CompilerWarning: Non-empty compiler output encountered. Set the environment variable PYOPENCL_COMPILER_OUTPUT=1 to see more.
+  "to see more.", CompilerWarning)
+556.28user 3.14system 1:17.16elapsed 724%CPU (0avgtext+0avgdata 1119036maxresident)k
+0inputs+136outputs (0major+52244minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_160.fasta
+/home/marcelk/Development/python/pygpu/lib/python2.7/site-packages/pyopencl-2016.1-py2.7-linux-x86_64.egg/pyopencl/__init__.py:207: CompilerWarning: Non-empty compiler output encountered. Set the environment variable PYOPENCL_COMPILER_OUTPUT=1 to see more.
+  "to see more.", CompilerWarning)
+584.16user 3.36system 1:21.05elapsed 724%CPU (0avgtext+0avgdata 1121204maxresident)k
+0inputs+136outputs (0major+39279minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_170.fasta
+/home/marcelk/Development/python/pygpu/lib/python2.7/site-packages/pyopencl-2016.1-py2.7-linux-x86_64.egg/pyopencl/__init__.py:207: CompilerWarning: Non-empty compiler output encountered. Set the environment variable PYOPENCL_COMPILER_OUTPUT=1 to see more.
+  "to see more.", CompilerWarning)
+602.41user 3.54system 1:24.10elapsed 720%CPU (0avgtext+0avgdata 1112976maxresident)k
+0inputs+144outputs (0major+45592minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_180.fasta
+/home/marcelk/Development/python/pygpu/lib/python2.7/site-packages/pyopencl-2016.1-py2.7-linux-x86_64.egg/pyopencl/__init__.py:207: CompilerWarning: Non-empty compiler output encountered. Set the environment variable PYOPENCL_COMPILER_OUTPUT=1 to see more.
+  "to see more.", CompilerWarning)
+661.03user 3.71system 1:31.49elapsed 726%CPU (0avgtext+0avgdata 1118840maxresident)k
+0inputs+144outputs (0major+50262minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_190.fasta
+/home/marcelk/Development/python/pygpu/lib/python2.7/site-packages/pyopencl-2016.1-py2.7-linux-x86_64.egg/pyopencl/__init__.py:207: CompilerWarning: Non-empty compiler output encountered. Set the environment variable PYOPENCL_COMPILER_OUTPUT=1 to see more.
+  "to see more.", CompilerWarning)
+733.26user 3.87system 1:42.79elapsed 717%CPU (0avgtext+0avgdata 1118580maxresident)k
+0inputs+144outputs (0major+73780minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_200.fasta
+/home/marcelk/Development/python/pygpu/lib/python2.7/site-packages/pyopencl-2016.1-py2.7-linux-x86_64.egg/pyopencl/__init__.py:207: CompilerWarning: Non-empty compiler output encountered. Set the environment variable PYOPENCL_COMPILER_OUTPUT=1 to see more.
+  "to see more.", CompilerWarning)
+741.03user 4.36system 1:44.68elapsed 712%CPU (0avgtext+0avgdata 1092768maxresident)k
+0inputs+144outputs (0major+49979minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_20.fasta
+/home/marcelk/Development/python/pygpu/lib/python2.7/site-packages/pyopencl-2016.1-py2.7-linux-x86_64.egg/pyopencl/__init__.py:207: CompilerWarning: Non-empty compiler output encountered. Set the environment variable PYOPENCL_COMPILER_OUTPUT=1 to see more.
+  "to see more.", CompilerWarning)
+132.63user 1.12system 0:20.56elapsed 650%CPU (0avgtext+0avgdata 1064336maxresident)k
+0inputs+80outputs (0major+21953minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_210.fasta
+/home/marcelk/Development/python/pygpu/lib/python2.7/site-packages/pyopencl-2016.1-py2.7-linux-x86_64.egg/pyopencl/__init__.py:207: CompilerWarning: Non-empty compiler output encountered. Set the environment variable PYOPENCL_COMPILER_OUTPUT=1 to see more.
+  "to see more.", CompilerWarning)
+792.12user 4.21system 1:50.47elapsed 720%CPU (0avgtext+0avgdata 1119240maxresident)k
+0inputs+144outputs (0major+68954minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_220.fasta
+/home/marcelk/Development/python/pygpu/lib/python2.7/site-packages/pyopencl-2016.1-py2.7-linux-x86_64.egg/pyopencl/__init__.py:207: CompilerWarning: Non-empty compiler output encountered. Set the environment variable PYOPENCL_COMPILER_OUTPUT=1 to see more.
+  "to see more.", CompilerWarning)
+844.88user 4.74system 1:57.53elapsed 722%CPU (0avgtext+0avgdata 1097968maxresident)k
+0inputs+152outputs (0major+72770minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_230.fasta
+/home/marcelk/Development/python/pygpu/lib/python2.7/site-packages/pyopencl-2016.1-py2.7-linux-x86_64.egg/pyopencl/__init__.py:207: CompilerWarning: Non-empty compiler output encountered. Set the environment variable PYOPENCL_COMPILER_OUTPUT=1 to see more.
+  "to see more.", CompilerWarning)
+891.52user 4.79system 2:05.84elapsed 712%CPU (0avgtext+0avgdata 1116564maxresident)k
+0inputs+152outputs (0major+59474minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_240.fasta
+/home/marcelk/Development/python/pygpu/lib/python2.7/site-packages/pyopencl-2016.1-py2.7-linux-x86_64.egg/pyopencl/__init__.py:207: CompilerWarning: Non-empty compiler output encountered. Set the environment variable PYOPENCL_COMPILER_OUTPUT=1 to see more.
+  "to see more.", CompilerWarning)
+901.84user 5.06system 2:05.58elapsed 722%CPU (0avgtext+0avgdata 1088536maxresident)k
+0inputs+152outputs (0major+74345minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_250.fasta
+/home/marcelk/Development/python/pygpu/lib/python2.7/site-packages/pyopencl-2016.1-py2.7-linux-x86_64.egg/pyopencl/__init__.py:207: CompilerWarning: Non-empty compiler output encountered. Set the environment variable PYOPENCL_COMPILER_OUTPUT=1 to see more.
+  "to see more.", CompilerWarning)
+921.10user 4.75system 2:08.83elapsed 718%CPU (0avgtext+0avgdata 1090604maxresident)k
+0inputs+152outputs (0major+106482minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_260.fasta
+/home/marcelk/Development/python/pygpu/lib/python2.7/site-packages/pyopencl-2016.1-py2.7-linux-x86_64.egg/pyopencl/__init__.py:207: CompilerWarning: Non-empty compiler output encountered. Set the environment variable PYOPENCL_COMPILER_OUTPUT=1 to see more.
+  "to see more.", CompilerWarning)
+967.72user 5.26system 2:14.86elapsed 721%CPU (0avgtext+0avgdata 1089532maxresident)k
+0inputs+152outputs (0major+72446minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_270.fasta
+/home/marcelk/Development/python/pygpu/lib/python2.7/site-packages/pyopencl-2016.1-py2.7-linux-x86_64.egg/pyopencl/__init__.py:207: CompilerWarning: Non-empty compiler output encountered. Set the environment variable PYOPENCL_COMPILER_OUTPUT=1 to see more.
+  "to see more.", CompilerWarning)
+965.70user 5.18system 2:15.76elapsed 715%CPU (0avgtext+0avgdata 1086680maxresident)k
+0inputs+152outputs (0major+57610minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_280.fasta
+/home/marcelk/Development/python/pygpu/lib/python2.7/site-packages/pyopencl-2016.1-py2.7-linux-x86_64.egg/pyopencl/__init__.py:207: CompilerWarning: Non-empty compiler output encountered. Set the environment variable PYOPENCL_COMPILER_OUTPUT=1 to see more.
+  "to see more.", CompilerWarning)
+1022.22user 5.77system 2:21.29elapsed 727%CPU (0avgtext+0avgdata 1117380maxresident)k
+0inputs+152outputs (0major+58485minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_290.fasta
+/home/marcelk/Development/python/pygpu/lib/python2.7/site-packages/pyopencl-2016.1-py2.7-linux-x86_64.egg/pyopencl/__init__.py:207: CompilerWarning: Non-empty compiler output encountered. Set the environment variable PYOPENCL_COMPILER_OUTPUT=1 to see more.
+  "to see more.", CompilerWarning)
+1081.94user 5.85system 2:30.11elapsed 724%CPU (0avgtext+0avgdata 1119068maxresident)k
+0inputs+168outputs (0major+130801minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_300.fasta
+/home/marcelk/Development/python/pygpu/lib/python2.7/site-packages/pyopencl-2016.1-py2.7-linux-x86_64.egg/pyopencl/__init__.py:207: CompilerWarning: Non-empty compiler output encountered. Set the environment variable PYOPENCL_COMPILER_OUTPUT=1 to see more.
+  "to see more.", CompilerWarning)
+1111.62user 6.03system 2:33.70elapsed 727%CPU (0avgtext+0avgdata 1113820maxresident)k
+0inputs+160outputs (0major+183468minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_30.fasta
+/home/marcelk/Development/python/pygpu/lib/python2.7/site-packages/pyopencl-2016.1-py2.7-linux-x86_64.egg/pyopencl/__init__.py:207: CompilerWarning: Non-empty compiler output encountered. Set the environment variable PYOPENCL_COMPILER_OUTPUT=1 to see more.
+  "to see more.", CompilerWarning)
+166.41user 1.21system 0:23.87elapsed 702%CPU (0avgtext+0avgdata 1065684maxresident)k
+0inputs+104outputs (0major+25366minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_310.fasta
+/home/marcelk/Development/python/pygpu/lib/python2.7/site-packages/pyopencl-2016.1-py2.7-linux-x86_64.egg/pyopencl/__init__.py:207: CompilerWarning: Non-empty compiler output encountered. Set the environment variable PYOPENCL_COMPILER_OUTPUT=1 to see more.
+  "to see more.", CompilerWarning)
+1184.18user 6.74system 2:46.28elapsed 716%CPU (0avgtext+0avgdata 1118324maxresident)k
+0inputs+168outputs (0major+140034minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_320.fasta
+/home/marcelk/Development/python/pygpu/lib/python2.7/site-packages/pyopencl-2016.1-py2.7-linux-x86_64.egg/pyopencl/__init__.py:207: CompilerWarning: Non-empty compiler output encountered. Set the environment variable PYOPENCL_COMPILER_OUTPUT=1 to see more.
+  "to see more.", CompilerWarning)
+1275.89user 6.76system 2:59.76elapsed 713%CPU (0avgtext+0avgdata 1115668maxresident)k
+0inputs+176outputs (0major+181700minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_330.fasta
+/home/marcelk/Development/python/pygpu/lib/python2.7/site-packages/pyopencl-2016.1-py2.7-linux-x86_64.egg/pyopencl/__init__.py:207: CompilerWarning: Non-empty compiler output encountered. Set the environment variable PYOPENCL_COMPILER_OUTPUT=1 to see more.
+  "to see more.", CompilerWarning)
+1356.15user 7.13system 3:12.10elapsed 709%CPU (0avgtext+0avgdata 1117996maxresident)k
+0inputs+184outputs (0major+211662minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_340.fasta

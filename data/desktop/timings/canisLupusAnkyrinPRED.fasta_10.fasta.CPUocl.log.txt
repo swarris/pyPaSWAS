@@ -1,0 +1,72 @@
+
+--------------------------------------------------------------------------
+pyPaSWAS run started at: 2016-10-13 06:37:33 using the following settings:
+--------------------------------------------------------------------------
+mismatch_score                :                            -3
+device_number                 :                             0
+fraction_of_seeds             :                          0.01
+relative_score                :                           2.0
+number_of_jobs                :                           N/A
+filter_factor                 :                           0.2
+device_type                   :                           CPU
+custom_matrix                 :                           N/A
+lower_limit_score             :                           1.0
+out_format                    :                           TXT
+sequence_step                 :                     100000000
+reads_to_process              :                            30
+maximum_distance              :                          0.06
+query_identity                :                           0.2
+matrix_name                   :                      BLOSUM80
+short_sequences               :                             F
+program                       :                       aligner
+limit_length                  :                         10000
+gap_score                     :                            -5
+filetype2                     :                         fasta
+filetype1                     :                         fasta
+max_genome_length             :                        200000
+config_file                   :                             0
+recompile                     :                             T
+any_score                     :                             0
+override_output               :                             T
+number_of_compute_units       :                             0
+base_score                    :                           2.0
+maximum_memory_usage          :                           0.8
+framework                     :                    OpenCLTest
+other_score                   :                            -1
+process_id                    :                           N/A
+sub_device                    :                             0
+logfile                       :timings/canisLupusAnkyrinPRED.fasta_10.fasta.CPUocl.log.txt
+window_length                 :                           100
+out_file                      :                     speed.txt
+loglevel                      :                          info
+qgram                         :                             4
+match_score                   :                             5
+compressed_index              :                             T
+platform_name                 :                         Intel
+query_step                    :                       1000000
+minimum_score                 :                            30
+query_coverage                :                           0.2
+--------------------------------------------------------------------------
+2016-10-13 06:37:33,301 - INFO - Initializing application...
+2016-10-13 06:37:33,301 - INFO - Application initialized.
+2016-10-13 06:37:33,301 - INFO - Setting program...
+2016-10-13 06:37:33,301 - INFO - Unknown settings for framework. Using OpenCL GPU implementation as default
+2016-10-13 06:37:33,457 - INFO - Program set.
+2016-10-13 06:37:33,457 - INFO - Reading query sequences...
+2016-10-13 06:37:33,459 - INFO - Query sequences OK.
+2016-10-13 06:37:33,459 - INFO - Reading target sequences...
+2016-10-13 06:37:33,459 - INFO - Target sequences OK.
+2016-10-13 06:37:33,459 - INFO - Processing 8- vs 10-sequences
+2016-10-13 06:37:41,239 - INFO - Added hit (query ID: gi|323462210|ref|NP_001191024.1|, target ID: gi|545490256|ref|XP_005617304.1|) to hitlist
+2016-10-13 06:37:41,240 - INFO - Time spent on Smith-Waterman > 7.76998281479
+2016-10-13 06:37:43,643 - INFO - Time spent on Smith-Waterman > 2.39433097839
+2016-10-13 06:37:48,220 - INFO - Time spent on Smith-Waterman > 4.56850981712
+2016-10-13 06:37:48,220 - INFO - Processing done
+2016-10-13 06:37:48,220 - INFO - Reading query sequences...
+2016-10-13 06:37:48,221 - INFO - Query sequences OK.
+2016-10-13 06:37:48,221 - INFO - Processing OK (2 hits found).
+2016-10-13 06:37:48,221 - INFO - Formatting output...
+2016-10-13 06:37:48,221 - INFO - Formatting OK.
+2016-10-13 06:37:48,221 - INFO - Writing output...
+2016-10-13 06:37:48,221 - INFO - Writing OK.
+2016-10-13 06:37:48,221 - INFO - Finished

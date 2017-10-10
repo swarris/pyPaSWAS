@@ -1,0 +1,105 @@
+canisLupusAnkyrinPRED.fasta_0.fasta
+0.41user 0.54system 0:00.52elapsed 180%CPU (0avgtext+0avgdata 130860maxresident)k
+0inputs+8outputs (0major+11384minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_100.fasta
+5.62user 2.18system 0:07.35elapsed 106%CPU (0avgtext+0avgdata 701412maxresident)k
+0inputs+488outputs (0major+545550minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_10.fasta
+1.90user 0.98system 0:02.49elapsed 115%CPU (0avgtext+0avgdata 646940maxresident)k
+0inputs+112outputs (0major+151492minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_110.fasta
+5.68user 1.96system 0:07.40elapsed 103%CPU (0avgtext+0avgdata 698500maxresident)k
+0inputs+488outputs (0major+558756minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_120.fasta
+6.08user 2.11system 0:07.84elapsed 104%CPU (0avgtext+0avgdata 700364maxresident)k
+0inputs+488outputs (0major+590375minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_130.fasta
+6.34user 2.29system 0:08.18elapsed 105%CPU (0avgtext+0avgdata 698228maxresident)k
+0inputs+488outputs (0major+626903minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_140.fasta
+6.74user 2.43system 0:08.84elapsed 103%CPU (0avgtext+0avgdata 701652maxresident)k
+0inputs+560outputs (0major+676369minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_150.fasta
+7.02user 2.53system 0:09.20elapsed 103%CPU (0avgtext+0avgdata 698740maxresident)k
+0inputs+560outputs (0major+711973minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_160.fasta
+7.33user 2.78system 0:09.69elapsed 104%CPU (0avgtext+0avgdata 700840maxresident)k
+0inputs+560outputs (0major+736949minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_170.fasta
+7.81user 2.87system 0:10.24elapsed 104%CPU (0avgtext+0avgdata 699988maxresident)k
+0inputs+632outputs (0major+787621minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_180.fasta
+8.36user 2.83system 0:10.87elapsed 103%CPU (0avgtext+0avgdata 660988maxresident)k
+0inputs+632outputs (0major+825674minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_190.fasta
+9.53user 2.99system 0:12.14elapsed 103%CPU (0avgtext+0avgdata 660576maxresident)k
+0inputs+704outputs (0major+922989minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_200.fasta
+9.75user 3.45system 0:12.77elapsed 103%CPU (0avgtext+0avgdata 663936maxresident)k
+0inputs+704outputs (0major+955040minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_20.fasta
+2.52user 0.96system 0:03.16elapsed 110%CPU (0avgtext+0avgdata 700112maxresident)k
+0inputs+232outputs (0major+200515minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_210.fasta
+9.92user 3.41system 0:12.88elapsed 103%CPU (0avgtext+0avgdata 662328maxresident)k
+0inputs+704outputs (0major+993893minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_220.fasta
+10.74user 3.52system 0:14.05elapsed 101%CPU (0avgtext+0avgdata 660204maxresident)k
+0inputs+776outputs (0major+1070583minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_230.fasta
+10.91user 3.83system 0:14.50elapsed 101%CPU (0avgtext+0avgdata 660188maxresident)k
+0inputs+776outputs (0major+1123348minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_240.fasta
+11.68user 3.86system 0:15.14elapsed 102%CPU (0avgtext+0avgdata 660648maxresident)k
+0inputs+848outputs (0major+1163525minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_250.fasta
+11.92user 4.09system 0:15.60elapsed 102%CPU (0avgtext+0avgdata 662120maxresident)k
+0inputs+848outputs (0major+1193785minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_260.fasta
+11.81user 4.22system 0:15.69elapsed 102%CPU (0avgtext+0avgdata 660700maxresident)k
+0inputs+848outputs (0major+1221718minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_270.fasta
+12.07user 4.01system 0:15.65elapsed 102%CPU (0avgtext+0avgdata 660544maxresident)k
+0inputs+848outputs (0major+1254170minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_280.fasta
+12.70user 4.27system 0:16.61elapsed 102%CPU (0avgtext+0avgdata 662360maxresident)k
+0inputs+920outputs (0major+1290038minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_290.fasta
+13.20user 4.22system 0:17.02elapsed 102%CPU (0avgtext+0avgdata 662752maxresident)k
+0inputs+928outputs (0major+1343389minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_300.fasta
+13.71user 4.73system 0:18.02elapsed 102%CPU (0avgtext+0avgdata 660556maxresident)k
+0inputs+1000outputs (0major+1395268minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_30.fasta
+2.82user 1.10system 0:03.61elapsed 109%CPU (0avgtext+0avgdata 700268maxresident)k
+0inputs+256outputs (0major+231808minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_310.fasta
+15.03user 4.80system 0:19.46elapsed 101%CPU (0avgtext+0avgdata 633976maxresident)k
+0inputs+1000outputs (0major+1480761minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_320.fasta
+16.02user 5.17system 0:20.76elapsed 102%CPU (0avgtext+0avgdata 634172maxresident)k
+0inputs+1072outputs (0major+1572639minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_330.fasta
+16.76user 5.31system 0:21.81elapsed 101%CPU (0avgtext+0avgdata 635968maxresident)k
+0inputs+1160outputs (0major+1642687minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_340.fasta
+16.87user 5.57system 0:22.06elapsed 101%CPU (0avgtext+0avgdata 635916maxresident)k
+0inputs+1160outputs (0major+1666342minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_40.fasta
+3.66user 1.44system 0:04.64elapsed 109%CPU (0avgtext+0avgdata 699532maxresident)k
+0inputs+328outputs (0major+311681minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_50.fasta
+3.82user 1.54system 0:04.95elapsed 108%CPU (0avgtext+0avgdata 698088maxresident)k
+0inputs+344outputs (0major+352195minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_60.fasta
+5.04user 1.77system 0:06.37elapsed 106%CPU (0avgtext+0avgdata 697944maxresident)k
+0inputs+416outputs (0major+429858minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_70.fasta
+4.74user 1.79system 0:06.20elapsed 105%CPU (0avgtext+0avgdata 699492maxresident)k
+0inputs+416outputs (0major+462277minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_80.fasta
+5.14user 1.80system 0:06.65elapsed 104%CPU (0avgtext+0avgdata 698384maxresident)k
+0inputs+416outputs (0major+491815minor)pagefaults 0swaps
+canisLupusAnkyrinPRED.fasta_90.fasta
+5.28user 2.08system 0:06.92elapsed 106%CPU (0avgtext+0avgdata 698340maxresident)k
+0inputs+416outputs (0major+518028minor)pagefaults 0swaps

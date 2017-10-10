@@ -1,0 +1,1 @@
+for i in `ls *fasta_*.fasta`; do echo $i; time python ~/Development/pyPaSWAS/pypaswas.py --loglevel=info -M BLOSUM80 canisLupusAnkyrin.fasta $i -L timings/$i.CPUocl.log.txt --device_type=CPU --platform_name=Intel --framework=OpenCLTest -o speed.txt ; done 

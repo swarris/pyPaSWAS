@@ -1,0 +1,7 @@
+for i in `ls *fasta_*.fasta`; do echo $i; time python ~/Development/pyPaSWAS/pypaswas.py --loglevel=info -M BLOSUM80 canisLupusAnkyrin.fasta $i -L timings/$i.CPU.log.txt --device_type=CPU --platform_name=Intel --framework=OpenCL -o speed.txt; done 
+
+for i in `ls *fasta_*.fasta`; do echo $i; time python ~/git/pyPaSWAS/pypaswas.py --loglevel=info -M BLOSUM80 canisLupusAnkyrin.fasta $i -L timings/$i.CPUSingle.log.txt --device_type=CPU --platform_name=Intel --framework=OpenCL -o speed.txt --number_of_compute_units=1; done 
+
+for i in `ls *fasta_*.fasta`; do echo $i; time python ~/git/pyPaSWAS/pypaswas.py --loglevel=info -M BLOSUM80 canisLupusAnkyrin.fasta $i -L timings/$i.CPUoclSingle.log.txt --device_type=CPU --platform_name=Intel --framework=OpenCLTest -o speed.txt --number_of_compute_units=1; done 
+
+for i in `ls *fasta_*.fasta`; do echo $i; time python ~/git/pyPaSWAS/pypaswas.py --loglevel=info -M BLOSUM80 canisLupusAnkyrin.fasta $i -L timings/$i.CPUocl.log.txt --device_type=CPU --platform_name=Intel --framework=OpenCLTest -o speed.txt ; done 

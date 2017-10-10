@@ -1,0 +1,103 @@
+
+--------------------------------------------------------------------------
+pyPaSWAS run started at: 2016-10-12 18:17:20 using the following settings:
+--------------------------------------------------------------------------
+mismatch_score                :                            -3
+device_number                 :                             0
+fraction_of_seeds             :                          0.01
+relative_score                :                           2.0
+number_of_jobs                :                           N/A
+filter_factor                 :                           0.2
+device_type                   :                           CPU
+custom_matrix                 :                           N/A
+lower_limit_score             :                           1.0
+out_format                    :                           TXT
+sequence_step                 :                     100000000
+reads_to_process              :                            30
+maximum_distance              :                          0.06
+query_identity                :                           0.2
+matrix_name                   :                      BLOSUM80
+short_sequences               :                             F
+program                       :                       aligner
+limit_length                  :                         10000
+gap_score                     :                            -5
+filetype2                     :                         fasta
+filetype1                     :                         fasta
+max_genome_length             :                        200000
+config_file                   :                             0
+recompile                     :                             T
+any_score                     :                             0
+override_output               :                             T
+number_of_compute_units       :                             0
+base_score                    :                           2.0
+maximum_memory_usage          :                           0.8
+framework                     :                        OpenCL
+other_score                   :                            -1
+process_id                    :                           N/A
+sub_device                    :                             0
+logfile                       :timings/canisLupusAnkyrinPRED.fasta_160.fasta.CPU.log.txt
+window_length                 :                           100
+out_file                      :                     speed.txt
+loglevel                      :                          info
+qgram                         :                             4
+match_score                   :                             5
+compressed_index              :                             T
+platform_name                 :                         Intel
+query_step                    :                       1000000
+minimum_score                 :                            30
+query_coverage                :                           0.2
+--------------------------------------------------------------------------
+2016-10-12 18:17:20,273 - INFO - Initializing application...
+2016-10-12 18:17:20,273 - INFO - Application initialized.
+2016-10-12 18:17:20,273 - INFO - Setting program...
+2016-10-12 18:17:20,385 - INFO - Program set.
+2016-10-12 18:17:20,385 - INFO - Reading query sequences...
+2016-10-12 18:17:20,387 - INFO - Query sequences OK.
+2016-10-12 18:17:20,387 - INFO - Reading target sequences...
+2016-10-12 18:17:20,391 - INFO - Target sequences OK.
+2016-10-12 18:17:20,391 - INFO - Processing 8- vs 160-sequences
+2016-10-12 18:17:24,486 - INFO - Added hit (query ID: gi|323462210|ref|NP_001191024.1|, target ID: gi|545521775|ref|XP_005628340.1|) to hitlist
+2016-10-12 18:17:24,535 - INFO - Added hit (query ID: gi|323462210|ref|NP_001191024.1|, target ID: gi|545521773|ref|XP_005628339.1|) to hitlist
+2016-10-12 18:17:24,585 - INFO - Added hit (query ID: gi|323462210|ref|NP_001191024.1|, target ID: gi|545521771|ref|XP_005628338.1|) to hitlist
+2016-10-12 18:17:24,634 - INFO - Added hit (query ID: gi|323462210|ref|NP_001191024.1|, target ID: gi|545490256|ref|XP_005617304.1|) to hitlist
+2016-10-12 18:17:24,635 - INFO - Time spent on Smith-Waterman > 4.2371609211
+2016-10-12 18:17:26,967 - INFO - Time spent on Smith-Waterman > 2.3252389431
+2016-10-12 18:17:30,568 - INFO - Time spent on Smith-Waterman > 3.59616112709
+2016-10-12 18:17:32,143 - INFO - Time spent on Smith-Waterman > 1.56757307053
+2016-10-12 18:17:35,381 - INFO - Time spent on Smith-Waterman > 3.23287296295
+2016-10-12 18:17:36,459 - INFO - Time spent on Smith-Waterman > 1.07039213181
+2016-10-12 18:17:39,564 - INFO - Time spent on Smith-Waterman > 3.09695005417
+2016-10-12 18:17:40,656 - INFO - Time spent on Smith-Waterman > 1.08524298668
+2016-10-12 18:17:43,677 - INFO - Time spent on Smith-Waterman > 3.01380586624
+2016-10-12 18:17:44,719 - INFO - Time spent on Smith-Waterman > 1.03554582596
+2016-10-12 18:17:47,952 - INFO - Time spent on Smith-Waterman > 3.22715783119
+2016-10-12 18:17:48,939 - INFO - Time spent on Smith-Waterman > 0.979640007019
+2016-10-12 18:17:51,841 - INFO - Added hit (query ID: gi|323462210|ref|NP_001191024.1|, target ID: gi|545490262|ref|XP_005617307.1|) to hitlist
+2016-10-12 18:17:51,853 - INFO - Added hit (query ID: gi|323462210|ref|NP_001191024.1|, target ID: gi|545490260|ref|XP_005617306.1|) to hitlist
+2016-10-12 18:17:51,865 - INFO - Added hit (query ID: gi|323462210|ref|NP_001191024.1|, target ID: gi|545490258|ref|XP_005617305.1|) to hitlist
+2016-10-12 18:17:51,865 - INFO - Time spent on Smith-Waterman > 2.92050909996
+2016-10-12 18:17:52,829 - INFO - Time spent on Smith-Waterman > 0.956436872482
+2016-10-12 18:17:55,705 - INFO - Added hit (query ID: gi|326439171|ref|NP_001191984.1|, target ID: gi|545514279|ref|XP_005625750.1|) to hitlist
+2016-10-12 18:17:55,715 - INFO - Added hit (query ID: gi|326439171|ref|NP_001191984.1|, target ID: gi|545514277|ref|XP_005625749.1|) to hitlist
+2016-10-12 18:17:55,726 - INFO - Added hit (query ID: gi|326439171|ref|NP_001191984.1|, target ID: gi|545514281|ref|XP_005625751.1|) to hitlist
+2016-10-12 18:17:55,736 - INFO - Added hit (query ID: gi|326439171|ref|NP_001191984.1|, target ID: gi|545514271|ref|XP_005625746.1|) to hitlist
+2016-10-12 18:17:55,746 - INFO - Added hit (query ID: gi|326439171|ref|NP_001191984.1|, target ID: gi|545514275|ref|XP_005625748.1|) to hitlist
+2016-10-12 18:17:55,756 - INFO - Added hit (query ID: gi|326439171|ref|NP_001191984.1|, target ID: gi|545514273|ref|XP_005625747.1|) to hitlist
+2016-10-12 18:17:55,767 - INFO - Added hit (query ID: gi|326439171|ref|NP_001191984.1|, target ID: gi|545514269|ref|XP_005625745.1|) to hitlist
+2016-10-12 18:17:55,767 - INFO - Time spent on Smith-Waterman > 2.77197194099
+2016-10-12 18:17:56,476 - INFO - Time spent on Smith-Waterman > 0.560745000839
+2016-10-12 18:17:59,265 - INFO - Added hit (query ID: gi|25809292|emb|CAD57679.1|, target ID: gi|50978644|ref|NP_001003018.1|) to hitlist
+2016-10-12 18:17:59,273 - INFO - Added hit (query ID: gi|62899877|sp|Q8HYV8.1|ASB17_CANFA, target ID: gi|50978644|ref|NP_001003018.1|) to hitlist
+2016-10-12 18:17:59,273 - INFO - Time spent on Smith-Waterman > 2.62225604057
+2016-10-12 18:18:00,072 - INFO - Time spent on Smith-Waterman > 0.636950969696
+2016-10-12 18:18:02,643 - INFO - Added hit (query ID: gi|326439171|ref|NP_001191984.1|, target ID: gi|545560947|ref|XP_005642473.1|) to hitlist
+2016-10-12 18:18:02,649 - INFO - Time spent on Smith-Waterman > 2.41882705688
+2016-10-12 18:18:02,649 - INFO - Processing done
+2016-10-12 18:18:02,650 - INFO - Reading query sequences...
+2016-10-12 18:18:02,650 - INFO - Query sequences OK.
+2016-10-12 18:18:02,650 - INFO - Processing OK (34 hits found).
+2016-10-12 18:18:02,650 - INFO - Formatting output...
+2016-10-12 18:18:02,650 - INFO - Formatting OK.
+2016-10-12 18:18:02,650 - INFO - Writing output...
+2016-10-12 18:18:02,650 - INFO - Writing OK.
+2016-10-12 18:18:02,650 - INFO - Finished
