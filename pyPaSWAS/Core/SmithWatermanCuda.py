@@ -39,7 +39,6 @@ class SmithWatermanCuda(SmithWaterman):
         
     def __del__(self):
         '''Destructor. Removes the current running context'''
-        self.logger.debug('Destructing SmithWaterman.')
         if (driver.Context is not None):  #@UndefinedVariable @IgnorePep8
             driver.Context.pop()  #@UndefinedVariable @IgnorePep8
 
@@ -151,9 +150,12 @@ class SmithWatermanCuda(SmithWaterman):
         mem_size += memory
 
         # Maximum zero copy memory allocation and device copy
+        """
         self.h_max_possible_score_zero_copy = driver.pagelocked_empty((self.number_of_sequences*self.number_of_targets, 1), numpy.float32,  #@UndefinedVariable
                                                                       mem_flags=driver.host_alloc_flags.DEVICEMAP)  #@UndefinedVariable @IgnorePep8
         self.d_max_possible_score_zero_copy = numpy.intp(self.h_max_possible_score_zero_copy.base.get_device_pointer())
+        """
+        self.d_max_possible_score_zero_copy = driver.mem_alloc(self.number_of_sequences*self.number_of_targets* SmithWaterman.float_size)
         mem_size += self.number_of_sequences *self.number_of_targets * SmithWaterman.float_size
 
         self.logger.debug('Allocated: {}MB of memory'.format(str(mem_size / 1024.0 / 1024.00)))
@@ -182,7 +184,7 @@ class SmithWatermanCuda(SmithWaterman):
         driver.memcpy_htod(self.d_targets, h_targets)  #@UndefinedVariable @IgnorePep8
     
     def _copy_min_score(self):
-        driver.memcpy_htod(self.d_max_possible_score_zero_copy, self.min_score_np)
+        return driver.memcpy_htod(self.d_max_possible_score_zero_copy, self.min_score_np)
  
 
     

@@ -1,9 +1,13 @@
 '''
 TODO Add a proper introduction of the package.
 '''
-from Core.Exceptions import InvalidOptionException
+from pyPaSWAS.Core.Exceptions import InvalidOptionException
 from datetime import datetime
-import ConfigParser
+try:
+    import ConfigParser
+except ImportError:
+    import configparser as ConfigParser
+        
 import logging
 import optparse
 import os
@@ -283,7 +287,7 @@ def _log_settings_to_file(logfile_handle, settings):
     logfile_handle.write("{}\n".format('-' * 74))
 
     # Iterate all settings and write to log file
-    for setting, value in vars(settings).iteritems():
+    for setting, value in vars(settings).items():
         if value == None:
             value = 'N/A'
         setting_table = "{0:30}".format(setting), ':', "{0:>30}\n".format(value)

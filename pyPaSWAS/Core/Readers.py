@@ -7,7 +7,7 @@ from Bio import  SeqIO
 from Bio.Seq import Seq
 from pyPaSWAS.Core.SWSeqRecord import SWSeqRecord
 from pyPaSWAS.Core.Exceptions import InvalidOptionException
-from Exceptions import ReaderException
+from pyPaSWAS.Core.Exceptions import ReaderException
 
 class Reader(object):
     '''The generic reader from which other readers inherit some common functionalities.

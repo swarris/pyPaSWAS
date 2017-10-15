@@ -343,8 +343,8 @@ class SmithWaterman(object):
         self.length_of_y_sequences = len_y
         self.number_of_sequences = number_sequences
         self.number_targets = number_targets
-        self.x_div_shared_x = len_x / self.shared_x
-        self.y_div_shared_y = len_y / self.shared_y
+        self.x_div_shared_x = int(math.floor((len_x / self.shared_x)))
+        self.y_div_shared_y = int(math.floor(len_y / self.shared_y))
 
     def _get_number_of_targets(self):
         '''Calculates the number of targets to process on this device.'''
@@ -674,10 +674,10 @@ class SmithWaterman(object):
             target_starting_point = starting_point.target
             sequence_starting_point = starting_point.sequence
 
-            block_x = starting_point.block_x
-            block_y = starting_point.block_y
-            value_x = starting_point.value_x
-            value_y = starting_point.value_y
+            block_x = int(starting_point.block_x)
+            block_y = int(starting_point.block_y)
+            value_x = int(starting_point.value_x)
+            value_y = int(starting_point.value_y)
 
             local_index = 0
             s_end = block_x * self.shared_x + value_x

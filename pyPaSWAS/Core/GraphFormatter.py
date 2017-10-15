@@ -1,6 +1,6 @@
 ''' Class file for adding alignments hits to a Neo4J graph database '''
 
-from Formatters import DefaultFormatter
+from pyPaSWAS.Core.Formatters import DefaultFormatter
 from neo4j.v1 import GraphDatabase, basic_auth
 
 class GraphFormatter(DefaultFormatter):

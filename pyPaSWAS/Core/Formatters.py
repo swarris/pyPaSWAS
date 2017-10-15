@@ -37,7 +37,7 @@ class DefaultFormatter(object):
         '''sets, formats and prints the results to a file.'''
         self.logger.debug('printing results...')
         output = open(self.outputfile, 'w')
-        for hit in self.hitlist.real_hits.itervalues():
+        for hit in self.hitlist.real_hits.values():
             formatted_hit = self._format_hit(hit)
             output.write(formatted_hit + "\n")
         self.logger.debug('finished printing results')
@@ -81,7 +81,7 @@ class SamFormatter(DefaultFormatter):
         '''sets, formats and prints the results to a file.'''
         self.logger.info('formatting results...')
         #format header and hit lines
-        for hit in self.hitlist.real_hits.itervalues():
+        for hit in self.hitlist.real_hits.values():
             self._format_hit(hit)
 
         self.logger.debug('printing results...')
@@ -132,7 +132,7 @@ class TrimmerFormatter(DefaultFormatter):
         '''sets, formats and prints the results to a file.'''
         self.logger.info('formatting results...')
         #format header and hit lines
-        for hit in self.hitlist.real_hits.itervalues():
+        for hit in self.hitlist.real_hits.values():
             self._format_hit(hit)
 
         self.logger.debug('printing results...')
@@ -173,7 +173,7 @@ class FASTA(DefaultFormatter):
         '''sets, formats and prints the results to a file.'''
         self.logger.info('formatting results...')
         #format header and hit lines
-        for hit in self.hitlist.real_hits.itervalues():
+        for hit in self.hitlist.real_hits.values():
             self._format_hit(hit)
 
         self.logger.debug('printing results...')

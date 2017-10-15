@@ -688,7 +688,7 @@ class SmithWatermanNVIDIA(SmithWatermanGPU):
                 pass
             self.pinned_max_possible_score_zero_copy.release()
             
-    def _compile_ocl_code(self):
+    def _compile_code(self):
         """Compile the OpenCL code with current settings"""
         self.logger.debug('Compiling NVIDIA OpenCL code.')
         code = self.oclcode.get_code(self.score, self.number_of_sequences, self.number_targets, self.length_of_x_sequences, self.length_of_y_sequences)

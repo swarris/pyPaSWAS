@@ -2,9 +2,9 @@
 from pyPaSWAS.Core.HitList import HitList
 from operator import itemgetter,attrgetter
 
-from SWSeqRecord import SWSeqRecord
+from pyPaSWAS.Core.SWSeqRecord import SWSeqRecord
 from Bio.Seq import Seq
-from Hit import Hit
+from pyPaSWAS.Core.Hit import Hit
 
 class Aligner(object):
     '''

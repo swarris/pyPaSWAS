@@ -4,8 +4,8 @@ import logging
 
 if __name__ == '__main__':
 
-    #ppw = Pypaswas()
-    #ppw.run()
+    ppw = Pypaswas()
+    ppw.run()
     try:
         ppw = Pypaswas()
         ppw.run()
