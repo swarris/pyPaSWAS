@@ -1,0 +1,238 @@
+---
+output: pdf_document
+---
+# pyOpenCL and pyCUDA performance data for gap extension
+
+```{r, echo=FALSE}
+## Gets the number of input sequences and sums the total time taken
+get_sw_time <- function(fname) {
+  alignments <- strsplit(fname, '.', fixed = TRUE)[[1]][2]
+  alignments <- as.numeric(strsplit(alignments, '_', fixed = TRUE)[[1]][2])
+  data <- readLines(fname)
+  times <- data[grep('Time spent on Smith-Waterman', data)]
+  times <- as.numeric(sub(".* > ", "", times))
+  return(c(alignments, sum(times)))
+}
+```
+
+```{r, echo=FALSE}
+
+## CPU - command 1 - OpenCL 8 cores
+cpu_flist <- list.files('.', pattern='*CPU.log.txt')
+cpu <- data.frame(Alignments=numeric(), Time=numeric())
+for (fname in cpu_flist) {
+  cpu <- rbind(cpu, get_sw_time(fname))
+}
+
+## CPU - command 2 - OpenCL 1 core
+cpu_flist <- list.files('.', pattern='*CPUSingle.log.txt')
+cpuSingle <- data.frame(Alignments=numeric(), Time=numeric())
+for (fname in cpu_flist) {
+  cpuSingle <- rbind(cpuSingle, get_sw_time(fname))
+}
+
+## CPU - command 3 - OpenCLTest 1 core
+cpu_flist <- list.files('.', pattern='*CPUoclSingle.log.txt')
+cpuOclSingle <- data.frame(Alignments=numeric(), Time=numeric())
+for (fname in cpu_flist) {
+  cpuOclSingle <- rbind(cpuOclSingle, get_sw_time(fname))
+}
+
+## CPU - command 4 - OpenCLTest 8 core
+cpu_flist <- list.files('.', pattern='*CPUocl.log.txt')
+cpuOcl <- data.frame(Alignments=numeric(), Time=numeric())
+for (fname in cpu_flist) {
+  cpuOcl <- rbind(cpuOcl, get_sw_time(fname))
+}
+
+## GPU - command 1 - OpenCL 
+gpu_flist <- list.files('.', pattern='*GPUOpenCL.log.txt')
+gpuOcl <- data.frame(Alignments=numeric(), Time=numeric())
+for (fname in gpu_flist) {
+  gpuOcl <- rbind(gpuOcl, get_sw_time(fname))
+}
+
+## GPU - command 2 - CUDA 
+gpu_flist <- list.files('.', pattern='*GPUCUDA.log.txt')
+gpuCuda <- data.frame()
+for (fname in gpu_flist) {
+  gpuCuda <- rbind(gpuCuda, get_sw_time(fname))
+}
+
+## CPU - command 1 - OpenCL 8 cores
+cpu_flist <- list.files('.', pattern='*CPU.GE.log.txt')
+cpuGE <- data.frame(Alignments=numeric(), Time=numeric())
+for (fname in cpu_flist) {
+	cpuGE <- rbind(cpuGE, get_sw_time(fname))
+}
+
+## CPU - command 2 - OpenCL 1 core
+cpu_flist <- list.files('.', pattern='*CPUSingle.GE.log.txt')
+cpuSingleGE <- data.frame(Alignments=numeric(), Time=numeric())
+for (fname in cpu_flist) {
+	cpuSingleGE <- rbind(cpuSingleGE, get_sw_time(fname))
+}
+
+## CPU - command 3 - OpenCLTest 1 core
+cpu_flist <- list.files('.', pattern='*CPUoclSingle.GE.log.txt')
+cpuOclSingleGE <- data.frame(Alignments=numeric(), Time=numeric())
+for (fname in cpu_flist) {
+	cpuOclSingleGE <- rbind(cpuOclSingleGE, get_sw_time(fname))
+}
+
+## CPU - command 4 - OpenCLTest 8 core
+cpu_flist <- list.files('.', pattern='*CPUocl.GE.log.txt')
+cpuOclGE <- data.frame(Alignments=numeric(), Time=numeric())
+for (fname in cpu_flist) {
+	cpuOclGE <- rbind(cpuOclGE, get_sw_time(fname))
+}
+
+## GPU - command 1 - OpenCL 
+gpu_flist <- list.files('.', pattern='*GPUOpenCL.GE.log.txt')
+gpuOclGE <- data.frame(Alignments=numeric(), Time=numeric())
+for (fname in gpu_flist) {
+	gpuOclGE <- rbind(gpuOclGE, get_sw_time(fname))
+}
+
+## GPU - command 2 - CUDA 
+gpu_flist <- list.files('.', pattern='*GPUCUDA.GE.log.txt')
+gpuCudaGE <- data.frame()
+for (fname in gpu_flist) {
+	gpuCudaGE <- rbind(gpuCudaGE, get_sw_time(fname))
+}
+header <- c('V1', 'V2')
+names(cpu) <- header
+names(cpuSingle) <- header
+names(cpuOclSingle) <- header
+names(cpuOcl) <- header
+names(gpuOcl) <- header
+names(gpuCuda) <- header
+
+names(cpuGE) <- header
+names(cpuSingleGE) <- header
+names(cpuOclSingleGE) <- header
+names(cpuOclGE) <- header
+names(gpuOclGE) <- header
+names(gpuCudaGE) <- header
+```
+
+```{r echo=FALSE}
+library(knitr)
+
+cellUpdates = read.csv("../cellUpdates.csv", sep="\t", header=FALSE, check.names=FALSE)
+cellUpdates = cellUpdates[order(cellUpdates[,1]),]
+cellUpdates[,2] = cellUpdates[,2]/1e9
+# each points consists of 8 query sequences:
+cpu = cpu[order(cpu[,1]),]
+cpuSingle = cpuSingle[order(cpuSingle[,1]),]
+cpuOclSingle = cpuOclSingle[order(cpuOclSingle[,1]),]
+cpuOcl = cpuOcl[order(cpuOcl[,1]),]
+gpuOcl = gpuOcl[order(gpuOcl[,1]),]
+gpuCuda = gpuCuda[order(gpuCuda[,1]),]
+# each points consists of 8 query sequences:
+cpu[,1] = cpu[,1]*8
+cpuSingle[,1] = cpuSingle[,1]*8
+cpuOclSingle[,1] = cpuOclSingle[,1]*8
+cpuOcl[,1] = cpuOcl[,1]*8
+gpuOcl[,1] = gpuOcl[,1]*8
+gpuCuda[,1] = gpuCuda[,1]*8
+
+cpu = cbind(cpu, cellUpdates[,2]/cpu[,2])
+cpuSingle = cbind(cpuSingle, cellUpdates[,2]/cpuSingle[,2])
+cpuOclSingle = cbind(cpuOclSingle, cellUpdates[,2]/cpuOclSingle[,2])
+cpuOcl = cbind(cpuOcl, cellUpdates[,2]/cpuOcl[,2])
+gpuOcl = cbind(gpuOcl, cellUpdates[,2]/gpuOcl[,2])
+gpuCuda = cbind(gpuCuda, cellUpdates[,2]/gpuCuda[,2])
+
+
+# remove 0 value
+cpu = cpu[cpu$V1>0,]
+cpuSingle = cpuSingle[cpuSingle$V1>0,]
+cpuOclSingle = cpuOclSingle[cpuOclSingle$V1>0,]
+cpuOcl = cpuOcl[cpuOcl$V1>0,]
+gpuOcl = gpuOcl[gpuOcl$V1>0,]
+gpuCuda = gpuCuda[gpuCuda$V1>0,]
+
+# each points consists of 8 query sequences:
+cpuGE = cpuGE[order(cpuGE[,1]),]
+cpuSingleGE = cpuSingleGE[order(cpuSingleGE[,1]),]
+cpuOclSingleGE = cpuOclSingleGE[order(cpuOclSingleGE[,1]),]
+cpuOclGE = cpuOclGE[order(cpuOclGE[,1]),]
+gpuOclGE = gpuOclGE[order(gpuOclGE[,1]),]
+gpuCudaGE = gpuCudaGE[order(gpuCudaGE[,1]),]
+# each points consists of 8 query sequences:
+cpuGE[,1] = cpuGE[,1]*8
+cpuSingleGE[,1] = cpuSingleGE[,1]*8
+cpuOclSingleGE[,1] = cpuOclSingleGE[,1]*8
+cpuOclGE[,1] = cpuOclGE[,1]*8
+gpuOclGE[,1] = gpuOclGE[,1]*8
+gpuCudaGE[,1] = gpuCudaGE[,1]*8
+
+cpuGE = cbind(cpuGE, cellUpdates[,2]/cpuGE[,2])
+cpuSingleGE = cbind(cpuSingleGE, cellUpdates[,2]/cpuSingleGE[,2])
+cpuOclSingleGE = cbind(cpuOclSingleGE, cellUpdates[,2]/cpuOclSingleGE[,2])
+cpuOclGE = cbind(cpuOclGE, cellUpdates[,2]/cpuOclGE[,2])
+gpuOclGE = cbind(gpuOclGE, cellUpdates[,2]/gpuOclGE[,2])
+gpuCudaGE = cbind(gpuCudaGE, cellUpdates[,2]/gpuCudaGE[,2])
+
+
+# remove 0 value
+cpuGE = cpu[cpu$V1>0,]
+cpuSingleGE = cpuSingleGE[cpuSingleGE$V1>0,]
+cpuOclSingleGE = cpuOclSingleGE[cpuOclSingleGE$V1>0,]
+cpuOclGE = cpuOclGE[cpuOclGE$V1>0,]
+gpuOclGE = gpuOclGE[gpuOclGE$V1>0,]
+gpuCudaGE = gpuCudaGE[gpuCudaGE$V1>0,]
+
+```
+
+## Desktop system
+
+These configurations are used:
+
+A) CPU, cpu-OpenCL, 1 core
+B) CPU, cpu-OpenCL, 8 cores
+C) CPU, gpu-OpenCL, 1 core
+D) CPU, gpu-OpenCL, 8 cores
+E) GPU, gpu-OpenCL 
+F) GPU, CUDA
+
+Definitions:
+
+- GPU: GeForce GTX 650
+- CPU: Intel(R) Core(TM) i7-3770 CPU @ 3.40GHz
+- CUDA: PaSWAS Smith-Waterman code base
+- gpu-OpenCL: for GPU optimized OpenCL code base
+- cpu-OpenCL: for CPU optimized OpenCL code base
+
+System: 
+
+- Ubuntu 15.04 
+- Desktop PC 
+
+
+## Performance penalty for gap extension
+
+To show the performance penalty of of using the gap extension penalty, each
+run is compared to the timing on the same hardware with a gap extension. 
+
+```{r echo=FALSE}
+plot(c(0,max(cpuOclSingle$V1)),c(0,3), pch='o', cex=0.6, xlab="Number of alignments processed", ylab="Gap extension performance penalty", type="n", xaxt="n")
+axis(side=1, at=cpuOclSingle$V1)
+points(cpuOclSingle$V1,cpuOclSingleGE$V2/cpuOclSingle$V2, pch='o', cex=0.6)
+points(cpuSingle$V1,cpuSingleGE$V2/cpuSingle$V2, col='red', pch='x', cex=0.6)
+points(cpuOcl$V1,cpuOclGE$V2/cpuOcl$V2, col='chocolate4', pch='#', cex=0.6)
+points(cpu$V1,cpuGE$V2/cpu$V2, col='blue', pch='*', cex=0.6)
+points(gpuOcl$V1,gpuOclGE$V2/gpuOcl$V2, col='darkviolet', pch='+', cex=0.6)
+points(gpuCuda$V1,gpuCudaGE$V2/gpuCuda$V2, col='darkmagenta', pch='-', cex=0.6)
+grid()
+legend(0, 3, c("GPU, CUDA",
+                  "GPU, gpu-OpenCL",  
+                  "CPU, gpu-OpenCL, 8 cores", 
+                  "CPU, gpu-OpenCL, 1 core",
+                  "CPU, cpu-OpenCL, 8 cores", 
+                  "CPU, cpu-OpenCL, 1 core"
+), 
+col=c('darkmagenta','darkviolet','chocolate4','black','blue','red'), pch=c('-','+','#','o','*','x'), cex=0.6,ncol=3)
+```
+
