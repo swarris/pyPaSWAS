@@ -209,9 +209,13 @@ class SmithWaterman(object):
         '''
         self.logger.debug("Total memory on Device: {}".format(self._device_global_mem_size()/1024.0/1024.0))
         value = 1
+        gapExtensionFactor = 1
+        if self.gap_extension:
+            gapExtensionFactor = 3
+            
         try:
             value = math.floor((self._device_global_mem_size() * self.mem_fill_factor) / #@UndefinedVariable
-                               ((length_sequences * length_targets * (self._get_mem_size_basic_matrix()) +
+                               ((gapExtensionFactor * length_sequences * length_targets * (self._get_mem_size_basic_matrix()) +
                                  (length_sequences * length_targets * SmithWaterman.float_size) /
                                  (self.shared_x * self.shared_y)) * number_of_targets)) #@UndefinedVariable @IgnorePep8
         except:
