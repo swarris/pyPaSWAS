@@ -1,0 +1,183 @@
+
+--------------------------------------------------------------------------
+pyPaSWAS run started at: 2017-10-19 10:42:25 using the following settings:
+--------------------------------------------------------------------------
+max_genome_length             :                        100000
+query_identity                :                           0.2
+mismatch_score                :                            -3
+device_number                 :                             0
+relative_score                :                           2.0
+recompile                     :                             T
+number_of_jobs                :                           N/A
+filter_factor                 :                           0.2
+device_type                   :                           GPU
+custom_matrix                 :                           N/A
+lower_limit_score             :                           1.0
+start_query                   :                             0
+out_format                    :                           TXT
+sequence_step                 :                     100000000
+password                      :                         Neo4J
+logfile                       :data/canisLupusAnkyrinPRED.fasta_20.fasta.GPUOpenCL.GE.log.txt
+hostname                      :                     localhost
+matrix_name                   :                      BLOSUM80
+short_sequences               :                             F
+program                       :                       aligner
+limit_length                  :                        100000
+gap_score                     :                            -5
+sequence_node                 :                          Read
+filetype2                     :                         fasta
+filetype1                     :                         fasta
+username                      :                         neo4j
+config_file                   :                             0
+target_node                   :                          Read
+any_score                     :                             0
+override_output               :                             T
+number_of_compute_units       :                             0
+base_score                    :                           2.0
+end_target                    :                             0
+maximum_memory_usage          :                           0.8
+framework                     :                        OpenCL
+other_score                   :                            -1
+query_step                    :                       1000000
+sub_device                    :                             0
+query_coverage                :                           0.2
+out_file                      :                     speed.txt
+loglevel                      :                          info
+match_score                   :                             5
+end_query                     :                             0
+platform_name                 :                        NVIDIA
+process_id                    :                           N/A
+minimum_score                 :                            30
+gap_extension                 :                            -1
+start_target                  :                             0
+--------------------------------------------------------------------------
+2017-10-19 10:42:25,418 - INFO - Initializing application...
+2017-10-19 10:42:25,418 - INFO - Application initialized.
+2017-10-19 10:42:25,418 - INFO - Setting program...
+2017-10-19 10:42:25,464 - INFO - Gap extension penalty detected: using affine gap scoring algorithm
+2017-10-19 10:42:25,487 - INFO - Program set.
+2017-10-19 10:42:25,487 - INFO - Reading query sequences 0 1000000...
+2017-10-19 10:42:25,490 - INFO - Query sequences OK.
+2017-10-19 10:42:25,490 - INFO - Reading target sequences 0, 100000000...
+2017-10-19 10:42:25,490 - INFO - Target sequences OK.
+2017-10-19 10:42:25,490 - INFO - Processing 8- vs 20-sequences
+2017-10-19 10:42:25,733 - WARNING - Warning: wrong value in direction matrix: 32
+	Continuing calculation...
+2017-10-19 10:42:25,779 - INFO - Added hit (query ID: gi|323462210|ref|NP_001191024.1|, target ID: gi|545490256|ref|XP_005617304.1|) to hitlist
+2017-10-19 10:42:25,779 - INFO - Time spent on Smith-Waterman > 0.280776023865
+2017-10-19 10:42:25,874 - WARNING - Warning: wrong value in direction matrix: 32
+	Continuing calculation...
+2017-10-19 10:42:25,880 - WARNING - Warning: wrong value in direction matrix: 32
+	Continuing calculation...
+2017-10-19 10:42:25,886 - WARNING - Warning: wrong value in direction matrix: 32
+	Continuing calculation...
+2017-10-19 10:42:25,887 - INFO - Time spent on Smith-Waterman > 0.101317882538
+2017-10-19 10:42:26,125 - WARNING - Warning: wrong value in direction matrix: 32
+	Continuing calculation...
+2017-10-19 10:42:26,173 - WARNING - Warning: wrong value in direction matrix: 32
+	Continuing calculation...
+2017-10-19 10:42:26,173 - INFO - Added hit (query ID: gi|323462210|ref|NP_001191024.1|, target ID: gi|545521771|ref|XP_005628338.1|) to hitlist
+2017-10-19 10:42:26,173 - INFO - Time spent on Smith-Waterman > 0.279649019241
+2017-10-19 10:42:26,267 - WARNING - Warning: wrong value in direction matrix: 32
+	Continuing calculation...
+2017-10-19 10:42:26,274 - WARNING - Warning: wrong value in direction matrix: 32
+	Continuing calculation...
+2017-10-19 10:42:26,280 - WARNING - Warning: wrong value in direction matrix: 32
+	Continuing calculation...
+2017-10-19 10:42:26,280 - INFO - Time spent on Smith-Waterman > 0.100636005402
+2017-10-19 10:42:26,518 - WARNING - Warning: wrong value in direction matrix: 32
+	Continuing calculation...
+2017-10-19 10:42:26,518 - INFO - Time spent on Smith-Waterman > 0.231280088425
+2017-10-19 10:42:26,612 - WARNING - Warning: wrong value in direction matrix: 32
+	Continuing calculation...
+2017-10-19 10:42:26,618 - WARNING - Warning: wrong value in direction matrix: 32
+	Continuing calculation...
+2017-10-19 10:42:26,624 - WARNING - Warning: wrong value in direction matrix: 32
+	Continuing calculation...
+2017-10-19 10:42:26,624 - INFO - Time spent on Smith-Waterman > 0.100222110748
+2017-10-19 10:42:26,857 - WARNING - Warning: wrong value in direction matrix: 32
+	Continuing calculation...
+2017-10-19 10:42:26,904 - WARNING - Warning: wrong value in direction matrix: 32
+	Continuing calculation...
+2017-10-19 10:42:26,904 - INFO - Added hit (query ID: gi|323462210|ref|NP_001191024.1|, target ID: gi|545521773|ref|XP_005628339.1|) to hitlist
+2017-10-19 10:42:26,904 - INFO - Time spent on Smith-Waterman > 0.273660898209
+2017-10-19 10:42:26,996 - WARNING - Warning: wrong value in direction matrix: 32
+	Continuing calculation...
+2017-10-19 10:42:27,002 - WARNING - Warning: wrong value in direction matrix: 32
+	Continuing calculation...
+2017-10-19 10:42:27,009 - WARNING - Warning: wrong value in direction matrix: 32
+	Continuing calculation...
+2017-10-19 10:42:27,009 - INFO - Time spent on Smith-Waterman > 0.0988631248474
+2017-10-19 10:42:27,314 - WARNING - Warning: wrong value in direction matrix: 32
+	Continuing calculation...
+2017-10-19 10:42:27,330 - WARNING - Warning: wrong value in direction matrix: 32
+	Continuing calculation...
+2017-10-19 10:42:27,346 - WARNING - Warning: wrong value in direction matrix: 32
+	Continuing calculation...
+2017-10-19 10:42:27,377 - WARNING - Warning: wrong value in direction matrix: 32
+	Continuing calculation...
+2017-10-19 10:42:27,407 - WARNING - Warning: wrong value in direction matrix: 32
+	Continuing calculation...
+2017-10-19 10:42:27,436 - WARNING - Warning: wrong value in direction matrix: 32
+	Continuing calculation...
+2017-10-19 10:42:27,437 - INFO - Time spent on Smith-Waterman > 0.420604944229
+2017-10-19 10:42:27,546 - INFO - Time spent on Smith-Waterman > 0.102261066437
+2017-10-19 10:42:27,757 - WARNING - Warning: wrong value in direction matrix: 32
+	Continuing calculation...
+2017-10-19 10:42:27,782 - WARNING - Warning: wrong value in direction matrix: 32
+	Continuing calculation...
+2017-10-19 10:42:27,806 - WARNING - Warning: wrong value in direction matrix: 32
+	Continuing calculation...
+2017-10-19 10:42:27,834 - WARNING - Warning: wrong value in direction matrix: 32
+	Continuing calculation...
+2017-10-19 10:42:27,834 - INFO - Time spent on Smith-Waterman > 0.28168296814
+2017-10-19 10:42:28,111 - WARNING - Warning: wrong value in direction matrix: 32
+	Continuing calculation...
+2017-10-19 10:42:28,126 - WARNING - Warning: wrong value in direction matrix: 32
+	Continuing calculation...
+2017-10-19 10:42:28,143 - WARNING - Warning: wrong value in direction matrix: 32
+	Continuing calculation...
+2017-10-19 10:42:28,156 - WARNING - Warning: wrong value in direction matrix: 32
+	Continuing calculation...
+2017-10-19 10:42:28,156 - INFO - Time spent on Smith-Waterman > 0.313421010971
+2017-10-19 10:42:28,350 - WARNING - Warning: wrong value in direction matrix: 32
+	Continuing calculation...
+2017-10-19 10:42:28,363 - WARNING - Warning: wrong value in direction matrix: 32
+	Continuing calculation...
+2017-10-19 10:42:28,379 - WARNING - Warning: wrong value in direction matrix: 32
+	Continuing calculation...
+2017-10-19 10:42:28,396 - WARNING - Warning: wrong value in direction matrix: 32
+	Continuing calculation...
+2017-10-19 10:42:28,412 - WARNING - Warning: wrong value in direction matrix: 32
+	Continuing calculation...
+2017-10-19 10:42:28,429 - WARNING - Warning: wrong value in direction matrix: 32
+	Continuing calculation...
+2017-10-19 10:42:28,429 - INFO - Time spent on Smith-Waterman > 0.264825105667
+2017-10-19 10:42:28,679 - WARNING - Warning: wrong value in direction matrix: 32
+	Continuing calculation...
+2017-10-19 10:42:28,691 - WARNING - Warning: wrong value in direction matrix: 32
+	Continuing calculation...
+2017-10-19 10:42:28,703 - WARNING - Warning: wrong value in direction matrix: 32
+	Continuing calculation...
+2017-10-19 10:42:28,715 - WARNING - Warning: wrong value in direction matrix: 32
+	Continuing calculation...
+2017-10-19 10:42:28,724 - INFO - Added hit (query ID: gi|326439171|ref|NP_001191984.1|, target ID: gi|545514281|ref|XP_005625751.1|) to hitlist
+2017-10-19 10:42:28,734 - INFO - Added hit (query ID: gi|326439171|ref|NP_001191984.1|, target ID: gi|545514275|ref|XP_005625748.1|) to hitlist
+2017-10-19 10:42:28,734 - INFO - Time spent on Smith-Waterman > 0.297071933746
+2017-10-19 10:42:29,027 - WARNING - Warning: wrong value in direction matrix: 32
+	Continuing calculation...
+2017-10-19 10:42:29,040 - WARNING - Warning: wrong value in direction matrix: 32
+	Continuing calculation...
+2017-10-19 10:42:29,049 - INFO - Added hit (query ID: gi|326439171|ref|NP_001191984.1|, target ID: gi|545514279|ref|XP_005625750.1|) to hitlist
+2017-10-19 10:42:29,059 - INFO - Added hit (query ID: gi|326439171|ref|NP_001191984.1|, target ID: gi|545514277|ref|XP_005625749.1|) to hitlist
+2017-10-19 10:42:29,068 - INFO - Added hit (query ID: gi|326439171|ref|NP_001191984.1|, target ID: gi|545514273|ref|XP_005625747.1|) to hitlist
+2017-10-19 10:42:29,068 - INFO - Time spent on Smith-Waterman > 0.324895858765
+2017-10-19 10:42:29,108 - INFO - Time spent on Smith-Waterman > 0.0342609882355
+2017-10-19 10:42:29,108 - INFO - Processing done
+2017-10-19 10:42:29,108 - INFO - Reading query sequences 1000000 2000000...
+2017-10-19 10:42:29,109 - INFO - Processing OK (16 hits found).
+2017-10-19 10:42:29,109 - INFO - Formatting output...
+2017-10-19 10:42:29,109 - INFO - Formatting OK.
+2017-10-19 10:42:29,109 - INFO - Writing output...
+2017-10-19 10:42:29,109 - INFO - Writing OK.
+2017-10-19 10:42:29,109 - INFO - Finished
