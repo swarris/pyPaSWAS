@@ -261,6 +261,10 @@ class SmithWatermanOcl(SmithWaterman):
         code = self.oclcode.get_code(self.score, self.number_of_sequences, self.number_targets, self.length_of_x_sequences, self.length_of_y_sequences)
         #self.logger.debug('Code: \n{}'.format(code))
         self.program = cl.Program(self.ctx, code).build()
+        self.calculateScoreAffineGap_kernel = self.program.calculateScoreAffineGap
+        self.calculateScore_kernel = self.program.calculateScore
+        self.tracebackAffineGap_kernel = self.program.tracebackAffineGap
+        self.traceback_kernel = self.program.traceback
     
     def copy_sequences(self, h_sequences, h_targets):
         '''
@@ -411,66 +415,66 @@ class SmithWatermanCPU(SmithWatermanOcl):
         dim_grid_sw = (self.number_of_sequences * self.workgroup_x, self.number_targets * number_of_blocks * self.workgroup_y)
 
         if self.gap_extension:
-            self.program.calculateScoreAffineGap(self.queue, 
-                                        dim_grid_sw, 
-                                        dim_block, 
-                                        self.d_matrix, 
-                                        self.d_matrix_i, 
-                                        self.d_matrix_j, 
-                                        numpy.int32(idx), 
-                                        numpy.int32(idy),
-                                        numpy.int32(number_of_blocks), 
-                                        self.d_sequences, 
-                                        self.d_targets,
-                                        self.d_global_maxima, 
-                                        self.d_global_direction_zero_copy)
+            self.calculateScoreAffineGap_kernel(self.queue,
+                                                dim_grid_sw,
+                                                dim_block,
+                                                self.d_matrix,
+                                                self.d_matrix_i,
+                                                self.d_matrix_j,
+                                                numpy.int32(idx),
+                                                numpy.int32(idy),
+                                                numpy.int32(number_of_blocks),
+                                                self.d_sequences,
+                                                self.d_targets,
+                                                self.d_global_maxima,
+                                                self.d_global_direction_zero_copy)
 #            direction_array = self._get_direction_byte_array()
 #            from pprint import pprint
 #            pprint(direction_array[0][0], width=1000)
 
         else:
-            self.program.calculateScore(self.queue, 
-                                    dim_grid_sw, 
-                                    dim_block, 
-                                    self.d_matrix, 
-                                    numpy.int32(idx), 
-                                    numpy.int32(idy),
-                                    numpy.int32(number_of_blocks), 
-                                    self.d_sequences, 
-                                    self.d_targets,
-                                    self.d_global_maxima, 
-                                    self.d_global_direction_zero_copy)
+            self.calculateScore_kernel(self.queue, 
+                                       dim_grid_sw,
+                                       dim_block,
+                                       self.d_matrix,
+                                       numpy.int32(idx),
+                                       numpy.int32(idy),
+                                       numpy.int32(number_of_blocks),
+                                       self.d_sequences,
+                                       self.d_targets,
+                                       self.d_global_maxima,
+                                       self.d_global_direction_zero_copy)
                    
     def _execute_traceback_kernel(self, number_of_blocks, idx, idy):
         ''' Executes a single run of the traceback kernel'''
         dim_block = (self.workgroup_x, self.workgroup_y)
         dim_grid_sw = (self.number_of_sequences * self.workgroup_x, self.number_targets * number_of_blocks * self.workgroup_y)
         if self.gap_extension:
-            self.program.tracebackAffineGap(self.queue, dim_grid_sw, dim_block,
-                                   self.d_matrix,
-                                   self.d_matrix_i,
-                                   self.d_matrix_j,
-                                   numpy.int32(idx),
-                                   numpy.int32(idy),
-                                   numpy.int32(number_of_blocks),
-                                   self.d_global_maxima,
-                                   self.d_global_direction_zero_copy,
-                                   self.d_index_increment,
-                                   self.d_starting_points_zero_copy,
-                                   self.d_max_possible_score_zero_copy,
-                                   self.d_semaphores)
+            self.tracebackAffineGap_kernel(self.queue, dim_grid_sw, dim_block,
+                                           self.d_matrix,
+                                           self.d_matrix_i,
+                                           self.d_matrix_j,
+                                           numpy.int32(idx),
+                                           numpy.int32(idy),
+                                           numpy.int32(number_of_blocks),
+                                           self.d_global_maxima,
+                                           self.d_global_direction_zero_copy,
+                                           self.d_index_increment,
+                                           self.d_starting_points_zero_copy,
+                                           self.d_max_possible_score_zero_copy,
+                                           self.d_semaphores)
         else:
-            self.program.traceback(self.queue, dim_grid_sw, dim_block,
-                                   self.d_matrix,
-                                   numpy.int32(idx),
-                                   numpy.int32(idy),
-                                   numpy.int32(number_of_blocks),
-                                   self.d_global_maxima,
-                                   self.d_global_direction_zero_copy,
-                                   self.d_index_increment,
-                                   self.d_starting_points_zero_copy,
-                                   self.d_max_possible_score_zero_copy,
-                                   self.d_semaphores)
+            self.traceback_kernel(self.queue, dim_grid_sw, dim_block,
+                                  self.d_matrix,
+                                  numpy.int32(idx),
+                                  numpy.int32(idy),
+                                  numpy.int32(number_of_blocks),
+                                  self.d_global_maxima,
+                                  self.d_global_direction_zero_copy,
+                                  self.d_index_increment,
+                                  self.d_starting_points_zero_copy,
+                                  self.d_max_possible_score_zero_copy,
+                                  self.d_semaphores)
                                    
     def _clear_memory(self):
         SmithWatermanOcl._clear_memory(self)
@@ -541,31 +545,31 @@ class SmithWatermanGPU(SmithWatermanOcl):
         dim_grid_sw = (self.number_of_sequences * self.shared_x, self.number_targets * number_of_blocks * self.shared_y)
         
         if self.gap_extension:
-            self.program.calculateScoreAffineGap(self.queue, 
-                                        dim_grid_sw, 
-                                        dim_block, 
-                                        self.d_matrix, 
-                                        self.d_matrix_i, 
-                                        self.d_matrix_j, 
-                                        numpy.int32(idx), 
-                                        numpy.int32(idy),
-                                        numpy.int32(number_of_blocks), 
-                                        self.d_sequences, 
-                                        self.d_targets,
-                                        self.d_global_maxima, 
-                                        self.d_global_direction_zero_copy)
+            self.calculateScoreAffineGap_kernel(self.queue,
+                                                dim_grid_sw,
+                                                dim_block,
+                                                self.d_matrix,
+                                                self.d_matrix_i,
+                                                self.d_matrix_j,
+                                                numpy.int32(idx),
+                                                numpy.int32(idy),
+                                                numpy.int32(number_of_blocks),
+                                                self.d_sequences,
+                                                self.d_targets,
+                                                self.d_global_maxima,
+                                                self.d_global_direction_zero_copy)
         else:
-            self.program.calculateScore(self.queue, 
-                                        dim_grid_sw, 
-                                        dim_block, 
-                                        self.d_matrix, 
-                                        numpy.int32(idx), 
-                                        numpy.int32(idy),
-                                        numpy.int32(number_of_blocks), 
-                                        self.d_sequences, 
-                                        self.d_targets,
-                                        self.d_global_maxima, 
-                                        self.d_global_direction_zero_copy)
+            self.calculateScore_kernel(self.queue,
+                                       dim_grid_sw,
+                                       dim_block,
+                                       self.d_matrix,
+                                       numpy.int32(idx),
+                                       numpy.int32(idy),
+                                       numpy.int32(number_of_blocks),
+                                       self.d_sequences,
+                                       self.d_targets,
+                                       self.d_global_maxima,
+                                       self.d_global_direction_zero_copy)
                                     
                                     
     
@@ -574,29 +578,29 @@ class SmithWatermanGPU(SmithWatermanOcl):
         dim_block = (self.shared_x, self.shared_y)
         dim_grid_sw = (self.number_of_sequences * self.shared_x, self.number_targets * number_of_blocks * self.shared_y)
         if self.gap_extension:
-            self.program.tracebackAffineGap(self.queue, dim_grid_sw, dim_block,
-                                   self.d_matrix,
-                                   self.d_matrix_i,
-                                   self.d_matrix_j,
-                                   numpy.int32(idx),
-                                   numpy.int32(idy),
-                                   numpy.int32(number_of_blocks),
-                                   self.d_global_maxima,
-                                   self.d_global_direction_zero_copy,
-                                   self.d_index_increment,
-                                   self.d_starting_points_zero_copy,
-                                   self.d_max_possible_score_zero_copy)
+            self.tracebackAffineGap_kernel(self.queue, dim_grid_sw, dim_block,
+                                           self.d_matrix,
+                                           self.d_matrix_i,
+                                           self.d_matrix_j,
+                                           numpy.int32(idx),
+                                           numpy.int32(idy),
+                                           numpy.int32(number_of_blocks),
+                                           self.d_global_maxima,
+                                           self.d_global_direction_zero_copy,
+                                           self.d_index_increment,
+                                           self.d_starting_points_zero_copy,
+                                           self.d_max_possible_score_zero_copy)
         else:
-            self.program.traceback(self.queue, dim_grid_sw, dim_block,
-                                   self.d_matrix,
-                                   numpy.int32(idx),
-                                   numpy.int32(idy),
-                                   numpy.int32(number_of_blocks),
-                                   self.d_global_maxima,
-                                   self.d_global_direction_zero_copy,
-                                   self.d_index_increment,
-                                   self.d_starting_points_zero_copy,
-                                   self.d_max_possible_score_zero_copy)
+            self.traceback_kernel(self.queue, dim_grid_sw, dim_block,
+                                  self.d_matrix,
+                                  numpy.int32(idx),
+                                  numpy.int32(idy),
+                                  numpy.int32(number_of_blocks),
+                                  self.d_global_maxima,
+                                  self.d_global_direction_zero_copy,
+                                  self.d_index_increment,
+                                  self.d_starting_points_zero_copy,
+                                  self.d_max_possible_score_zero_copy)
                             
     
 class SmithWatermanNVIDIA(SmithWatermanGPU):
@@ -693,7 +697,7 @@ class SmithWatermanNVIDIA(SmithWatermanGPU):
         self.logger.debug('Compiling NVIDIA OpenCL code.')
         code = self.oclcode.get_code(self.score, self.number_of_sequences, self.number_targets, self.length_of_x_sequences, self.length_of_y_sequences)
         self.program = cl.Program(self.ctx, code).build(options=['-D', 'NVIDIA'])
-            
-
-        
-    
+        self.calculateScoreAffineGap_kernel = self.program.calculateScoreAffineGap
+        self.calculateScore_kernel = self.program.calculateScore
+        self.tracebackAffineGap_kernel = self.program.tracebackAffineGap
+        self.traceback_kernel = self.program.traceback
