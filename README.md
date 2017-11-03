@@ -23,6 +23,15 @@ Platforms supported:
 
 More information: https://github.com/swarris/pyPaSWAS/wiki
 
+Docker
+------
+
+The pyPasWAS source contains several docker install files. Clone the repository: 
+
+git clone https://github.com/swarris/pyPaSWAS.git
+
+Then use one of the docker images in the _docker_ folder. For more information, see the [README](https://github.com/swarris/pyPaSWAS/tree/master/docker) 
+
 Installation
 ------------
 In most cases it is enough to clone the repository. After that, please install:
