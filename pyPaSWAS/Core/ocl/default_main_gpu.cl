@@ -8,7 +8,7 @@
 
 /** character used to fill the sequence if length < X */
 #define FILL_CHARACTER '\0'
-#define FILL_SCORE -1E10
+#define FILL_SCORE -1E10f
 
 /** Set init for affine gap matrices */
 #define AFFINE_GAP_INIT -1E10f
@@ -40,7 +40,9 @@ typedef struct {
     float posScore;
 } StartingPoint;
 
-__kernel void calculateScore(
+__kernel
+__attribute__((reqd_work_group_size(SHARED_X, SHARED_Y, 1)))
+void calculateScore(
         const unsigned int numberOfSequences,
         const unsigned int numberOfTargets,
         const unsigned int xDivSHARED_X,
@@ -69,14 +71,12 @@ __kernel void calculateScore(
     __local float s_maxima[SHARED_X][SHARED_Y];
 
     // calculate indices:
-    //unsigned int yDIVnumSeq = (blockIdx.y/numberOfSequences);
-    // 1 is in y-direction and 0 is in x-direction
-    unsigned int blockx = x - get_group_id(1)/numberOfTargets;//yDIVnumSeq;
-    unsigned int blocky = y + get_group_id(1)/numberOfTargets;//yDIVnumSeq;
+    unsigned int blockx = x - get_group_id(2);
+    unsigned int blocky = y + get_group_id(2);
     unsigned int tIDx = get_local_id(0);
     unsigned int tIDy = get_local_id(1);
     unsigned int bIDx = get_group_id(0);
-    unsigned int bIDy = get_group_id(1)%numberOfTargets;///numberOfBlocks;
+    unsigned int bIDy = get_group_id(1);
     unsigned char direction = NO_DIRECTION;
 
     // Move pointers to current target and sequence
@@ -193,7 +193,7 @@ __kernel void calculateScore(
                 currentScore = ulS;
                 direction = UPPER_LEFT_DIRECTION;
             }
-            s_matrix[tIDx][tIDy] = innerScore == FILL_SCORE ? 0.0 : currentScore; // copy score to matrix
+            s_matrix[tIDx][tIDy] = innerScore == FILL_SCORE ? 0.0f : currentScore; // copy score to matrix
         }
 
         else if (i-1 == tXM1 + tYM1 ){
@@ -227,7 +227,9 @@ __kernel void calculateScore(
     barrier(CLK_LOCAL_MEM_FENCE);
 }
 
-__kernel void calculateScoreAffineGap(
+__kernel
+__attribute__((reqd_work_group_size(SHARED_X, SHARED_Y, 1)))
+void calculateScoreAffineGap(
         const unsigned int numberOfSequences,
         const unsigned int numberOfTargets,
         const unsigned int xDivSHARED_X,
@@ -260,14 +262,12 @@ __kernel void calculateScoreAffineGap(
     __local float s_maxima[SHARED_X][SHARED_Y];
 
     // calculate indices:
-    //unsigned int yDIVnumSeq = (blockIdx.y/numberOfSequences);
-    // 1 is in y-direction and 0 is in x-direction
-    unsigned int blockx = x - get_group_id(1)/numberOfTargets;//yDIVnumSeq;
-    unsigned int blocky = y + get_group_id(1)/numberOfTargets;//yDIVnumSeq;
+    unsigned int blockx = x - get_group_id(2);
+    unsigned int blocky = y + get_group_id(2);
     unsigned int tIDx = get_local_id(0);
     unsigned int tIDy = get_local_id(1);
     unsigned int bIDx = get_group_id(0);
-    unsigned int bIDy = get_group_id(1)%numberOfTargets;///numberOfBlocks;
+    unsigned int bIDy = get_group_id(1);
     unsigned char direction = NO_DIRECTION;
     unsigned char direction_i = NO_DIRECTION;
     unsigned char direction_j = NO_DIRECTION;
@@ -408,7 +408,7 @@ __kernel void calculateScoreAffineGap(
                 currentScore = m_M;
                 direction = A_DIRECTION | MAIN_MATRIX;
             }
-            s_matrix[tIDx][tIDy] = innerScore == FILL_SCORE ? 0.0 : currentScore; // copy score to matrix
+            s_matrix[tIDx][tIDy] = innerScore == FILL_SCORE ? 0.0f : currentScore; // copy score to matrix
 
             // now do I matrix:
             currentScore_i = AFFINE_GAP_INIT;
@@ -488,7 +488,9 @@ __kernel void calculateScoreAffineGap(
 }
 
 
-__kernel void traceback(
+__kernel
+__attribute__((reqd_work_group_size(SHARED_X, SHARED_Y, 1)))
+void traceback(
         const unsigned int numberOfSequences,
         const unsigned int numberOfTargets,
         const unsigned int xDivSHARED_X,
@@ -516,13 +518,12 @@ __kernel void traceback(
     __local float s_maxPossibleScore[1];
 
     // calculate indices:
-    unsigned int yDIVnumSeq = (get_group_id(1)/numberOfTargets);
-    unsigned int blockx = x - yDIVnumSeq;
-    unsigned int blocky = y + yDIVnumSeq;
+    unsigned int blockx = x - get_group_id(2);
+    unsigned int blocky = y + get_group_id(2);
     unsigned int tIDx = get_local_id(0);
     unsigned int tIDy = get_local_id(1);
     unsigned int bIDx = get_group_id(0);
-    unsigned int bIDy = get_group_id(1)%numberOfTargets;
+    unsigned int bIDy = get_group_id(1);
 
     // Move pointers to current target and sequence
     const unsigned int offset = (bIDx * numberOfTargets + bIDy) * (xDivSHARED_X * yDivSHARED_Y);
@@ -530,11 +531,13 @@ __kernel void traceback(
     globalMaxima += offset;
     globalDirection += offset;
 
-    float value = 0.0;
+    __local bool s_needsProcessing;
 
     if (!tIDx && !tIDy) {
         s_maxima[0] = globalMaxima[(xDivSHARED_X-1) * yDivSHARED_Y + (yDivSHARED_Y-1)];
         s_maxPossibleScore[0] = maxPossibleScore[bIDy*numberOfSequences+bIDx];
+
+        s_needsProcessing = false;
     }
 
     barrier(CLK_LOCAL_MEM_FENCE);
@@ -544,134 +547,78 @@ __kernel void traceback(
 
         unsigned char direction = globalDirection[blockx * yDivSHARED_Y + blocky].value[tIDx][tIDy];
 
+        const bool isStartCandidate = (direction == UPPER_LEFT_DIRECTION && s_matrix[tIDx][tIDy] >= LOWER_LIMIT_SCORE * s_maxima[0] && s_matrix[tIDx][tIDy] >= s_maxPossibleScore[0]);
+        // Check if there are continuing alignments (from neighbouring blocks) or new starting points.
+        // Otherwise there is nothing to do.
+        if (s_matrix[tIDx][tIDy] < 0.0f || isStartCandidate)
+            s_needsProcessing = true;
 
         // wait until all elements have been copied to the shared memory block
         /**** sync barrier ****/
         barrier(CLK_LOCAL_MEM_FENCE);
 
+        if (!s_needsProcessing)
+            return;
+
         for (int i=DIAGONAL-1; i >= 0; --i) {
 
-            if ((i == tIDx + tIDy) && direction == UPPER_LEFT_DIRECTION && s_matrix[tIDx][tIDy] >= LOWER_LIMIT_SCORE * s_maxima[0] && s_matrix[tIDx][tIDy] >= s_maxPossibleScore[0]) {
-                // found starting point!
-                // reserve index:
-                unsigned int index = atom_inc(&indexIncrement[0]);
-                StartingPoint start;
-                //__global StartingPoint *start = &(startingPoints[index]);
-                start.sequence = bIDx;
-                start.target = bIDy;
-                start.blockX = blockx;
-                start.blockY = blocky;
-                start.valueX = tIDx;
-                start.valueY = tIDy;
-                start.score = s_matrix[tIDx][tIDy];
-                start.maxScore = s_maxima[0];
-                start.posScore = s_maxPossibleScore[0];
-                startingPoints[index] = start;
-                // mark this value:
-                s_matrix[tIDx][tIDy] = as_float(SIGN_BIT_MASK | as_int(s_matrix[tIDx][tIDy]));
-
-            }
-
-            barrier(CLK_LOCAL_MEM_FENCE);
-
-            if ((i == tIDx + tIDy) && s_matrix[tIDx][tIDy] < 0 && direction == UPPER_LEFT_DIRECTION) {
-                if (tIDx && tIDy){
-                    value = s_matrix[tIDx-1][tIDy-1];
-                    if (value == 0.0f) {
-                        direction = STOP_DIRECTION;
-                    }
-                    else {
-                        s_matrix[tIDx-1][tIDy-1] = as_float(SIGN_BIT_MASK | as_int(value));
-                    }
-
-
+            if (i == tIDx + tIDy) {
+                if (isStartCandidate && s_matrix[tIDx][tIDy] > 0.0f) { // is not a part of another alignment
+                    // found starting point!
+                    // reserve index:
+                    unsigned int index = atom_inc(&indexIncrement[0]);
+                    StartingPoint start;
+                    //__global StartingPoint *start = &(startingPoints->startingPoint[index]);
+                    start.sequence = bIDx;
+                    start.target = bIDy;
+                    start.blockX = blockx;
+                    start.blockY = blocky;
+                    start.valueX = tIDx;
+                    start.valueY = tIDy;
+                    start.score = s_matrix[tIDx][tIDy];
+                    start.maxScore = s_maxima[0];
+                    start.posScore = s_maxPossibleScore[0];
+                    startingPoints[index] = start;
+                    // mark this value:
+                    s_matrix[tIDx][tIDy] = as_float(SIGN_BIT_MASK | as_int(s_matrix[tIDx][tIDy]));
                 }
-                else if (!tIDx && tIDy && blockx) {
-                    value = matrix[(blockx-1) * yDivSHARED_Y + blocky].value[SHARED_X-1][tIDy-1];
-                    if (value == 0.0f) {
-                        direction = STOP_DIRECTION;
-                    }
-                    else {
-                        matrix[(blockx-1) * yDivSHARED_Y + blocky].value[SHARED_X-1][tIDy-1] = as_float(SIGN_BIT_MASK | as_int(value));
-                    }
 
-                }
-                else if (!tIDx && !tIDy && blockx && blocky) {
-                    value = matrix[(blockx-1) * yDivSHARED_Y + (blocky-1)].value[SHARED_X-1][SHARED_Y-1];
-                    if (value == 0.0f) {
-                        direction = STOP_DIRECTION;
-                    }
-                    else {
-                          matrix[(blockx-1) * yDivSHARED_Y + (blocky-1)].value[SHARED_X-1][SHARED_Y-1] = as_float(SIGN_BIT_MASK | as_int(value));
-                    }
-
-                }
-                else if (tIDx && !tIDy && blocky) {
-                    value = matrix[blockx * yDivSHARED_Y + (blocky-1)].value[tIDx-1][SHARED_Y-1];
-                    if (value == 0.0f) {
-                        direction = STOP_DIRECTION;
-                    }
-                    else {
-                        matrix[blockx * yDivSHARED_Y + (blocky-1)].value[tIDx-1][SHARED_Y-1] = as_float(SIGN_BIT_MASK | as_int(value));
-                    }
-
-                }
-            }
-            barrier(CLK_LOCAL_MEM_FENCE);
-
-            if ((i == tIDx + tIDy) && s_matrix[tIDx][tIDy] < 0 && direction == UPPER_DIRECTION) {
-                if (!tIDy) {
-                    if (blocky) {
-                        value = matrix[blockx * yDivSHARED_Y + (blocky-1)].value[tIDx][SHARED_Y-1];
+                if (s_matrix[tIDx][tIDy] < 0) {
+                    const int dx = direction == UPPER_DIRECTION ? 0 : -1;
+                    const int dy = direction == LEFT_DIRECTION ? 0 : -1;
+                    int prevx = tIDx + dx;
+                    int prevy = tIDy + dy;
+                    if (prevx >= 0 && prevy >= 0) {
+                        const float value = s_matrix[prevx][prevy];
                         if (value == 0.0f) {
                             direction = STOP_DIRECTION;
+                        } else {
+                            s_matrix[prevx][prevy] = as_float(SIGN_BIT_MASK | as_int(value));
                         }
-                        else {
-                            matrix[blockx * yDivSHARED_Y + (blocky-1)].value[tIDx][SHARED_Y-1] = as_float(SIGN_BIT_MASK | as_int(value));
+                    } else {
+                        int prevBlockx = blockx;
+                        int prevBlocky = blocky;
+                        if (prevx < 0) {
+                            prevBlockx += dx;
+                            prevx = SHARED_X - 1;
                         }
-
-                    }
-                }
-                else {
-                    value = s_matrix[tIDx][tIDy-1];
-                    if (value == 0.0f) {
-                        direction = STOP_DIRECTION;
-                    }
-                    else {
-                        s_matrix[tIDx][tIDy-1] = as_float(SIGN_BIT_MASK | as_int(value));
-                    }
-
-                }
-            }
-
-            barrier(CLK_LOCAL_MEM_FENCE);
-            if ((i == tIDx + tIDy) && s_matrix[tIDx][tIDy] < 0 && direction == LEFT_DIRECTION) {
-                if (!tIDx){
-                    if (blockx) {
-                        value = matrix[(blockx-1) * yDivSHARED_Y + blocky].value[SHARED_X-1][tIDy];
-                        if (value == 0.0f) {
-                            direction = STOP_DIRECTION;
+                        if (prevy < 0) {
+                            prevBlocky += dy;
+                            prevy = SHARED_Y - 1;
                         }
-                        else {
-                            matrix[(blockx-1) * yDivSHARED_Y + blocky].value[SHARED_X-1][tIDy] = as_float(SIGN_BIT_MASK | as_int(value));
+                        if (prevBlockx >= 0 && prevBlocky >= 0) {
+                            const float value = matrix[prevBlockx * yDivSHARED_Y + prevBlocky].value[prevx][prevy];
+                            if (value == 0.0f) {
+                                direction = STOP_DIRECTION;
+                            } else {
+                                matrix[prevBlockx * yDivSHARED_Y + prevBlocky].value[prevx][prevy] = as_float(SIGN_BIT_MASK | as_int(value));
+                            }
                         }
-
                     }
-                }
-                else {
-                    value = s_matrix[tIDx-1][tIDy];
-                    if (value == 0.0f) {
-                        direction = STOP_DIRECTION;
-                    }
-                    else {
-                        s_matrix[tIDx-1][tIDy] = as_float(SIGN_BIT_MASK | as_int(value));
-                    }
-
                 }
             }
-
+            /**** sync barrier ****/
             barrier(CLK_LOCAL_MEM_FENCE);
-
         }
 
         // copy end score to the scorings matrix:
@@ -679,13 +626,13 @@ __kernel void traceback(
             matrix[blockx * yDivSHARED_Y + blocky].value[tIDx][tIDy] = s_matrix[tIDx][tIDy];
             globalDirection[blockx * yDivSHARED_Y + blocky].value[tIDx][tIDy] = direction;
         }
-        /**** sync barrier ****/
-        barrier(CLK_LOCAL_MEM_FENCE);
     }
 }
 
 
-__kernel void tracebackAffineGap(
+__kernel
+__attribute__((reqd_work_group_size(SHARED_X, SHARED_Y, 1)))
+void tracebackAffineGap(
         const unsigned int numberOfSequences,
         const unsigned int numberOfTargets,
         const unsigned int xDivSHARED_X,
@@ -717,13 +664,12 @@ __kernel void tracebackAffineGap(
     __local float s_maxPossibleScore[1];
 
     // calculate indices:
-    unsigned int yDIVnumSeq = (get_group_id(1)/numberOfTargets);
-    unsigned int blockx = x - yDIVnumSeq;
-    unsigned int blocky = y + yDIVnumSeq;
+    unsigned int blockx = x - get_group_id(2);
+    unsigned int blocky = y + get_group_id(2);
     unsigned int tIDx = get_local_id(0);
     unsigned int tIDy = get_local_id(1);
     unsigned int bIDx = get_group_id(0);
-    unsigned int bIDy = get_group_id(1)%numberOfTargets;
+    unsigned int bIDy = get_group_id(1);
 
     // Move pointers to current target and sequence
     const unsigned int offset = (bIDx * numberOfTargets + bIDy) * (xDivSHARED_X * yDivSHARED_Y);

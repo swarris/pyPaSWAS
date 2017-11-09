@@ -586,8 +586,8 @@ class SmithWatermanGPU(SmithWatermanOcl):
 
     def _execute_calculate_score_kernel(self, number_of_blocks, idx, idy):
         ''' Executes a single run of the calculate score kernel'''
-        dim_block = (self.shared_x, self.shared_y)
-        dim_grid_sw = (self.number_of_sequences * self.shared_x, self.number_targets * number_of_blocks * self.shared_y)
+        dim_block = (self.shared_x, self.shared_y, 1)
+        dim_grid_sw = (self.number_of_sequences * self.shared_x, self.number_targets * self.shared_y, number_of_blocks)
         
         if self.gap_extension:
             self.calculateScoreAffineGap_kernel(self.queue, dim_grid_sw, dim_block,
@@ -624,8 +624,9 @@ class SmithWatermanGPU(SmithWatermanOcl):
     
     def _execute_traceback_kernel(self, number_of_blocks, idx, idy):
         ''' Executes a single run of the traceback kernel'''
-        dim_block = (self.shared_x, self.shared_y)
-        dim_grid_sw = (self.number_of_sequences * self.shared_x, self.number_targets * number_of_blocks * self.shared_y)
+        dim_block = (self.shared_x, self.shared_y, 1)
+        dim_grid_sw = (self.number_of_sequences * self.shared_x, self.number_targets * self.shared_y, number_of_blocks)
+
         if self.gap_extension:
             self.tracebackAffineGap_kernel(self.queue, dim_grid_sw, dim_block,
                                            numpy.uint32(self.number_of_sequences),
