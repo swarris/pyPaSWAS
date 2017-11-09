@@ -37,7 +37,9 @@ class SmithWatermanOcl(SmithWaterman):
         self._set_device_type(self.settings.device_type)
         self._set_platform(self.settings.platform_name)
         self._initialize_device(int(self.settings.device_number))
-    
+
+        self.always_reallocate_memory = False
+
     def _init_oclcode(self):
                 # Compiling part of the OpenCL code in advance
         self.oclcode.set_shared_xy_code(self.shared_x, self.shared_y)
@@ -134,6 +136,8 @@ class SmithWatermanOcl(SmithWaterman):
     
     def _clear_memory(self):
         '''Clears the claimed memory on the device.'''
+        if not self.always_reallocate_memory:
+            return
         self.logger.debug('Clearing device memory.')
         self._clear_normal_memory()
         self._clear_zero_copy_memory()
@@ -202,6 +206,20 @@ class SmithWatermanOcl(SmithWaterman):
                 pass
             self.d_max_possible_score_zero_copy.release()
 
+    def _need_reallocation(self, buffer, size):
+        if self.always_reallocate_memory:
+            return True
+        if buffer is None:
+            return True
+        if buffer.get_info(cl.mem_info.SIZE) < size:
+            try:
+                buffer.finish()
+            except:
+                pass
+            buffer.release()
+            return True
+        return False
+
     def _init_normal_memory(self):
         '''
         #_init_memory will initialize all required memory on the device based on the current settings.
@@ -210,12 +228,14 @@ class SmithWatermanOcl(SmithWaterman):
         # Sequence device memory
         self.logger.debug('Initializing normal device memory.')
         memory = self.length_of_x_sequences * self.number_of_sequences
-        self.d_sequences = cl.Buffer(self.ctx, cl.mem_flags.READ_ONLY, size=memory)
+        if self._need_reallocation(self.d_sequences, memory):
+            self.d_sequences = cl.Buffer(self.ctx, cl.mem_flags.READ_ONLY, size=memory)
         mem_size = memory
         
         # Target device memory
         memory = self.length_of_y_sequences * self.number_targets
-        self.d_targets = cl.Buffer(self.ctx, cl.mem_flags.READ_ONLY, size=memory)
+        if self._need_reallocation(self.d_targets, memory):
+            self.d_targets = cl.Buffer(self.ctx, cl.mem_flags.READ_ONLY, size=memory)
         mem_size += memory
         
         return mem_size
@@ -226,12 +246,14 @@ class SmithWatermanOcl(SmithWaterman):
         # Starting points host memory allocation and device copy
         memory = (self.size_of_startingpoint * self.maximum_number_starting_points * self.number_of_sequences *
         self.number_targets)
-        self.d_starting_points_zero_copy = cl.Buffer(self.ctx, cl.mem_flags.WRITE_ONLY | cl.mem_flags.ALLOC_HOST_PTR, size=memory)
+        if self._need_reallocation(self.d_starting_points_zero_copy, memory):
+            self.d_starting_points_zero_copy = cl.Buffer(self.ctx, cl.mem_flags.WRITE_ONLY | cl.mem_flags.ALLOC_HOST_PTR, size=memory)
         mem_size = memory
         
         # Global directions host memory allocation and device copy
         memory = (self.length_of_x_sequences * self.number_of_sequences * self.length_of_y_sequences * self.number_targets)
-        self.d_global_direction_zero_copy = cl.Buffer(self.ctx, cl.mem_flags.WRITE_ONLY | cl.mem_flags.ALLOC_HOST_PTR, size=memory)
+        if self._need_reallocation(self.d_global_direction_zero_copy, memory):
+            self.d_global_direction_zero_copy = cl.Buffer(self.ctx, cl.mem_flags.READ_WRITE | cl.mem_flags.ALLOC_HOST_PTR, size=memory)
 
         mem_size += memory
         
@@ -239,7 +261,10 @@ class SmithWatermanOcl(SmithWaterman):
         memory = (self.number_of_sequences * self.number_of_targets * SmithWaterman.float_size)
         #self.d_max_possible_score_zero_copy = cl.Buffer(self.ctx, cl.mem_flags.READ_ONLY | cl.mem_flags.ALLOC_HOST_PTR, size=memory)
         mem_size += memory
-        
+
+        if self._need_reallocation(self.d_index_increment, SmithWaterman.int_size):
+            self.d_index_increment = cl.Buffer(self.ctx, cl.mem_flags.WRITE_ONLY, size=SmithWaterman.int_size)
+
         return mem_size
         
     def _init_memory(self):
@@ -251,7 +276,6 @@ class SmithWatermanOcl(SmithWaterman):
 
     def _init_zero_copy(self):
         ''' Initializes the index used for the 'zero copy' of the found starting points '''
-        self.d_index_increment = cl.Buffer(self.ctx, cl.mem_flags.WRITE_ONLY, size=SmithWaterman.int_size)
         index = numpy.zeros((1), dtype=numpy.int32)
         cl.enqueue_write_buffer(self.queue, self.d_index_increment, index)
 
@@ -272,8 +296,8 @@ class SmithWatermanOcl(SmithWaterman):
         @param h_sequences: the sequences to be copied. Should be a single string containing all sequences
         @param h_targets: the targets to be copied. Should be a single string containing all sequences
         '''
-        cl.enqueue_copy(self.queue, self.d_sequences, h_sequences)
-        cl.enqueue_copy(self.queue, self.d_targets, h_targets)
+        cl.enqueue_copy(self.queue, self.d_sequences, h_sequences, is_blocking=False)
+        cl.enqueue_copy(self.queue, self.d_targets, h_targets, is_blocking=False)
         
     def _get_number_of_starting_points(self):
         ''' Returns the number of startingpoints. '''
@@ -290,9 +314,10 @@ class SmithWatermanOcl(SmithWaterman):
                                                                                                      else len(targets[tI+target_index])) * float(self.filter_factor))
 
     def _copy_min_score(self):
-        self.d_max_possible_score_zero_copy = cl.Buffer(self.ctx, cl.mem_flags.READ_ONLY | cl.mem_flags.ALLOC_HOST_PTR| cl.mem_flags.COPY_HOST_PTR, hostbuf=self.min_score_np\
-)
-        #cl.enqueue_copy(self.queue, self.d_max_possible_score_zero_copy, self.min_score_np)
+        if self._need_reallocation(self.d_max_possible_score_zero_copy, self.min_score_np.nbytes):
+            self.d_max_possible_score_zero_copy = cl.Buffer(self.ctx, cl.mem_flags.READ_ONLY | cl.mem_flags.ALLOC_HOST_PTR, size=self.min_score_np.nbytes)
+        cl.enqueue_copy(self.queue, self.d_max_possible_score_zero_copy, self.min_score_np, is_blocking=False)
+
         
     def _set_max_possible_score(self, target_index, targets, i, index, records_seqs):
         '''fills the max_possible_score datastructure on the host'''
@@ -352,16 +377,19 @@ class SmithWatermanCPU(SmithWatermanOcl):
         # Input matrix device memory
         memory = (SmithWaterman.float_size * (self.length_of_x_sequences + 1) * self.number_of_sequences *
         (self.length_of_y_sequences + 1) * self.number_targets)
-        self.d_matrix = cl.Buffer(self.ctx, cl.mem_flags.READ_WRITE, size=memory)
+        if self._need_reallocation(self.d_matrix, memory):
+            self.d_matrix = cl.Buffer(self.ctx, cl.mem_flags.READ_WRITE, size=memory)
         mem_size += memory
 
         pattern = numpy.zeros((1),dtype=numpy.float32)
         cl.enqueue_fill_buffer(self.queue, self.d_matrix, pattern, 0, size = memory)
 
         if self.gap_extension:
-            self.d_matrix_i = cl.Buffer(self.ctx, cl.mem_flags.READ_WRITE, size=memory)
+            if self._need_reallocation(self.d_matrix_i, memory):
+                self.d_matrix_i = cl.Buffer(self.ctx, cl.mem_flags.READ_WRITE, size=memory)
             mem_size += memory
-            self.d_matrix_j = cl.Buffer(self.ctx, cl.mem_flags.READ_WRITE, size=memory)
+            if self._need_reallocation(self.d_matrix_j, memory):
+                self.d_matrix_j = cl.Buffer(self.ctx, cl.mem_flags.READ_WRITE, size=memory)
             mem_size += memory
             pattern = numpy.array([-1E10],dtype=numpy.float32)
             cl.enqueue_fill_buffer(self.queue, self.d_matrix_i, pattern, 0, size = memory)
@@ -371,7 +399,8 @@ class SmithWatermanCPU(SmithWatermanOcl):
         # Maximum global device memory
         memory = (SmithWaterman.float_size * self.x_div_shared_x * self.number_of_sequences *
         self.y_div_shared_y * self.number_targets * self.workload_x * self.workload_y)
-        self.d_global_maxima = cl.Buffer(self.ctx, cl.mem_flags.READ_WRITE, size=memory)
+        if self._need_reallocation(self.d_global_maxima, memory):
+            self.d_global_maxima = cl.Buffer(self.ctx, cl.mem_flags.READ_WRITE, size=memory)
         mem_size += memory
         
 
@@ -381,7 +410,8 @@ class SmithWatermanCPU(SmithWatermanOcl):
                   self.length_of_y_sequences *
                   self.number_targets)
         
-        self.d_semaphores = cl.Buffer(self.ctx, cl.mem_flags.READ_WRITE, size=memory)
+        if self._need_reallocation(self.d_semaphores, memory):
+            self.d_semaphores = cl.Buffer(self.ctx, cl.mem_flags.READ_WRITE, size=memory)
         pattern = numpy.zeros((1),dtype=numpy.int32)
         cl.enqueue_fill_buffer(self.queue, self.d_semaphores, pattern, 0, size=memory)
 
@@ -478,6 +508,8 @@ class SmithWatermanCPU(SmithWatermanOcl):
                                    
     def _clear_memory(self):
         SmithWatermanOcl._clear_memory(self)
+        if not self.always_reallocate_memory:
+            return
         if (self.d_semaphores is not None):
             try:
                 self.d_semaphores.finish()
@@ -507,19 +539,23 @@ class SmithWatermanGPU(SmithWatermanOcl):
         # Input matrix device memory
         memory = (SmithWaterman.float_size * self.length_of_x_sequences * self.number_of_sequences *
         self.length_of_y_sequences * self.number_targets)
-        self.d_matrix = cl.Buffer(self.ctx, cl.mem_flags.READ_WRITE, size=memory)
+        if self._need_reallocation(self.d_matrix, memory):
+            self.d_matrix = cl.Buffer(self.ctx, cl.mem_flags.READ_WRITE, size=memory)
         mem_size += memory
         if self.gap_extension:
-            self.d_matrix_i = cl.Buffer(self.ctx, cl.mem_flags.READ_WRITE, size=memory)
+            if self._need_reallocation(self.d_matrix_i, memory):
+                self.d_matrix_i = cl.Buffer(self.ctx, cl.mem_flags.READ_WRITE, size=memory)
             mem_size += memory
-            self.d_matrix_j = cl.Buffer(self.ctx, cl.mem_flags.READ_WRITE, size=memory)
+            if self._need_reallocation(self.d_matrix_j, memory):
+                self.d_matrix_j = cl.Buffer(self.ctx, cl.mem_flags.READ_WRITE, size=memory)
             mem_size += memory
             
         
         # Maximum global device memory
         memory = (SmithWaterman.float_size * self.x_div_shared_x * self.number_of_sequences *
         self.y_div_shared_y * self.number_targets)
-        self.d_global_maxima = cl.Buffer(self.ctx, cl.mem_flags.READ_WRITE, size=memory)
+        if self._need_reallocation(self.d_global_maxima, memory):
+            self.d_global_maxima = cl.Buffer(self.ctx, cl.mem_flags.READ_WRITE, size=memory)
         mem_size += memory
 
         return mem_size
@@ -647,8 +683,10 @@ class SmithWatermanNVIDIA(SmithWatermanGPU):
         # Starting points host memory allocation and device copy
         memory = (self.size_of_startingpoint * self.maximum_number_starting_points * self.number_of_sequences *
         self.number_targets)
-        self.pinned_starting_points_zero_copy = cl.Buffer(self.ctx, cl.mem_flags.ALLOC_HOST_PTR, size=memory)
-        self.d_starting_points_zero_copy = cl.Buffer(self.ctx, cl.mem_flags.WRITE_ONLY, size=memory)
+        if self._need_reallocation(self.pinned_starting_points_zero_copy, memory):
+            self.pinned_starting_points_zero_copy = cl.Buffer(self.ctx, cl.mem_flags.ALLOC_HOST_PTR, size=memory)
+        if self._need_reallocation(self.d_starting_points_zero_copy, memory):
+            self.d_starting_points_zero_copy = cl.Buffer(self.ctx, cl.mem_flags.WRITE_ONLY, size=memory)
         self.h_starting_points_zero_copy = cl.enqueue_map_buffer(self.queue, self.pinned_starting_points_zero_copy, cl.map_flags.READ, 0, 
                                                                 (memory, 1), dtype=numpy.byte)[0]
         mem_size = memory
@@ -656,8 +694,10 @@ class SmithWatermanNVIDIA(SmithWatermanGPU):
         # Global directions host memory allocation and device copy
         memory = (self.length_of_x_sequences * self.number_of_sequences * self.length_of_y_sequences *
         self.number_targets)
-        self.pinned_global_direction_zero_copy = cl.Buffer(self.ctx, cl.mem_flags.ALLOC_HOST_PTR, size=memory)
-        self.d_global_direction_zero_copy = cl.Buffer(self.ctx, cl.mem_flags.WRITE_ONLY, size=memory)
+        if self._need_reallocation(self.pinned_global_direction_zero_copy, memory):
+            self.pinned_global_direction_zero_copy = cl.Buffer(self.ctx, cl.mem_flags.ALLOC_HOST_PTR, size=memory)
+        if self._need_reallocation(self.d_global_direction_zero_copy, memory):
+            self.d_global_direction_zero_copy = cl.Buffer(self.ctx, cl.mem_flags.WRITE_ONLY, size=memory)
         self.h_global_direction_zero_copy = cl.enqueue_map_buffer(self.queue, self.pinned_global_direction_zero_copy, cl.map_flags.READ, 0, 
                                                                     (memory, 1), dtype=numpy.byte)[0] 
         mem_size += memory
