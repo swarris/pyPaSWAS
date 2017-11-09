@@ -104,7 +104,6 @@ class OCLcode(Code):
     '''
     def __init__(self, logger):
         Code.__init__(self, logger)
-        self.variable_source = resource_filename(__name__, 'ocl/default_variable.cl')
         self.direction_source = resource_filename(__name__, 'ocl/default_direction.cl')
         self.score_source = resource_filename(__name__, 'ocl/default_score.cl')
         
@@ -116,6 +115,7 @@ class GPUcode(OCLcode):
     def __init__(self, logger):
         OCLcode.__init__(self, logger)
         self.main_source = resource_filename(__name__, 'ocl/default_main_gpu.cl')
+        self.variable_source = resource_filename(__name__, 'ocl/default_variable_gpu.cl')
         
 class CPUcode(OCLcode):
     '''
@@ -125,6 +125,7 @@ class CPUcode(OCLcode):
     def __init__(self, logger):
         OCLcode.__init__(self, logger)
         self.main_source = resource_filename(__name__, 'ocl/default_main_cpu.cl')
+        self.variable_source = resource_filename(__name__, 'ocl/default_variable_cpu.cl')
         
     def set_shared_xy_code(self, sharedx=8, sharedy=8, workloadx=4, workloady=4):
         '''
