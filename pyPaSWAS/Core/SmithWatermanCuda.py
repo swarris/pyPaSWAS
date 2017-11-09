@@ -281,7 +281,7 @@ class SmithWatermanCuda(SmithWaterman):
                                                                                                      if len(records_seqs[i+index]) < len(targets[tI+target_index]) 
                                                                                                      else len(targets[tI+target_index])) * float(self.filter_factor))
                 
-    def _get_starting_point_byte_array(self):
+    def _get_starting_point_byte_array(self, number_of_starting_points):
         '''
         Get the resulting starting points
         @return gives the resulting starting point array as byte array

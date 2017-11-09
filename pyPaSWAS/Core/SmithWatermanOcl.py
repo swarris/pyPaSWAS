@@ -329,16 +329,14 @@ class SmithWatermanOcl(SmithWaterman):
         #Unmap memory object
 #        del self.h_max_possible_score_zero_copy
         
-    def _get_starting_point_byte_array(self):
+    def _get_starting_point_byte_array(self, number_of_starting_points):
         '''
         Get the resulting starting points
         @return gives the resulting starting point array as byte array
         '''
         self.h_starting_points_zero_copy = cl.enqueue_map_buffer(self.queue, self.d_starting_points_zero_copy, cl.map_flags.READ, 0, 
                                                                  (self.size_of_startingpoint * 
-                                                                  self.maximum_number_starting_points * 
-                                                                  self.number_of_sequences *
-                                                                  self.number_targets, 1), dtype=numpy.byte)[0]
+                                                                  number_of_starting_points, 1), dtype=numpy.byte)[0]
         return self.h_starting_points_zero_copy
             
     def _print_alignments(self, sequences, targets, start_seq, start_target, hit_list=None):

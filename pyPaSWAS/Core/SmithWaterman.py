@@ -269,7 +269,7 @@ class SmithWaterman(object):
         '''fills the max_possible_score datastructure on the host'''
         pass
     
-    def _get_starting_point_byte_array(self):
+    def _get_starting_point_byte_array(self, number_of_starting_points):
         '''
         Get the resulting starting points
         @return gives the resulting starting point array as byte array
@@ -634,15 +634,18 @@ class SmithWaterman(object):
         if hit_list is None:
             hit_list = HitList(self.logger)
         self.logger.debug('Printing alignments.')
-        starting_points = self._get_starting_point_byte_array()
-        #starting_point = StartingPoint(self.logger)
-        
+
         number_of_starting_points = self._get_number_of_starting_points()
         self.logger.debug('Number of starting points is: {0}.'.format(number_of_starting_points))
+        if number_of_starting_points == 0:
+            # No need to read other data from device
+            return hit_list
         if number_of_starting_points >= (self.maximum_number_starting_points * self.number_of_sequences * self.number_targets):
             self.logger.warning("Too many hits returned. Skipping the rest. Please set lower_limit_score higher in config.")
             number_of_starting_points = self.maximum_number_starting_points * self.number_of_sequences * self.number_targets
-        
+
+        starting_points = self._get_starting_point_byte_array(number_of_starting_points)
+
         max_score = 0
 
         direction_array = self._get_direction_byte_array()
