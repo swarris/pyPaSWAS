@@ -62,13 +62,6 @@ void calculateScore(
      * Neighboring cells
      */
     __local float s_matrix[SHARED_X+1][SHARED_Y+1];
-    /**
-     * shared memory block for storing the maximum value of each neighboring cell.
-     * Careful: the s_maxima[SHARED_X][SHARED_Y] does not contain the maximum value
-     * after the calculation loop! This value is determined at the end of this
-     * function.
-     */
-    __local float s_maxima[SHARED_X][SHARED_Y];
 
     // calculate indices:
     unsigned int blockx = x - get_group_id(2);
@@ -95,13 +88,13 @@ void calculateScore(
     float maxPrev = 0.0f;
     if (!tIDx && !tIDy) {
         if (blockx && blocky) {
-            maxPrev = fmax(fmax(globalMaxima[(blockx-1) * yDivSHARED_Y + (blocky-1)], globalMaxima[(blockx-1) * yDivSHARED_Y + blocky]), globalMaxima[blockx * yDivSHARED_Y + (blocky-1)]);
+            maxPrev = fmax(maxPrev, globalMaxima[(blockx-1) * yDivSHARED_Y + (blocky-1)]);
         }
-        else if (blockx) {
-            maxPrev = globalMaxima[(blockx-1) * yDivSHARED_Y + blocky];
+        if (blockx) {
+            maxPrev = fmax(maxPrev, globalMaxima[(blockx-1) * yDivSHARED_Y + blocky]);
         }
-        else if (blocky) {
-            maxPrev = globalMaxima[blockx * yDivSHARED_Y + (blocky-1)];
+        if (blocky) {
+            maxPrev = fmax(maxPrev, globalMaxima[blockx * yDivSHARED_Y + (blocky-1)]);
         }
     }
     // local scorings variables:
@@ -124,35 +117,19 @@ void calculateScore(
     if (!tIDx)
         s_seq2[tIDy] = targets[seqIndex2];
 
-    // set both matrices to zero
-    s_matrix[tIDx][tIDy] = 0.0f;
-    s_maxima[tIDx][tIDy] = 0.0f;
-
-    if (tIDx == SHARED_X-1  && ! tIDy)
-        s_matrix[SHARED_X][0] = 0.0f;
-    if (tIDy == SHARED_Y-1  && ! tIDx)
-        s_matrix[0][SHARED_Y] = 0.0f;
-
-    /**** sync barrier ****/
-    s_matrix[tIDx][tIDy] = 0.0f;
     barrier(CLK_LOCAL_MEM_FENCE);
 
     // initialize outer parts of the matrix:
-    if (!tIDx || !tIDy) {
-        if (tIDx == SHARED_X-1)
-            s_matrix[tIDx+1][tIDy] = 0.0f;
-        if (tIDy == SHARED_Y-1)
-            s_matrix[tIDx][tIDy+1] = 0.0f;
-        if (blockx && !tIDx) {
-            s_matrix[0][tIDy+1] = matrix[(blockx-1) * yDivSHARED_Y + blocky].value[SHARED_X-1][tIDy];
-        }
-        if (blocky && !tIDy) {
-            s_matrix[tIDx+1][0] = matrix[blockx * yDivSHARED_Y + (blocky-1)].value[tIDx][SHARED_Y-1];
-        }
-        if (blockx && blocky && !tIDx && !tIDy){
-            s_matrix[0][0] = matrix[(blockx-1) * yDivSHARED_Y + (blocky-1)].value[SHARED_X-1][SHARED_Y-1];
-        }
+    if (!tIDx) {
+        s_matrix[0][tIDy+1] = blockx ? matrix[(blockx-1) * yDivSHARED_Y + blocky].value[SHARED_X-1][tIDy] : 0.0f;
     }
+    if (!tIDy) {
+        s_matrix[tIDx+1][0] = blocky ? matrix[blockx * yDivSHARED_Y + (blocky-1)].value[tIDx][SHARED_Y-1] : 0.0f;
+    }
+    if (!tIDx && !tIDy){
+        s_matrix[0][0] = blockx && blocky ? matrix[(blockx-1) * yDivSHARED_Y + (blocky-1)].value[SHARED_X-1][SHARED_Y-1] : 0.0f;
+    }
+
     // set inner score (aka sequence match/mismatch score):
     char charS1 = s_seq1[tIDx];
     char charS2 = s_seq2[tIDy];
@@ -162,17 +139,12 @@ void calculateScore(
     // transpose the index
     ++tIDx;
     ++tIDy;
-    // set shared matrix to zero (starting point!)
-    s_matrix[tIDx][tIDy] = 0.0f;
-
-    // wait until all elements have been copied to the shared memory block
-    /**** sync barrier ****/
-    barrier(CLK_LOCAL_MEM_FENCE);
 
     currentScore = 0.0f;
 
     for (int i=0; i < DIAGONAL; ++i) {
-        if (i == tXM1+ tYM1) {
+        barrier(CLK_LOCAL_MEM_FENCE);
+        if (i == tXM1 + tYM1) {
             // calculate only when there are two valid characters
             // this is necessary when the two sequences are not of equal length
             // this is the SW-scoring of the cell:
@@ -193,38 +165,32 @@ void calculateScore(
                 currentScore = ulS;
                 direction = UPPER_LEFT_DIRECTION;
             }
-            s_matrix[tIDx][tIDy] = innerScore == FILL_SCORE ? 0.0f : currentScore; // copy score to matrix
+            currentScore = innerScore == FILL_SCORE ? 0.0f : currentScore;
+            s_matrix[tIDx][tIDy] = currentScore; // copy score to matrix
         }
-
-        else if (i-1 == tXM1 + tYM1 ){
-            // use this to find fmax
-            if (i==1) {
-                s_maxima[0][0] = fmax(maxPrev, currentScore);
-            }
-            else if (!tXM1 && tYM1) {
-                s_maxima[0][tYM1] = fmax(s_maxima[0][tYM1-1], currentScore);
-            }
-            else if (!tYM1 && tXM1) {
-                s_maxima[tXM1][0] = fmax(s_maxima[tXM1-1][0], currentScore);
-            }
-            else if (tXM1 && tYM1 ){
-                s_maxima[tXM1][tYM1] = fmax(s_maxima[tXM1-1][tYM1], fmax(s_maxima[tXM1][tYM1-1], currentScore));
-            }
-        }
-        // wait until all threads have calculated their new score
-        /**** sync barrier ****/
-        barrier(CLK_LOCAL_MEM_FENCE);
     }
     // copy end score to the scorings matrix:
     matrix[blockx * yDivSHARED_Y + blocky].value[tXM1][tYM1] = s_matrix[tIDx][tIDy];
     globalDirection[blockx * yDivSHARED_Y + blocky].value[tXM1][tYM1] = direction;
 
-    if (tIDx==SHARED_X && tIDy==SHARED_Y)
-        globalMaxima[blockx * yDivSHARED_Y + blocky] = fmax(currentScore, fmax(s_maxima[SHARED_X-2][SHARED_Y-1], s_maxima[SHARED_X-1][SHARED_Y-2]));
+    // Find maximum score
+    __local float s_maxima[SHARED_X * SHARED_Y];
 
-    // wait until all threads have copied their score:
-    /**** sync barrier ****/
-    barrier(CLK_LOCAL_MEM_FENCE);
+    const unsigned int lid = get_local_id(0) * SHARED_Y + get_local_id(1);
+    float m = fmax(currentScore, maxPrev);
+    s_maxima[lid] = m;
+
+    for (int stride = SHARED_X * SHARED_Y / 2; stride > 0; stride >>= 1) {
+        barrier(CLK_LOCAL_MEM_FENCE);
+        if (lid < stride) {
+            m = fmax(m, s_maxima[lid + stride]);
+            s_maxima[lid] = m;
+        }
+    }
+
+    if (lid == 0) {
+        globalMaxima[blockx * yDivSHARED_Y + blocky] = m;
+    }
 }
 
 __kernel
