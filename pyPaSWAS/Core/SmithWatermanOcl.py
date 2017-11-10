@@ -237,7 +237,10 @@ class SmithWatermanOcl(SmithWaterman):
         if self._need_reallocation(self.d_targets, memory):
             self.d_targets = cl.Buffer(self.ctx, cl.mem_flags.READ_ONLY, size=memory)
         mem_size += memory
-        
+
+        if self._need_reallocation(self.d_index_increment, SmithWaterman.int_size):
+            self.d_index_increment = cl.Buffer(self.ctx, cl.mem_flags.WRITE_ONLY, size=SmithWaterman.int_size)
+
         return mem_size
         
     def _init_zero_copy_memory(self):
@@ -261,9 +264,6 @@ class SmithWatermanOcl(SmithWaterman):
         memory = (self.number_of_sequences * self.number_of_targets * SmithWaterman.float_size)
         #self.d_max_possible_score_zero_copy = cl.Buffer(self.ctx, cl.mem_flags.READ_ONLY | cl.mem_flags.ALLOC_HOST_PTR, size=memory)
         mem_size += memory
-
-        if self._need_reallocation(self.d_index_increment, SmithWaterman.int_size):
-            self.d_index_increment = cl.Buffer(self.ctx, cl.mem_flags.WRITE_ONLY, size=SmithWaterman.int_size)
 
         return mem_size
         
