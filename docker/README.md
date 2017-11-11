@@ -16,7 +16,7 @@ sh data/runPerformanceTests.sh
 
 * ## Container(s) available on [Docker Hub](https://hub.docker.com/r/mkempenaar/pypaswas/)
 
-    **`mkempenaar/pypaswas:nvidia-opencl_cuda8.0` [*Docker file*](https://raw.githubusercontent.com/swarris/pyPaSWAS/master/data/docker/nvidia/Dockerfile)**
+    **`mkempenaar/pypaswas:nvidia-opencl_cuda8.0` [*Docker file*](https://raw.githubusercontent.com/swarris/pyPaSWAS/master/docker/nvidia/Dockerfile)**
 
     This container can be used for testing all availabilities of the `pyPaSWAS` sequence aligner as it contains the Intel and Nvidia OpenCL runtime libraries and Nvidia CUDA support.
 
@@ -27,7 +27,7 @@ As most hardware manufacturers have their own acceleration libraries (multiple v
 
 ### Downloading and Building
 
-Cloning this repository gives the currently available Dockerfiles for building custom images which can be found in the `pyPaSWAS/data/docker` folder. Building a container locally can be done by going to the folder of choice (each contains a single `Dockerfile`; a container description) and running:
+Cloning this repository gives the currently available Dockerfiles for building custom images which can be found in the `pyPaSWAS/docker` folder. Building a container locally can be done by going to the folder of choice (each contains a single `Dockerfile`; a container description) and running:
 
 ```
 docker build -t pypaswas:custom .
@@ -35,6 +35,6 @@ docker build -t pypaswas:custom .
 
 Currently available:
 
-* [Intel OpenCL + Nvidia CUDA](https://raw.githubusercontent.com/swarris/pyPaSWAS/master/data/docker/intel/Dockerfile), `pyPaSWAS/data/docker/intel/Dockerfile`: Suitable for Intel Core and Xeon CPUs and GPUs from the 3rd generation (Ivy Bridge) and newer, combined with Nvidia CUDA from the base container image.
-* [Intel OpenCL + Nvidia CUDA](https://raw.githubusercontent.com/swarris/pyPaSWAS/master/data/docker/intel/sandybridge/Dockerfile), `pyPaSWAS/data/docker/intel/sandybridge/Dockerfile`: Only suitable for 2nd generation (Sandy Bridge) Intel Core CPUs, combined with Nvidia CUDA from the base container image.
-* [Intel OpenCL + Nvidia OpenCL + Nvidia CUDA](https://raw.githubusercontent.com/swarris/pyPaSWAS/master/data/docker/nvidia/Dockerfile), `pyPaSWAS/data/docker/nvidia/Dockerfile`: Full package for 3rd generation and newer Intel Core and Xeon CPUs and GPUs, combined with Nvidia OpenCL and CUDA support.
+* [Intel OpenCL + Nvidia CUDA](https://raw.githubusercontent.com/swarris/pyPaSWAS/master/docker/intel/Dockerfile), `pyPaSWAS/data/docker/intel/Dockerfile`: Suitable for Intel Core and Xeon CPUs and GPUs from the 3rd generation (Ivy Bridge) and newer, combined with Nvidia CUDA from the base container image.
+* [Intel OpenCL + Nvidia CUDA](https://raw.githubusercontent.com/swarris/pyPaSWAS/master/docker/intel/sandybridge/Dockerfile), `pyPaSWAS/data/docker/intel/sandybridge/Dockerfile`: Only suitable for 2nd generation (Sandy Bridge) Intel Core CPUs, combined with Nvidia CUDA from the base container image.
+* [Intel OpenCL + Nvidia OpenCL + Nvidia CUDA](https://raw.githubusercontent.com/swarris/pyPaSWAS/master/docker/nvidia/Dockerfile), `pyPaSWAS/data/docker/nvidia/Dockerfile`: Full package for 3rd generation and newer Intel Core and Xeon CPUs and GPUs, combined with Nvidia OpenCL and CUDA support.
