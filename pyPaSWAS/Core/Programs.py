@@ -74,6 +74,10 @@ class Aligner(object):
         self.logger.debug('Aligner processing...')
         target_index = 0
 
+        all_targets_length = sum(len(s.seq) for s in targets)
+        all_sequences_length = sum(len(s.seq) for s in records_seqs)
+        self.smith_waterman.set_total_work_size(all_targets_length * all_sequences_length)
+
         while target_index < len(targets):
             self.logger.debug('At target: {0} of {1}'.format(target_index, len(targets)))
 
@@ -104,7 +108,11 @@ class Trimmer(Aligner):
             max_length = len(targets[0])
         else:
             max_length = None
-            
+
+        all_targets_length = sum(len(s.seq) for s in targets)
+        all_sequences_length = sum(len(s.seq) for s in records_seqs)
+        self.smith_waterman.set_total_work_size(all_targets_length * all_sequences_length)
+
         while target_index < len(targets):
             self.logger.debug('At target: {0} of {1}'.format(target_index, len(targets)))
 

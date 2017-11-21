@@ -12,6 +12,7 @@ It can be used to initialize the device, allocate the required memory and run th
 import numpy
 import math
 import time
+import datetime
 
 from pyPaSWAS.Core.StartingPoint import StartingPoint
 from pyPaSWAS.Core.HitList import HitList
@@ -176,6 +177,11 @@ class SmithWaterman(object):
             raise InvalidOptionException('maximux_memory_usage is not a float'.format(settings.maximum_memory_usage))
         if self.mem_fill_factor > 1.0 or self.mem_fill_factor <= 0.0:
             raise InvalidOptionException('maximux_memory_usage is not a float between 0.0 and 1.0'.format(settings.maximum_memory_usage))
+
+        # Attibutes related to reporting of current progress
+        self.total_work_size = 0
+        self.total_processed = 0
+        self.start_time = time.time()
 
     def __del__(self):
         '''Destructor. Removes the current running context'''
@@ -430,6 +436,12 @@ class SmithWaterman(object):
         mem_size += 1
         return mem_size
 
+    def set_total_work_size(self, size):
+        '''Sets total work size (number of cells) and resets current progress.
+        '''
+        self.total_work_size = size
+        self.total_processed = 0
+        self.start_time = time.time()
 
     def align_sequences(self, records_seqs, targets, target_index):
         '''Aligns sequences against the targets. Returns the resulting alignments in a hitlist.'''
@@ -437,7 +449,7 @@ class SmithWaterman(object):
         index = 0
         prev_seq_length = 0
         prev_target_length = 0
-        
+
         cont = True
         # step through all the sequences
         max_length = 0
@@ -445,6 +457,7 @@ class SmithWaterman(object):
             max_length = len(records_seqs[0])
         hitlist=HitList(self.logger)
         while index < len(records_seqs) and cont:
+            t0 = time.time()
             # make sure length of sequences can be divided by shared_x
             # don't reset when no need to recompile:
             if self.settings.recompile == "F" :
@@ -528,7 +541,23 @@ class SmithWaterman(object):
             # put them into a Hitlist (?)
             #hitlist = self._print_alignments(records_seqs, targets, index, target_index)
             self._print_alignments(records_seqs, targets, index, target_index, hitlist)
-            self.logger.info("Time spent on Smith-Waterman > {}".format(time.time()-t))
+            self.logger.debug("Time spent on Smith-Waterman > {}".format(time.time()-t))
+
+            if self.total_work_size > 0:
+                t1 = time.time()
+                processed = sum(len(s.seq) for s in targets[target_index:(target_index+self.number_targets)]) * \
+                            sum(len(s.seq) for s in records_seqs[index:(index+self.number_of_sequences)])
+                self.total_processed += processed
+                duration = t1 - t0
+                total_duration = t1 - self.start_time
+                performance = processed / 1e9 / duration
+                avg_performance = self.total_processed / 1e9 / total_duration
+                progress = self.total_processed / float(self.total_work_size)
+                eta = total_duration / progress * (1.0 - progress)
+                self.logger.info("Duration: {:5.3f} | Total: {} | Performance: {:5.2f} GCUPS | Avg: {:5.2f} GCUPS | Progress: {:7.3%} | ETA: {}"
+                    .format(duration, datetime.timedelta(seconds=round(total_duration)), performance, avg_performance, progress, datetime.timedelta(seconds=round(eta)))
+                )
+
             index += self.max_sequences
         return hitlist
 
