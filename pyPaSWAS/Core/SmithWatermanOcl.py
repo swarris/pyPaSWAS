@@ -528,6 +528,9 @@ class SmithWatermanGPU(SmithWatermanOcl):
         '''
         SmithWatermanOcl.__init__(self, logger, score, settings)
         self.oclcode = GPUcode(self.logger)
+
+        self.d_is_traceback_required = None
+
         self._init_oclcode()
         
     def _init_normal_memory(self):
@@ -555,6 +558,11 @@ class SmithWatermanGPU(SmithWatermanOcl):
         if self._need_reallocation(self.d_global_maxima, memory):
             self.d_global_maxima = cl.Buffer(self.ctx, cl.mem_flags.READ_WRITE, size=memory)
         mem_size += memory
+
+        if self._need_reallocation(self.d_is_traceback_required, SmithWaterman.int_size):
+            self.d_is_traceback_required = cl.Buffer(self.ctx, cl.mem_flags.WRITE_ONLY, size=SmithWaterman.int_size)
+            flag = numpy.zeros((1), dtype=numpy.uint32)
+            cl.enqueue_fill_buffer(self.queue, self.d_is_traceback_required, flag, 0, size=SmithWaterman.int_size)
 
         return mem_size
 
@@ -604,7 +612,9 @@ class SmithWatermanGPU(SmithWatermanOcl):
                                                 self.d_sequences,
                                                 self.d_targets,
                                                 self.d_global_maxima,
-                                                self.d_global_direction_zero_copy)
+                                                self.d_global_direction_zero_copy,
+                                                self.d_max_possible_score_zero_copy,
+                                                self.d_is_traceback_required)
         else:
             self.calculateScore_kernel(self.queue, dim_grid_sw, dim_block,
                                        numpy.uint32(self.number_of_sequences),
@@ -618,9 +628,23 @@ class SmithWatermanGPU(SmithWatermanOcl):
                                        self.d_sequences,
                                        self.d_targets,
                                        self.d_global_maxima,
-                                       self.d_global_direction_zero_copy)
-                                    
-                                    
+                                       self.d_global_direction_zero_copy,
+                                       self.d_max_possible_score_zero_copy,
+                                       self.d_is_traceback_required)
+
+    def _is_traceback_required(self):
+        '''Returns False if it is known after calculating scores that there are no possible
+        starting points, hence no need to run traceback.
+        '''
+        flag = numpy.zeros((1), dtype=numpy.uint32)
+        cl.enqueue_copy(self.queue, flag, self.d_is_traceback_required)
+        if flag[0]:
+            # Clear the flag
+            flag[0] = 0
+            cl.enqueue_fill_buffer(self.queue, self.d_is_traceback_required, flag, 0, size=SmithWaterman.int_size)
+            return True
+        else:
+            return False
     
     def _execute_traceback_kernel(self, number_of_blocks, idx, idy):
         ''' Executes a single run of the traceback kernel'''

@@ -54,7 +54,9 @@ void calculateScore(
         const __global char *sequences,
         const __global char *targets,
         __global float *globalMaxima,
-        __global Direction *globalDirection) {
+        __global Direction *globalDirection,
+        const __global float *maxPossibleScore,
+        __global unsigned int *isTracebackRequired) {
 
     /**
      * shared memory block for calculations. It requires
@@ -190,6 +192,10 @@ void calculateScore(
 
     if (lid == 0) {
         globalMaxima[blockx * yDivSHARED_Y + blocky] = m;
+
+        if (m >= MINIMUM_SCORE && m >= maxPossibleScore[bIDy * numberOfSequences + bIDx]) {
+            *isTracebackRequired = 1;
+        }
     }
 }
 
@@ -209,7 +215,9 @@ void calculateScoreAffineGap(
         const __global char *sequences,
         const __global char *targets,
         __global float *globalMaxima,
-        __global Direction *globalDirection) {
+        __global Direction *globalDirection,
+        const __global float *maxPossibleScore,
+        __global unsigned int *isTracebackRequired) {
 
     /**
      * shared memory block for calculations. It requires
@@ -445,12 +453,14 @@ void calculateScoreAffineGap(
     matrix_j[blockx * yDivSHARED_Y + blocky].value[tXM1][tYM1] = s_matrix_j[tIDx][tIDy];
     globalDirection[blockx * yDivSHARED_Y + blocky].value[tXM1][tYM1] = direction;
 
-    if (tIDx==SHARED_X && tIDy==SHARED_Y)
-        globalMaxima[blockx * yDivSHARED_Y + blocky] = fmax(currentScore, fmax(s_maxima[SHARED_X-2][SHARED_Y-1], s_maxima[SHARED_X-1][SHARED_Y-2]));
+    if (tIDx==SHARED_X && tIDy==SHARED_Y) {
+        const float m = fmax(currentScore, fmax(s_maxima[SHARED_X-2][SHARED_Y-1], s_maxima[SHARED_X-1][SHARED_Y-2]));
+        globalMaxima[blockx * yDivSHARED_Y + blocky] = m;
 
-    // wait until all threads have copied their score:
-    /**** sync barrier ****/
-    barrier(CLK_LOCAL_MEM_FENCE);
+        if (m >= MINIMUM_SCORE && m >= maxPossibleScore[bIDy * numberOfSequences + bIDx]) {
+            *isTracebackRequired = 1;
+        }
+    }
 }
 
 
