@@ -18,6 +18,12 @@ class Code(object):
         self.score_source = ''
         self.main_source = ''
     
+    def read_source(self, filename):
+        '''Read source code from the specified file and prefix it
+        with line number and file name info for better compilation error messages.
+        '''
+        return '#line 1 "{}"\n'.format(filename) + read_file(filename)
+
     def set_shared_xy_code(self, sharedx=8, sharedy=8):
         '''
         Sets the horizontal and the vertical sizes of the smallest alignment matrices in shared memory
@@ -25,7 +31,7 @@ class Code(object):
         :param sharedy:
         '''
         #self.logger.debug('Setting sharedx to {0}, sharedy to {1}'.format(sharedx, sharedy))
-        code_t = Template(read_file(self.main_source))
+        code_t = Template(self.read_source(self.main_source))
         self.shared_xy_code = code_t.safe_substitute(SHARED_X=sharedx, SHARED_Y=sharedy)
 
     def set_direction_code(self, no_direction=0, up_left=1, up=2, left=3, stop=4):
@@ -39,7 +45,7 @@ class Code(object):
         '''
         #self.logger.debug('Setting directions:\n\tno = {0}\n\tup_left = {1}\n\tup = {2}\n\tleft = {3}\n\t'
         #                  'stop = {3}'.format(no_direction, up_left, up, left, stop))
-        direction_t = Template(read_file(self.direction_source))
+        direction_t = Template(self.read_source(self.direction_source))
         self.directions = direction_t.safe_substitute(NO_DIRECTION=no_direction,
                                                       UP_LEFT_DIRECTION=up_left,
                                                       UP_DIRECTION=up,
@@ -50,7 +56,7 @@ class Code(object):
         '''Formats information contained in a score.
         '''
         #self.logger.debug('Sourcing the scorepart of the cuda code')
-        score_part_t = Template(read_file(self.score_source))
+        score_part_t = Template(self.read_source(self.score_source))
         gap_extension = 0.0
         if score.gap_extension != None:
             gap_extension = score.gap_extension
@@ -69,7 +75,7 @@ class Code(object):
         '''Sets the variable part of the code'''
         #self.logger.debug('Setting the variable part of the cuda code\n\t(using: n_seq: {}, n_targets: {}, '
         #                  'x_val: {}, y_val: {})'.format(number_sequences, number_targets, x_val, y_val))
-        variable_t = Template(read_file(self.variable_source))
+        variable_t = Template(self.read_source(self.variable_source))
         self.variable_part = variable_t.safe_substitute(N_SEQUENCES=number_sequences,
                                                         N_TARGETS=number_targets,
                                                         X=x_val,
@@ -134,5 +140,5 @@ class CPUcode(OCLcode):
         :param sharedy:
         '''
         #self.logger.debug('Setting sharedx to {0}, sharedy to {1}'.format(sharedx, sharedy))
-        code_t = Template(read_file(self.main_source))
+        code_t = Template(self.read_source(self.main_source))
         self.shared_xy_code = code_t.safe_substitute(SHARED_X=sharedx, SHARED_Y=sharedy, WORKLOAD_X=workloadx, WORKLOAD_Y=workloady)
