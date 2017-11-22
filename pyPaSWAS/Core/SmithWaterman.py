@@ -198,14 +198,6 @@ class SmithWaterman(object):
     def _device_global_mem_size(self):
         '''  defines maximum available mem on device. Should be implemented by subclasses. '''
         pass
-
-    def _get_max_length_xy(self):
-        '''
-        _get_max_length_xy gives the maximum length of both X and Y possible based on the total memory.
-        @return: int value of the maximum length of both X and Y.
-        '''
-        return (math.floor(math.sqrt((self._device_global_mem_size() * self.mem_fill_factor) / 
-                                    self._get_mem_size_basic_matrix()))) 
     
     def _get_max_number_sequences(self, length_sequences, length_targets, number_of_targets):
         '''
@@ -215,13 +207,10 @@ class SmithWaterman(object):
         '''
         self.logger.debug("Total memory on Device: {}".format(self._device_global_mem_size()/1024.0/1024.0))
         value = 1
-        gapExtensionFactor = 1
-        if self.gap_extension:
-            gapExtensionFactor = 3
-            
+
         try:
             value = math.floor((self._device_global_mem_size() * self.mem_fill_factor) / #@UndefinedVariable
-                               ((gapExtensionFactor * length_sequences * length_targets * (self._get_mem_size_basic_matrix()) +
+                               ((length_sequences * length_targets * (self._get_mem_size_basic_matrix()) +
                                  (length_sequences * length_targets * SmithWaterman.float_size) /
                                  (self.shared_x * self.shared_y)) * number_of_targets)) #@UndefinedVariable @IgnorePep8
         except:
@@ -401,8 +390,8 @@ class SmithWaterman(object):
         if self.number_of_targets > len(targets):
             self.number_of_targets = len(targets)
 
-        if self.number_of_targets * len(targets[0]) / self.shared_y > self.internal_limit:
-            self.number_of_targets = int(self.internal_limit * self.shared_y / len(targets[0]))
+        if self.number_of_targets * len(targets[target_index]) / self.shared_y > self.internal_limit:
+            self.number_of_targets = int(self.internal_limit * self.shared_y / len(targets[target_index]))
         
 
         # fill the target array with sequences
@@ -428,12 +417,13 @@ class SmithWaterman(object):
             @return: the amount of memory in bytes for the 1x1 alignment
             Calculate GPU memory requirements for 1x1 alignment with 1x1 character.
         """
-        # size of each element in a smith waterman matrix (lchar, uchar, luchar, value (is float) and direction)
+        gapExtensionFactor = 1
+        if self.gap_extension:
+            gapExtensionFactor = 3
+
+        # size of each element in a smith waterman matrix (direction (is char) and score (is float))
         mem_size = 1
-        mem_size += 1
-        mem_size += self.float_size
-        mem_size += 1
-        mem_size += 1
+        mem_size += gapExtensionFactor * self.float_size
         return mem_size
 
     def set_total_work_size(self, size):
