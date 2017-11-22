@@ -36,7 +36,7 @@ class DefaultFormatter(object):
     def _get_hits(self):
         '''Returns ordered list of hits'''
         hits = self.hitlist.real_hits.values()
-        return sorted(hits, key=lambda hit: hit.get_target_id() + hit.get_seq_id())
+        return sorted(hits, key=lambda hit: (hit.get_seq_id(), hit.get_target_id(), hit.score))
 
     def print_results(self):
         '''sets, formats and prints the results to a file.'''
