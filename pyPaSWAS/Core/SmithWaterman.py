@@ -367,18 +367,23 @@ class SmithWaterman(object):
         return max_number_of_targets
 
 
-    def set_targets(self, targets, target_index, max_length = None, records_seqs=None):
+    def set_targets(self, targets, target_index, max_length=None, records_seqs=None, use_all_records_seqs=True):
         '''Retrieves a block of targets from the target array and returns the index of the last target that will be processed'''
 
         if self.max_length == None or target_index == 0:                
             self._set_target_block_length(targets, target_index)
-            if records_seqs != None and len(records_seqs) > 0: 
-                self.max_number_of_targets = self._get_number_of_targets_with_sequences(records_seqs)
-                if self.max_number_of_targets < 1:
-                    self.max_number_of_targets = self._get_number_of_targets()
-            else:
-                self.max_number_of_targets = self._get_number_of_targets() 
-       
+            if records_seqs != None and len(records_seqs) > 0:
+                if use_all_records_seqs:
+                    self.max_number_of_targets = self._get_number_of_targets_with_sequences(records_seqs)
+                    if self.max_number_of_targets < 1:
+                        self.max_number_of_targets = self._get_number_of_targets()
+                else:
+                    # Find maximum possible number of targets for cases when number of records_seqs
+                    # is small. _get_number_of_targets assumes that many sequences are used, hence
+                    # it may return too small number.
+                    self.max_number_of_targets = max(self._get_number_of_targets(),
+                                                     self._get_number_of_targets_with_sequences(records_seqs))
+
         if max_length != None and self.settings.recompile == "F" and target_index > 0:
             self.max_length = max_length
         

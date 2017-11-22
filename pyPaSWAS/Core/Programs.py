@@ -77,7 +77,7 @@ class Aligner(object):
             self.logger.debug('At target: {0} of {1}'.format(target_index, len(targets)))
 
 
-            last_target_index = self.smith_waterman.set_targets(targets, target_index)
+            last_target_index = self.smith_waterman.set_targets(targets, target_index, records_seqs=records_seqs, use_all_records_seqs=False)
             # results should be a Hitlist()
             results = self.smith_waterman.align_sequences(records_seqs, targets, target_index)
             self.hitlist.extend(results)
