@@ -50,7 +50,6 @@ void calculateScore(
         __global Matrix *matrix,
         const unsigned int x,
         const unsigned int y,
-        const unsigned int numberOfBlocks,
         const __global char *sequences,
         const __global char *targets,
         __global float *globalMaxima,
@@ -66,12 +65,12 @@ void calculateScore(
     __local float s_matrix[SHARED_X+1][SHARED_Y+1];
 
     // calculate indices:
-    unsigned int blockx = x - get_group_id(2);
-    unsigned int blocky = y + get_group_id(2);
+    unsigned int blockx = x - get_group_id(0);
+    unsigned int blocky = y + get_group_id(0);
     unsigned int tIDx = get_local_id(0);
     unsigned int tIDy = get_local_id(1);
-    unsigned int bIDx = get_group_id(0);
-    unsigned int bIDy = get_group_id(1);
+    unsigned int bIDx = get_group_id(1);
+    unsigned int bIDy = get_group_id(2);
     unsigned char direction = NO_DIRECTION;
 
     // Move pointers to current target and sequence
@@ -193,8 +192,10 @@ void calculateScore(
     if (lid == 0) {
         globalMaxima[blockx * yDivSHARED_Y + blocky] = m;
 
-        if (m >= MINIMUM_SCORE && m >= maxPossibleScore[bIDy * numberOfSequences + bIDx]) {
-            *isTracebackRequired = 1;
+        if (blockx == xDivSHARED_X - 1 && blocky == yDivSHARED_Y - 1) {
+            if (m >= MINIMUM_SCORE && m >= maxPossibleScore[bIDy * numberOfSequences + bIDx]) {
+                *isTracebackRequired = 1;
+            }
         }
     }
 }
@@ -211,7 +212,6 @@ void calculateScoreAffineGap(
         __global Matrix *matrix_j,
         const unsigned int x,
         const unsigned int y,
-        const unsigned int numberOfBlocks,
         const __global char *sequences,
         const __global char *targets,
         __global float *globalMaxima,
@@ -236,12 +236,12 @@ void calculateScoreAffineGap(
     __local float s_maxima[SHARED_X][SHARED_Y];
 
     // calculate indices:
-    unsigned int blockx = x - get_group_id(2);
-    unsigned int blocky = y + get_group_id(2);
+    unsigned int blockx = x - get_group_id(0);
+    unsigned int blocky = y + get_group_id(0);
     unsigned int tIDx = get_local_id(0);
     unsigned int tIDy = get_local_id(1);
-    unsigned int bIDx = get_group_id(0);
-    unsigned int bIDy = get_group_id(1);
+    unsigned int bIDx = get_group_id(1);
+    unsigned int bIDy = get_group_id(2);
     unsigned char direction = NO_DIRECTION;
     unsigned char direction_i = NO_DIRECTION;
     unsigned char direction_j = NO_DIRECTION;
@@ -457,8 +457,10 @@ void calculateScoreAffineGap(
         const float m = fmax(currentScore, fmax(s_maxima[SHARED_X-2][SHARED_Y-1], s_maxima[SHARED_X-1][SHARED_Y-2]));
         globalMaxima[blockx * yDivSHARED_Y + blocky] = m;
 
-        if (m >= MINIMUM_SCORE && m >= maxPossibleScore[bIDy * numberOfSequences + bIDx]) {
-            *isTracebackRequired = 1;
+        if (blockx == xDivSHARED_X - 1 && blocky == yDivSHARED_Y - 1) {
+            if (m >= MINIMUM_SCORE && m >= maxPossibleScore[bIDy * numberOfSequences + bIDx]) {
+                *isTracebackRequired = 1;
+            }
         }
     }
 }
@@ -474,7 +476,6 @@ void traceback(
         __global Matrix *matrix,
         const unsigned int x,
         const unsigned int y,
-        const unsigned int numberOfBlocks,
         const __global float *globalMaxima,
         __global Direction *globalDirection,
         volatile __global unsigned int *indexIncrement,
@@ -494,12 +495,12 @@ void traceback(
     __local float s_maxPossibleScore[1];
 
     // calculate indices:
-    unsigned int blockx = x - get_group_id(2);
-    unsigned int blocky = y + get_group_id(2);
+    unsigned int blockx = x - get_group_id(0);
+    unsigned int blocky = y + get_group_id(0);
     unsigned int tIDx = get_local_id(0);
     unsigned int tIDy = get_local_id(1);
-    unsigned int bIDx = get_group_id(0);
-    unsigned int bIDy = get_group_id(1);
+    unsigned int bIDx = get_group_id(1);
+    unsigned int bIDy = get_group_id(2);
 
     // Move pointers to current target and sequence
     const unsigned int offset = (bIDx * numberOfTargets + bIDy) * (xDivSHARED_X * yDivSHARED_Y);
@@ -618,7 +619,6 @@ void tracebackAffineGap(
         __global Matrix *matrix_j,
         const unsigned int x,
         const unsigned int y,
-        const unsigned int numberOfBlocks,
         const __global float *globalMaxima,
         __global Direction *globalDirection,
         volatile __global unsigned int *indexIncrement,
@@ -640,12 +640,12 @@ void tracebackAffineGap(
     __local float s_maxPossibleScore[1];
 
     // calculate indices:
-    unsigned int blockx = x - get_group_id(2);
-    unsigned int blocky = y + get_group_id(2);
+    unsigned int blockx = x - get_group_id(0);
+    unsigned int blocky = y + get_group_id(0);
     unsigned int tIDx = get_local_id(0);
     unsigned int tIDy = get_local_id(1);
-    unsigned int bIDx = get_group_id(0);
-    unsigned int bIDy = get_group_id(1);
+    unsigned int bIDx = get_group_id(1);
+    unsigned int bIDy = get_group_id(2);
 
     // Move pointers to current target and sequence
     const unsigned int offset = (bIDx * numberOfTargets + bIDy) * (xDivSHARED_X * yDivSHARED_Y);
