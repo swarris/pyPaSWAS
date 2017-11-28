@@ -184,7 +184,13 @@ class SmithWatermanOcl(SmithWaterman):
             except:
                 pass
             self.d_global_maxima.release()
-            
+        if (self.d_index_increment is not None):
+            try: 
+                self.d_index_increment.finish()
+            except:
+                pass
+            self.d_index_increment.release()
+
     def _clear_zero_copy_memory(self):
         self.logger.debug('Clearing zero-copy device memory.')
         if (self.d_starting_points_zero_copy is not None):
@@ -193,12 +199,6 @@ class SmithWatermanOcl(SmithWaterman):
             except:
                 pass
             self.d_starting_points_zero_copy.release()
-        if (self.d_global_direction_zero_copy is not None):
-            try:
-                self.d_global_direction_zero_copy.finish()
-            except:
-                pass
-            self.d_global_direction_zero_copy.release()
         if (self.d_max_possible_score_zero_copy is not None):
             try:
                 self.d_max_possible_score_zero_copy.finish()
@@ -252,14 +252,7 @@ class SmithWatermanOcl(SmithWaterman):
         if self._need_reallocation(self.d_starting_points_zero_copy, memory):
             self.d_starting_points_zero_copy = cl.Buffer(self.ctx, cl.mem_flags.WRITE_ONLY | cl.mem_flags.ALLOC_HOST_PTR, size=memory)
         mem_size = memory
-        
-        # Global directions host memory allocation and device copy
-        memory = (self.length_of_x_sequences * self.number_of_sequences * self.length_of_y_sequences * self.number_targets)
-        if self._need_reallocation(self.d_global_direction_zero_copy, memory):
-            self.d_global_direction_zero_copy = cl.Buffer(self.ctx, cl.mem_flags.READ_WRITE | cl.mem_flags.ALLOC_HOST_PTR, size=memory)
 
-        mem_size += memory
-        
         # Maximum zero copy memory allocation and device copy
         memory = (self.number_of_sequences * self.number_of_targets * SmithWaterman.float_size)
         #self.d_max_possible_score_zero_copy = cl.Buffer(self.ctx, cl.mem_flags.READ_ONLY | cl.mem_flags.ALLOC_HOST_PTR, size=memory)
@@ -338,14 +331,8 @@ class SmithWatermanOcl(SmithWaterman):
                                                                  (self.size_of_startingpoint * 
                                                                   number_of_starting_points, 1), dtype=numpy.byte)[0]
         return self.h_starting_points_zero_copy
-            
-    def _print_alignments(self, sequences, targets, start_seq, start_target, hit_list=None):
-        return SmithWaterman._print_alignments(self, sequences, targets, start_seq, start_target, hit_list)
-        #unmap memory objects
-        #del self.h_global_direction_zero_copy
-        #del self.h_starting_points_zero_copy
-                
-    
+
+
 class SmithWatermanCPU(SmithWatermanOcl):
     '''
     classdocs
@@ -416,20 +403,48 @@ class SmithWatermanCPU(SmithWatermanOcl):
         mem_size += memory
         
         return mem_size
-    
+
+    def _init_zero_copy_memory(self):
+        mem_size = SmithWatermanOcl._init_zero_copy_memory(self)
+
+        # Global directions host memory allocation and device copy
+        memory = (self.length_of_x_sequences * self.number_of_sequences * self.length_of_y_sequences * self.number_targets)
+        if self._need_reallocation(self.d_global_direction_zero_copy, memory):
+            self.d_global_direction_zero_copy = cl.Buffer(self.ctx, cl.mem_flags.READ_WRITE | cl.mem_flags.ALLOC_HOST_PTR, size=memory)
+        mem_size += memory
+
+        return mem_size
+
+    def _clear_normal_memory(self):
+        SmithWatermanOcl._clear_normal_memory(self)
+        if (self.d_semaphores is not None):
+            try:
+                self.d_semaphores.finish()
+            except:
+                pass
+            self.d_semaphores.release()
+
+    def _clear_zero_copy_memory(self):
+        SmithWatermanOcl._clear_zero_copy_memory(self)
+        if (self.d_global_direction_zero_copy is not None):
+            try:
+                self.d_global_direction_zero_copy.finish()
+            except:
+                pass
+            self.d_global_direction_zero_copy.release()
+
     def _get_direction_byte_array(self):
         '''
         Get the resulting directions
         @return gives the resulting direction array as byte array
         '''
-        self.h_global_direction_zero_copy = cl.enqueue_map_buffer(self.queue, self.d_global_direction_zero_copy, cl.map_flags.READ, 0, 
-                                                                  (self.number_of_sequences,
-                                                                   self.number_targets,
-                                                                   self.length_of_x_sequences,
-                                                                   self.length_of_y_sequences), dtype=numpy.byte)[0]
-        return self.h_global_direction_zero_copy
+        h_global_direction_zero_copy = cl.enqueue_map_buffer(self.queue, self.d_global_direction_zero_copy, cl.map_flags.READ, 0, 
+                                                             (self.number_of_sequences,
+                                                              self.number_targets,
+                                                              self.length_of_x_sequences,
+                                                              self.length_of_y_sequences), dtype=numpy.byte)[0]
+        return h_global_direction_zero_copy
 
-    
     def _get_direction(self, direction_array, sequence, target, block_x, block_y, value_x, value_y):
         return direction_array[sequence][target][block_x*self.shared_x + value_x][block_y*self.shared_y + value_y]
     
@@ -456,10 +471,6 @@ class SmithWatermanCPU(SmithWatermanOcl):
                                                 self.d_targets,
                                                 self.d_global_maxima,
                                                 self.d_global_direction_zero_copy)
-#            direction_array = self._get_direction_byte_array()
-#            from pprint import pprint
-#            pprint(direction_array[0][0], width=1000)
-
         else:
             self.calculateScore_kernel(self.queue, 
                                        dim_grid_sw,
@@ -503,17 +514,6 @@ class SmithWatermanCPU(SmithWatermanOcl):
                                   self.d_starting_points_zero_copy,
                                   self.d_max_possible_score_zero_copy,
                                   self.d_semaphores)
-                                   
-    def _clear_memory(self):
-        SmithWatermanOcl._clear_memory(self)
-        if not self.always_reallocate_memory:
-            return
-        if (self.d_semaphores is not None):
-            try:
-                self.d_semaphores.finish()
-            except:
-                pass
-            self.d_semaphores.release()
 
 
 class SmithWatermanGPU(SmithWatermanOcl):
@@ -529,6 +529,7 @@ class SmithWatermanGPU(SmithWatermanOcl):
         SmithWatermanOcl.__init__(self, logger, score, settings)
         self.oclcode = GPUcode(self.logger)
 
+        self.d_global_direction = None
         self.d_is_traceback_required = None
 
         self._init_oclcode()
@@ -550,8 +551,7 @@ class SmithWatermanGPU(SmithWatermanOcl):
             if self._need_reallocation(self.d_matrix_j, memory):
                 self.d_matrix_j = cl.Buffer(self.ctx, cl.mem_flags.READ_WRITE, size=memory)
             mem_size += memory
-            
-        
+
         # Maximum global device memory
         memory = (SmithWaterman.float_size * self.x_div_shared_x * self.number_of_sequences *
         self.y_div_shared_y * self.number_targets)
@@ -559,12 +559,33 @@ class SmithWatermanGPU(SmithWatermanOcl):
             self.d_global_maxima = cl.Buffer(self.ctx, cl.mem_flags.READ_WRITE, size=memory)
         mem_size += memory
 
-        if self._need_reallocation(self.d_is_traceback_required, SmithWaterman.int_size):
-            self.d_is_traceback_required = cl.Buffer(self.ctx, cl.mem_flags.WRITE_ONLY, size=SmithWaterman.int_size)
+        memory = (self.length_of_x_sequences * self.number_of_sequences * self.length_of_y_sequences * self.number_targets)
+        if self._need_reallocation(self.d_global_direction, memory):
+            self.d_global_direction = cl.Buffer(self.ctx, cl.mem_flags.READ_WRITE, size=memory)
+        mem_size += memory
+
+        memory = SmithWaterman.int_size
+        if self._need_reallocation(self.d_is_traceback_required, memory):
+            self.d_is_traceback_required = cl.Buffer(self.ctx, cl.mem_flags.WRITE_ONLY, size=memory)
             flag = numpy.zeros((1), dtype=numpy.uint32)
-            cl.enqueue_fill_buffer(self.queue, self.d_is_traceback_required, flag, 0, size=SmithWaterman.int_size)
+            cl.enqueue_fill_buffer(self.queue, self.d_is_traceback_required, flag, 0, size=memory)
 
         return mem_size
+
+    def _clear_normal_memory(self):
+        SmithWatermanOcl._clear_normal_memory(self)
+        if (self.d_global_direction is not None):
+            try:
+                self.d_global_direction.finish()
+            except:
+                pass
+            self.d_global_direction.release()
+        if (self.d_is_traceback_required is not None):
+            try:
+                self.d_is_traceback_required.finish()
+            except:
+                pass
+            self.d_is_traceback_required.release()
 
     def _compile_code(self):
         """Compile the device code with current settings"""
@@ -582,15 +603,14 @@ class SmithWatermanGPU(SmithWatermanOcl):
         Get the resulting directions
         @return gives the resulting direction array as byte array
         '''
-        self.h_global_direction_zero_copy = cl.enqueue_map_buffer(self.queue, self.d_global_direction_zero_copy, cl.map_flags.READ, 0, 
-                                                                  (self.number_of_sequences,
-                                                                   self.number_targets,
-                                                                   self.x_div_shared_x,
-                                                                   self.y_div_shared_y,
-                                                                   self.shared_x,
-                                                                   self.shared_y), dtype=numpy.byte)[0]
-        return self.h_global_direction_zero_copy
-        
+        h_global_direction = cl.enqueue_map_buffer(self.queue, self.d_global_direction, cl.map_flags.READ, 0, 
+                                                   (self.number_of_sequences,
+                                                    self.number_targets,
+                                                    self.x_div_shared_x,
+                                                    self.y_div_shared_y,
+                                                    self.shared_x,
+                                                    self.shared_y), dtype=numpy.byte)[0]
+        return h_global_direction
 
     def _execute_calculate_score_kernel(self, number_of_blocks, idx, idy):
         ''' Executes a single run of the calculate score kernel'''
@@ -612,7 +632,7 @@ class SmithWatermanGPU(SmithWatermanOcl):
                                                 self.d_sequences,
                                                 self.d_targets,
                                                 self.d_global_maxima,
-                                                self.d_global_direction_zero_copy,
+                                                self.d_global_direction,
                                                 self.d_max_possible_score_zero_copy,
                                                 self.d_is_traceback_required)
         else:
@@ -628,7 +648,7 @@ class SmithWatermanGPU(SmithWatermanOcl):
                                        self.d_sequences,
                                        self.d_targets,
                                        self.d_global_maxima,
-                                       self.d_global_direction_zero_copy,
+                                       self.d_global_direction,
                                        self.d_max_possible_score_zero_copy,
                                        self.d_is_traceback_required)
 
@@ -664,7 +684,7 @@ class SmithWatermanGPU(SmithWatermanOcl):
                                            numpy.uint32(idy),
                                            numpy.uint32(number_of_blocks),
                                            self.d_global_maxima,
-                                           self.d_global_direction_zero_copy,
+                                           self.d_global_direction,
                                            self.d_index_increment,
                                            self.d_starting_points_zero_copy,
                                            self.d_max_possible_score_zero_copy)
@@ -679,7 +699,7 @@ class SmithWatermanGPU(SmithWatermanOcl):
                                   numpy.uint32(idy),
                                   numpy.uint32(number_of_blocks),
                                   self.d_global_maxima,
-                                  self.d_global_direction_zero_copy,
+                                  self.d_global_direction,
                                   self.d_index_increment,
                                   self.d_starting_points_zero_copy,
                                   self.d_max_possible_score_zero_copy)

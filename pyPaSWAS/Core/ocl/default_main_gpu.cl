@@ -144,7 +144,7 @@ void calculateScore(
 
     currentScore = 0.0f;
 
-    for (int i=0; i < DIAGONAL; ++i) {
+    for (int i = 0; i < DIAGONAL - 1; ++i) {
         barrier(CLK_LOCAL_MEM_FENCE);
         if (i == tXM1 + tYM1) {
             // calculate only when there are two valid characters
@@ -172,13 +172,13 @@ void calculateScore(
         }
     }
     // copy end score to the scorings matrix:
-    matrix[blockx * yDivSHARED_Y + blocky].value[tXM1][tYM1] = s_matrix[tIDx][tIDy];
+    matrix[blockx * yDivSHARED_Y + blocky].value[tXM1][tYM1] = currentScore;
     globalDirection[blockx * yDivSHARED_Y + blocky].value[tXM1][tYM1] = direction;
 
     // Find maximum score
     __local float s_maxima[SHARED_X * SHARED_Y];
 
-    const unsigned int lid = get_local_id(0) * SHARED_Y + get_local_id(1);
+    const unsigned int lid = get_local_id(1) * SHARED_X + get_local_id(0);
     float m = fmax(currentScore, maxPrev);
     s_maxima[lid] = m;
 
