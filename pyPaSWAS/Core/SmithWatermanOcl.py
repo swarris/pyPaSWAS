@@ -592,7 +592,7 @@ class SmithWatermanGPU(SmithWatermanOcl):
         if self.program is None:
             self.logger.debug('Compiling OpenCL code.')
             code = self.oclcode.get_code(self.score, self.number_of_sequences, self.number_targets, self.length_of_x_sequences, self.length_of_y_sequences)
-            self.program = cl.Program(self.ctx, code).build()
+            self.program = cl.Program(self.ctx, code).build(options=['-cl-fast-relaxed-math'])
             self.calculateScoreAffineGap_kernel = self.program.calculateScoreAffineGap
             self.calculateScore_kernel = self.program.calculateScore
             self.tracebackAffineGap_kernel = self.program.tracebackAffineGap

@@ -83,21 +83,6 @@ void calculateScore(
     int seqIndex1 = tIDx + (bIDx * xDivSHARED_X + blockx) * SHARED_X;
     int seqIndex2 = tIDy + (bIDy * yDivSHARED_Y + blocky) * SHARED_Y;
 
-    /* the next block is to get the maximum value from surrounding blocks. This maximum values is compared to the
-     * first element in the shared score matrix s_matrix.
-     */
-    float maxPrev = 0.0f;
-    if (!tIDx && !tIDy) {
-        if (blockx && blocky) {
-            maxPrev = fmax(maxPrev, globalMaxima[(blockx-1) * yDivSHARED_Y + (blocky-1)]);
-        }
-        if (blockx) {
-            maxPrev = fmax(maxPrev, globalMaxima[(blockx-1) * yDivSHARED_Y + blocky]);
-        }
-        if (blocky) {
-            maxPrev = fmax(maxPrev, globalMaxima[blockx * yDivSHARED_Y + (blocky-1)]);
-        }
-    }
     // local scorings variables:
     float currentScore, ulS, lS, uS;
     float innerScore = 0.0f;
@@ -141,8 +126,6 @@ void calculateScore(
     ++tIDx;
     ++tIDy;
 
-    currentScore = 0.0f;
-
     for (int i = 0; i < DIAGONAL - 1; ++i) {
         barrier(CLK_LOCAL_MEM_FENCE);
         if (i == tXM1 + tYM1) {
@@ -154,22 +137,19 @@ void calculateScore(
             lS = s_matrix[tXM1][tIDy] + gapScore;
             uS = s_matrix[tIDx][tYM1] + gapScore;
 
-            if (currentScore < lS) { // score comes from left
-                currentScore = lS;
-                direction = LEFT_DIRECTION;
-            }
-            if (currentScore < uS) { // score comes from above
-                currentScore = uS;
-                direction = UPPER_DIRECTION;
-            }
-            if (currentScore < ulS) { // score comes from upper left
-                currentScore = ulS;
-                direction = UPPER_LEFT_DIRECTION;
-            }
-            currentScore = innerScore == FILL_SCORE ? 0.0f : currentScore;
+            currentScore = fmax(fmax(0.0f, ulS), fmax(lS, uS));
             s_matrix[tIDx][tIDy] = currentScore; // copy score to matrix
         }
     }
+
+    if (currentScore == ulS) // score comes from upper left
+        direction = UPPER_LEFT_DIRECTION;
+    if (currentScore == uS) // score comes from above
+        direction = UPPER_DIRECTION;
+    if (currentScore == lS) // score comes from left
+        direction = LEFT_DIRECTION;
+    currentScore = innerScore == FILL_SCORE ? 0.0f : currentScore;
+
     // copy end score to the scorings matrix:
     matrix[blockx * yDivSHARED_Y + blocky].value[tXM1][tYM1] = currentScore;
     globalDirection[blockx * yDivSHARED_Y + blocky].value[tXM1][tYM1] = direction;
@@ -178,7 +158,7 @@ void calculateScore(
     __local float s_maxima[SHARED_X * SHARED_Y];
 
     const unsigned int lid = get_local_id(1) * SHARED_X + get_local_id(0);
-    float m = fmax(currentScore, maxPrev);
+    float m = currentScore;
     s_maxima[lid] = m;
 
     for (int stride = SHARED_X * SHARED_Y / 2; stride > 0; stride >>= 1) {
@@ -190,6 +170,13 @@ void calculateScore(
     }
 
     if (lid == 0) {
+        /* the next block is to get the maximum value from surrounding blocks. */
+        if (blockx) {
+            m = fmax(m, globalMaxima[(blockx-1) * yDivSHARED_Y + blocky]);
+        }
+        if (blocky) {
+            m = fmax(m, globalMaxima[blockx * yDivSHARED_Y + (blocky-1)]);
+        }
         globalMaxima[blockx * yDivSHARED_Y + blocky] = m;
 
         if (blockx == xDivSHARED_X - 1 && blocky == yDivSHARED_Y - 1) {
