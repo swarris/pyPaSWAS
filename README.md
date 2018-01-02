@@ -3,7 +3,9 @@ pyPaSWAS
 [![DOI](https://zenodo.org/badge/28648467.svg)](https://zenodo.org/badge/latestdoi/28648467)
 
 Extented python version of PaSWAS. Original papers in PLOS ONE: 
+
 http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0122524
+
 http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0190279
 
 
