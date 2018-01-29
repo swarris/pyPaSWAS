@@ -177,7 +177,7 @@ gpuCudaGE = cbind(gpuCudaGE, cellUpdates[,2]/gpuCudaGE[,2])
 
 
 # remove 0 value
-cpuGE = cpu[cpu$V1>0,]
+cpuGE = cpuGE[cpuGE$V1>0,]
 cpuSingleGE = cpuSingleGE[cpuSingleGE$V1>0,]
 cpuOclSingleGE = cpuOclSingleGE[cpuOclSingleGE$V1>0,]
 cpuOclGE = cpuOclGE[cpuOclGE$V1>0,]
@@ -213,11 +213,11 @@ System:
 
 ## Performance penalty for gap extension
 
-To show the performance penalty of of using the gap extension penalty, each
-run is compared to the timing on the same hardware with a gap extension. 
+To show the performance penalty of using the gap extension penalty, each
+SW run is compared to the timing of doing a SW with a gap extension penalty. Memory usage, data sets and other setings were kept the same to make sure only the performance penalty of the introduction of the gap extension penalty was measured.
 
 ```{r echo=FALSE}
-plot(c(0,max(cpuOclSingle$V1)),c(0,3), pch='o', cex=0.6, xlab="Number of alignments processed", ylab="Gap extension performance penalty", type="n", xaxt="n")
+plot(c(0,max(cpuOclSingle$V1)),c(0.5,3), pch='o', cex=0.6, xlab="Number of alignments processed", ylab="Gap extension performance penalty", type="n", xaxt="n")
 axis(side=1, at=cpuOclSingle$V1)
 points(cpuOclSingle$V1,cpuOclSingleGE$V2/cpuOclSingle$V2, pch='o', cex=0.6)
 points(cpuSingle$V1,cpuSingleGE$V2/cpuSingle$V2, col='red', pch='x', cex=0.6)
@@ -236,3 +236,13 @@ legend(0, 3, c("GPU, CUDA",
 col=c('darkmagenta','darkviolet','chocolate4','black','blue','red'), pch=c('-','+','#','o','*','x'), cex=0.6,ncol=3)
 ```
 
+## Average slow down when using gap extension penalty
+
+| Configuration | Average slow down |
+|---------------|-------------------|
+| GPU, CUDA | `r mean( gpuCudaGE$V2/gpuCuda$V2)`|
+| GPU, gpu-OpenCL | `r mean( gpuOclGE$V2/gpuOcl$V2)`|
+| CPU, gpu-OpenCL, 8 cores | `r mean(cpuOclGE$V2/cpuOcl$V2 )` |
+| CPU, gpu-OpenCL, 1 core | `r mean( cpuOclSingleGE$V2/cpuOclSingle$V2)` |
+| CPU, cpu-OpenCL, 8 cores | `r mean( cpuGE$V2/cpu$V2 )`|
+| CPU, cpu-OpenCL, 1 core | `r mean(cpuSingleGE$V2/cpuSingle$V2 )`|

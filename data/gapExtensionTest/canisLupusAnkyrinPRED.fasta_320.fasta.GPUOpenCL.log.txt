@@ -1,0 +1,243 @@
+
+--------------------------------------------------------------------------
+pyPaSWAS run started at: 2017-10-19 04:38:46 using the following settings:
+--------------------------------------------------------------------------
+max_genome_length             :                        100000
+query_identity                :                           0.2
+mismatch_score                :                            -3
+device_number                 :                             0
+relative_score                :                           2.0
+recompile                     :                             T
+number_of_jobs                :                           N/A
+filter_factor                 :                           0.2
+device_type                   :                           GPU
+custom_matrix                 :                           N/A
+lower_limit_score             :                           1.0
+start_query                   :                             0
+out_format                    :                           TXT
+sequence_step                 :                     100000000
+password                      :                         Neo4J
+logfile                       :data/canisLupusAnkyrinPRED.fasta_320.fasta.GPUOpenCL.log.txt
+hostname                      :                     localhost
+matrix_name                   :                      BLOSUM80
+short_sequences               :                             F
+program                       :                       aligner
+limit_length                  :                        100000
+gap_score                     :                            -5
+sequence_node                 :                          Read
+filetype2                     :                         fasta
+filetype1                     :                         fasta
+username                      :                         neo4j
+config_file                   :                             0
+target_node                   :                          Read
+any_score                     :                             0
+override_output               :                             T
+number_of_compute_units       :                             0
+base_score                    :                           2.0
+end_target                    :                             0
+maximum_memory_usage          :                          0.27
+framework                     :                        OpenCL
+other_score                   :                            -1
+query_step                    :                       1000000
+sub_device                    :                             0
+query_coverage                :                           0.2
+out_file                      :                     speed.txt
+loglevel                      :                          info
+match_score                   :                             5
+end_query                     :                             0
+platform_name                 :                        NVIDIA
+process_id                    :                           N/A
+minimum_score                 :                            30
+gap_extension                 :                             0
+start_target                  :                             0
+--------------------------------------------------------------------------
+2017-10-19 04:38:46,897 - INFO - Initializing application...
+2017-10-19 04:38:46,897 - INFO - Application initialized.
+2017-10-19 04:38:46,897 - INFO - Setting program...
+2017-10-19 04:38:46,961 - INFO - No gap extension penalty detected: using original PaSWAS scoring algorithm
+2017-10-19 04:38:46,997 - INFO - Program set.
+2017-10-19 04:38:46,997 - INFO - Reading query sequences 0 1000000...
+2017-10-19 04:38:47,000 - INFO - Query sequences OK.
+2017-10-19 04:38:47,000 - INFO - Reading target sequences 0, 100000000...
+2017-10-19 04:38:47,011 - INFO - Target sequences OK.
+2017-10-19 04:38:47,011 - INFO - Processing 8- vs 320-sequences
+2017-10-19 04:38:47,191 - INFO - Time spent on Smith-Waterman > 0.171179056168
+2017-10-19 04:38:47,424 - INFO - Time spent on Smith-Waterman > 0.223951101303
+2017-10-19 04:38:47,632 - INFO - Time spent on Smith-Waterman > 0.19852399826
+2017-10-19 04:38:47,710 - INFO - Time spent on Smith-Waterman > 0.0716400146484
+2017-10-19 04:38:47,915 - INFO - Time spent on Smith-Waterman > 0.198261022568
+2017-10-19 04:38:47,992 - INFO - Time spent on Smith-Waterman > 0.0715970993042
+2017-10-19 04:38:48,197 - INFO - Time spent on Smith-Waterman > 0.198235034943
+2017-10-19 04:38:48,274 - INFO - Time spent on Smith-Waterman > 0.0715761184692
+2017-10-19 04:38:48,478 - INFO - Time spent on Smith-Waterman > 0.198186159134
+2017-10-19 04:38:48,555 - INFO - Time spent on Smith-Waterman > 0.0715539455414
+2017-10-19 04:38:48,759 - INFO - Time spent on Smith-Waterman > 0.197602033615
+2017-10-19 04:38:48,835 - INFO - Time spent on Smith-Waterman > 0.071347951889
+2017-10-19 04:38:49,037 - INFO - Time spent on Smith-Waterman > 0.195842981339
+2017-10-19 04:38:49,113 - INFO - Time spent on Smith-Waterman > 0.0708110332489
+2017-10-19 04:38:49,315 - INFO - Time spent on Smith-Waterman > 0.195563077927
+2017-10-19 04:38:49,391 - INFO - Time spent on Smith-Waterman > 0.070620059967
+2017-10-19 04:38:49,634 - INFO - Added hit (query ID: gi|323462210|ref|NP_001191024.1|, target ID: gi|545490256|ref|XP_005617304.1|) to hitlist
+2017-10-19 04:38:49,634 - INFO - Time spent on Smith-Waterman > 0.236763000488
+2017-10-19 04:38:49,709 - INFO - Time spent on Smith-Waterman > 0.0699148178101
+2017-10-19 04:38:49,951 - INFO - Added hit (query ID: gi|323462210|ref|NP_001191024.1|, target ID: gi|545521771|ref|XP_005628338.1|) to hitlist
+2017-10-19 04:38:49,951 - INFO - Time spent on Smith-Waterman > 0.236346006393
+2017-10-19 04:38:50,026 - INFO - Time spent on Smith-Waterman > 0.0692191123962
+2017-10-19 04:38:50,220 - INFO - Time spent on Smith-Waterman > 0.188635110855
+2017-10-19 04:38:50,295 - INFO - Time spent on Smith-Waterman > 0.0690529346466
+2017-10-19 04:38:50,532 - INFO - Added hit (query ID: gi|323462210|ref|NP_001191024.1|, target ID: gi|545521773|ref|XP_005628339.1|) to hitlist
+2017-10-19 04:38:50,532 - INFO - Time spent on Smith-Waterman > 0.23175406456
+2017-10-19 04:38:50,605 - INFO - Time spent on Smith-Waterman > 0.0677800178528
+2017-10-19 04:38:50,907 - INFO - Added hit (query ID: gi|323462210|ref|NP_001191024.1|, target ID: gi|545521775|ref|XP_005628340.1|) to hitlist
+2017-10-19 04:38:50,907 - INFO - Time spent on Smith-Waterman > 0.294420003891
+2017-10-19 04:38:50,967 - INFO - Time spent on Smith-Waterman > 0.0535898208618
+2017-10-19 04:38:51,377 - INFO - Time spent on Smith-Waterman > 0.164636135101
+2017-10-19 04:38:51,856 - INFO - Time spent on Smith-Waterman > 0.220453977585
+2017-10-19 04:38:52,027 - INFO - Time spent on Smith-Waterman > 0.162919044495
+2017-10-19 04:38:52,253 - INFO - Time spent on Smith-Waterman > 0.217582941055
+2017-10-19 04:38:52,413 - INFO - Time spent on Smith-Waterman > 0.151691913605
+2017-10-19 04:38:52,624 - INFO - Time spent on Smith-Waterman > 0.202723026276
+2017-10-19 04:38:53,012 - INFO - Time spent on Smith-Waterman > 0.150938987732
+2017-10-19 04:38:53,451 - INFO - Time spent on Smith-Waterman > 0.201668977737
+2017-10-19 04:38:53,837 - INFO - Time spent on Smith-Waterman > 0.149127006531
+2017-10-19 04:38:54,273 - INFO - Time spent on Smith-Waterman > 0.199206829071
+2017-10-19 04:38:54,657 - INFO - Time spent on Smith-Waterman > 0.147745847702
+2017-10-19 04:38:55,092 - INFO - Time spent on Smith-Waterman > 0.197071075439
+2017-10-19 04:38:55,240 - INFO - Time spent on Smith-Waterman > 0.140244960785
+2017-10-19 04:38:55,435 - INFO - Time spent on Smith-Waterman > 0.186774969101
+2017-10-19 04:38:55,700 - INFO - Time spent on Smith-Waterman > 0.256002902985
+2017-10-19 04:38:55,801 - INFO - Time spent on Smith-Waterman > 0.0926740169525
+2017-10-19 04:38:56,064 - INFO - Time spent on Smith-Waterman > 0.254973173141
+2017-10-19 04:38:56,164 - INFO - Time spent on Smith-Waterman > 0.0921649932861
+2017-10-19 04:38:56,425 - INFO - Time spent on Smith-Waterman > 0.253266811371
+2017-10-19 04:38:56,524 - INFO - Time spent on Smith-Waterman > 0.0914750099182
+2017-10-19 04:38:56,780 - INFO - Time spent on Smith-Waterman > 0.249573945999
+2017-10-19 04:38:56,877 - INFO - Time spent on Smith-Waterman > 0.0902059078217
+2017-10-19 04:38:57,132 - INFO - Time spent on Smith-Waterman > 0.247468948364
+2017-10-19 04:38:57,228 - INFO - Time spent on Smith-Waterman > 0.089271068573
+2017-10-19 04:38:57,468 - INFO - Time spent on Smith-Waterman > 0.233463048935
+2017-10-19 04:38:57,559 - INFO - Time spent on Smith-Waterman > 0.0843770503998
+2017-10-19 04:38:57,793 - INFO - Time spent on Smith-Waterman > 0.227951049805
+2017-10-19 04:38:57,882 - INFO - Time spent on Smith-Waterman > 0.0821468830109
+2017-10-19 04:38:58,102 - INFO - Time spent on Smith-Waterman > 0.214201927185
+2017-10-19 04:38:58,185 - INFO - Time spent on Smith-Waterman > 0.0772631168365
+2017-10-19 04:38:58,636 - INFO - Time spent on Smith-Waterman > 0.213383197784
+2017-10-19 04:38:58,949 - INFO - Time spent on Smith-Waterman > 0.0769679546356
+2017-10-19 04:38:59,115 - INFO - Time spent on Smith-Waterman > 0.159847021103
+2017-10-19 04:38:59,338 - INFO - Time spent on Smith-Waterman > 0.214734077454
+2017-10-19 04:38:59,500 - INFO - Time spent on Smith-Waterman > 0.15363907814
+2017-10-19 04:38:59,712 - INFO - Time spent on Smith-Waterman > 0.204771995544
+2017-10-19 04:38:59,870 - INFO - Time spent on Smith-Waterman > 0.149863004684
+2017-10-19 04:39:00,079 - INFO - Time spent on Smith-Waterman > 0.200965166092
+2017-10-19 04:39:00,239 - INFO - Time spent on Smith-Waterman > 0.152395963669
+2017-10-19 04:39:00,441 - INFO - Time spent on Smith-Waterman > 0.194548130035
+2017-10-19 04:39:00,590 - INFO - Time spent on Smith-Waterman > 0.14159488678
+2017-10-19 04:39:00,787 - INFO - Time spent on Smith-Waterman > 0.18975520134
+2017-10-19 04:39:00,936 - INFO - Time spent on Smith-Waterman > 0.141688108444
+2017-10-19 04:39:01,134 - INFO - Time spent on Smith-Waterman > 0.189690113068
+2017-10-19 04:39:01,282 - INFO - Time spent on Smith-Waterman > 0.141342163086
+2017-10-19 04:39:01,479 - INFO - Time spent on Smith-Waterman > 0.189492940903
+2017-10-19 04:39:01,749 - INFO - Time spent on Smith-Waterman > 0.259938001633
+2017-10-19 04:39:01,849 - INFO - Time spent on Smith-Waterman > 0.0932021141052
+2017-10-19 04:39:02,115 - INFO - Time spent on Smith-Waterman > 0.258782148361
+2017-10-19 04:39:02,215 - INFO - Time spent on Smith-Waterman > 0.0926909446716
+2017-10-19 04:39:02,476 - INFO - Time spent on Smith-Waterman > 0.253086090088
+2017-10-19 04:39:02,573 - INFO - Time spent on Smith-Waterman > 0.0907819271088
+2017-10-19 04:39:03,064 - INFO - Time spent on Smith-Waterman > 0.251821994781
+2017-10-19 04:39:03,393 - INFO - Time spent on Smith-Waterman > 0.089555978775
+2017-10-19 04:39:03,647 - INFO - Time spent on Smith-Waterman > 0.246202945709
+2017-10-19 04:39:03,742 - INFO - Time spent on Smith-Waterman > 0.0883369445801
+2017-10-19 04:39:03,996 - INFO - Time spent on Smith-Waterman > 0.246094942093
+2017-10-19 04:39:04,091 - INFO - Time spent on Smith-Waterman > 0.088259935379
+2017-10-19 04:39:04,342 - INFO - Time spent on Smith-Waterman > 0.243036985397
+2017-10-19 04:39:04,436 - INFO - Time spent on Smith-Waterman > 0.0870649814606
+2017-10-19 04:39:04,686 - INFO - Time spent on Smith-Waterman > 0.242815971375
+2017-10-19 04:39:04,780 - INFO - Time spent on Smith-Waterman > 0.0870289802551
+2017-10-19 04:39:05,025 - INFO - Time spent on Smith-Waterman > 0.237445116043
+2017-10-19 04:39:05,117 - INFO - Time spent on Smith-Waterman > 0.0851669311523
+2017-10-19 04:39:05,286 - INFO - Time spent on Smith-Waterman > 0.162533998489
+2017-10-19 04:39:05,514 - INFO - Time spent on Smith-Waterman > 0.219284057617
+2017-10-19 04:39:05,679 - INFO - Time spent on Smith-Waterman > 0.156861066818
+2017-10-19 04:39:05,898 - INFO - Time spent on Smith-Waterman > 0.211149930954
+2017-10-19 04:39:06,063 - INFO - Time spent on Smith-Waterman > 0.156883955002
+2017-10-19 04:39:06,282 - INFO - Time spent on Smith-Waterman > 0.211152076721
+2017-10-19 04:39:06,447 - INFO - Time spent on Smith-Waterman > 0.156410932541
+2017-10-19 04:39:06,666 - INFO - Time spent on Smith-Waterman > 0.211041212082
+2017-10-19 04:39:06,828 - INFO - Time spent on Smith-Waterman > 0.154552936554
+2017-10-19 04:39:07,044 - INFO - Time spent on Smith-Waterman > 0.207875967026
+2017-10-19 04:39:07,206 - INFO - Time spent on Smith-Waterman > 0.154145002365
+2017-10-19 04:39:07,422 - INFO - Time spent on Smith-Waterman > 0.207653999329
+2017-10-19 04:39:07,580 - INFO - Time spent on Smith-Waterman > 0.150931119919
+2017-10-19 04:39:07,790 - INFO - Time spent on Smith-Waterman > 0.20135807991
+2017-10-19 04:39:07,945 - INFO - Time spent on Smith-Waterman > 0.147874832153
+2017-10-19 04:39:08,152 - INFO - Time spent on Smith-Waterman > 0.199187040329
+2017-10-19 04:39:08,411 - INFO - Time spent on Smith-Waterman > 0.249211072922
+2017-10-19 04:39:08,506 - INFO - Time spent on Smith-Waterman > 0.0888528823853
+2017-10-19 04:39:08,665 - INFO - Time spent on Smith-Waterman > 0.152626037598
+2017-10-19 04:39:08,876 - INFO - Time spent on Smith-Waterman > 0.203809022903
+2017-10-19 04:39:09,029 - INFO - Time spent on Smith-Waterman > 0.14541387558
+2017-10-19 04:39:09,232 - INFO - Time spent on Smith-Waterman > 0.195436954498
+2017-10-19 04:39:09,383 - INFO - Time spent on Smith-Waterman > 0.143893957138
+2017-10-19 04:39:09,582 - INFO - Time spent on Smith-Waterman > 0.191345930099
+2017-10-19 04:39:09,732 - INFO - Time spent on Smith-Waterman > 0.142926931381
+2017-10-19 04:39:09,930 - INFO - Time spent on Smith-Waterman > 0.19081401825
+2017-10-19 04:39:10,087 - INFO - Time spent on Smith-Waterman > 0.148759126663
+2017-10-19 04:39:10,348 - INFO - Time spent on Smith-Waterman > 0.253737926483
+2017-10-19 04:39:10,513 - INFO - Added hit (query ID: gi|323462210|ref|NP_001191024.1|, target ID: gi|545490258|ref|XP_005617305.1|) to hitlist
+2017-10-19 04:39:10,513 - INFO - Time spent on Smith-Waterman > 0.158116817474
+2017-10-19 04:39:10,720 - INFO - Time spent on Smith-Waterman > 0.198688030243
+2017-10-19 04:39:10,882 - INFO - Added hit (query ID: gi|323462210|ref|NP_001191024.1|, target ID: gi|545490260|ref|XP_005617306.1|) to hitlist
+2017-10-19 04:39:10,882 - INFO - Time spent on Smith-Waterman > 0.155306100845
+2017-10-19 04:39:11,094 - INFO - Time spent on Smith-Waterman > 0.204098939896
+2017-10-19 04:39:11,276 - INFO - Added hit (query ID: gi|323462210|ref|NP_001191024.1|, target ID: gi|545490262|ref|XP_005617307.1|) to hitlist
+2017-10-19 04:39:11,276 - INFO - Time spent on Smith-Waterman > 0.174096822739
+2017-10-19 04:39:11,555 - INFO - Time spent on Smith-Waterman > 0.271248817444
+2017-10-19 04:39:11,720 - INFO - Time spent on Smith-Waterman > 0.15681886673
+2017-10-19 04:39:11,969 - INFO - Added hit (query ID: gi|326439171|ref|NP_001191984.1|, target ID: gi|545514281|ref|XP_005625751.1|) to hitlist
+2017-10-19 04:39:11,979 - INFO - Added hit (query ID: gi|326439171|ref|NP_001191984.1|, target ID: gi|545514269|ref|XP_005625745.1|) to hitlist
+2017-10-19 04:39:11,979 - INFO - Time spent on Smith-Waterman > 0.251080036163
+2017-10-19 04:39:12,134 - INFO - Time spent on Smith-Waterman > 0.146696090698
+2017-10-19 04:39:12,349 - INFO - Added hit (query ID: gi|326439171|ref|NP_001191984.1|, target ID: gi|545514271|ref|XP_005625746.1|) to hitlist
+2017-10-19 04:39:12,358 - INFO - Added hit (query ID: gi|326439171|ref|NP_001191984.1|, target ID: gi|545514275|ref|XP_005625748.1|) to hitlist
+2017-10-19 04:39:12,368 - INFO - Added hit (query ID: gi|326439171|ref|NP_001191984.1|, target ID: gi|545514273|ref|XP_005625747.1|) to hitlist
+2017-10-19 04:39:12,368 - INFO - Time spent on Smith-Waterman > 0.226192951202
+2017-10-19 04:39:12,553 - INFO - Time spent on Smith-Waterman > 0.177368879318
+2017-10-19 04:39:12,777 - INFO - Time spent on Smith-Waterman > 0.214744091034
+2017-10-19 04:39:12,940 - INFO - Time spent on Smith-Waterman > 0.154909849167
+2017-10-19 04:39:13,169 - INFO - Time spent on Smith-Waterman > 0.21958398819
+2017-10-19 04:39:13,323 - INFO - Time spent on Smith-Waterman > 0.146185159683
+2017-10-19 04:39:13,539 - INFO - Added hit (query ID: gi|326439171|ref|NP_001191984.1|, target ID: gi|545514277|ref|XP_005625749.1|) to hitlist
+2017-10-19 04:39:13,539 - INFO - Time spent on Smith-Waterman > 0.207459926605
+2017-10-19 04:39:13,707 - INFO - Time spent on Smith-Waterman > 0.160252094269
+2017-10-19 04:39:13,939 - INFO - Added hit (query ID: gi|326439171|ref|NP_001191984.1|, target ID: gi|545514279|ref|XP_005625750.1|) to hitlist
+2017-10-19 04:39:13,939 - INFO - Time spent on Smith-Waterman > 0.223569154739
+2017-10-19 04:39:14,115 - INFO - Time spent on Smith-Waterman > 0.167161941528
+2017-10-19 04:39:14,326 - INFO - Time spent on Smith-Waterman > 0.202623128891
+2017-10-19 04:39:14,486 - INFO - Time spent on Smith-Waterman > 0.152354955673
+2017-10-19 04:39:14,699 - INFO - Time spent on Smith-Waterman > 0.204575061798
+2017-10-19 04:39:14,861 - INFO - Time spent on Smith-Waterman > 0.152996063232
+2017-10-19 04:39:15,081 - INFO - Time spent on Smith-Waterman > 0.211560964584
+2017-10-19 04:39:15,250 - INFO - Time spent on Smith-Waterman > 0.161167860031
+2017-10-19 04:39:15,481 - INFO - Added hit (query ID: gi|25809292|emb|CAD57679.1|, target ID: gi|50978644|ref|NP_001003018.1|) to hitlist
+2017-10-19 04:39:15,486 - INFO - Added hit (query ID: gi|62899877|sp|Q8HYV8.1|ASB17_CANFA, target ID: gi|50978644|ref|NP_001003018.1|) to hitlist
+2017-10-19 04:39:15,486 - INFO - Time spent on Smith-Waterman > 0.227193832397
+2017-10-19 04:39:15,655 - INFO - Time spent on Smith-Waterman > 0.161045074463
+2017-10-19 04:39:15,885 - INFO - Added hit (query ID: gi|50978644|ref|NP_001003018.1|, target ID: gi|25809292|emb|CAD57679.1|) to hitlist
+2017-10-19 04:39:15,891 - INFO - Added hit (query ID: gi|62899877|sp|Q8HYV8.1|ASB17_CANFA, target ID: gi|25809292|emb|CAD57679.1|) to hitlist
+2017-10-19 04:39:15,891 - INFO - Time spent on Smith-Waterman > 0.226828098297
+2017-10-19 04:39:16,071 - INFO - Time spent on Smith-Waterman > 0.172768115997
+2017-10-19 04:39:16,311 - INFO - Added hit (query ID: gi|72255557|ref|NP_001026801.1|, target ID: gi|51870711|dbj|BAD42435.1|) to hitlist
+2017-10-19 04:39:16,315 - INFO - Added hit (query ID: gi|61216779|sp|Q68AM8.1|SOCS3_CANFA, target ID: gi|51870711|dbj|BAD42435.1|) to hitlist
+2017-10-19 04:39:16,315 - INFO - Time spent on Smith-Waterman > 0.235563993454
+2017-10-19 04:39:16,504 - INFO - Time spent on Smith-Waterman > 0.180886983871
+2017-10-19 04:39:16,742 - INFO - Added hit (query ID: gi|326439171|ref|NP_001191984.1|, target ID: gi|545560947|ref|XP_005642473.1|) to hitlist
+2017-10-19 04:39:16,745 - INFO - Time spent on Smith-Waterman > 0.231927871704
+2017-10-19 04:39:16,972 - INFO - Time spent on Smith-Waterman > 0.217664957047
+2017-10-19 04:39:16,972 - INFO - Processing done
+2017-10-19 04:39:16,972 - INFO - Reading query sequences 1000000 2000000...
+2017-10-19 04:39:16,973 - INFO - Processing OK (42 hits found).
+2017-10-19 04:39:16,973 - INFO - Formatting output...
+2017-10-19 04:39:16,973 - INFO - Formatting OK.
+2017-10-19 04:39:16,973 - INFO - Writing output...
+2017-10-19 04:39:16,973 - INFO - Writing OK.
+2017-10-19 04:39:16,973 - INFO - Finished

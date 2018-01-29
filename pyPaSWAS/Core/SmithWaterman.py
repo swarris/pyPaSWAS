@@ -809,8 +809,6 @@ class SmithWaterman(object):
                     matches += 1 if target[local_index].lower() == sequence[local_index].lower() else 0
                     mismatches += 1 if target[local_index].lower() != sequence[local_index].lower() else 0
                 else:
-                    self.logger.warning('Warning: wrong value in direction matrix: '
-                                        '{0}\n\tContinuing calculation...'.format(direction))
                     block_x = -1
                 local_index += 1
             if show:
