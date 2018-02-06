@@ -35,14 +35,9 @@ class Aligner(object):
         self.settings = settings
         if (self.settings.framework.upper() == 'OPENCL'):
             if(self.settings.device_type.upper() == 'GPU'):
-                if(self.settings.platform_name.upper() == 'NVIDIA'):
-                    self.logger.debug('Using OpenCL NVIDIA implementation')
-                    from pyPaSWAS.Core.SmithWatermanOcl import SmithWatermanNVIDIA
-                    self.smith_waterman = SmithWatermanNVIDIA(self.logger, self.score, settings)
-                else:
-                    self.logger.debug('Using OpenCL GPU implementation')
-                    from pyPaSWAS.Core.SmithWatermanOcl import SmithWatermanGPU
-                    self.smith_waterman = SmithWatermanGPU(self.logger, self.score, settings)
+                self.logger.debug('Using OpenCL GPU implementation')
+                from pyPaSWAS.Core.SmithWatermanOcl import SmithWatermanGPU
+                self.smith_waterman = SmithWatermanGPU(self.logger, self.score, settings)
             elif(self.settings.device_type.upper() == 'CPU'):
                 self.logger.debug('Using OpenCL CPU implementation')
                 from pyPaSWAS.Core.SmithWatermanOcl import SmithWatermanCPU
@@ -74,11 +69,15 @@ class Aligner(object):
         self.logger.debug('Aligner processing...')
         target_index = 0
 
+        all_targets_length = sum(len(s.seq) for s in targets)
+        all_sequences_length = sum(len(s.seq) for s in records_seqs)
+        self.smith_waterman.set_total_work_size(all_targets_length * all_sequences_length)
+
         while target_index < len(targets):
             self.logger.debug('At target: {0} of {1}'.format(target_index, len(targets)))
 
 
-            last_target_index = self.smith_waterman.set_targets(targets, target_index)
+            last_target_index = self.smith_waterman.set_targets(targets, target_index, records_seqs=records_seqs, use_all_records_seqs=False)
             # results should be a Hitlist()
             results = self.smith_waterman.align_sequences(records_seqs, targets, target_index)
             self.hitlist.extend(results)
@@ -104,7 +103,11 @@ class Trimmer(Aligner):
             max_length = len(targets[0])
         else:
             max_length = None
-            
+
+        all_targets_length = sum(len(s.seq) for s in targets)
+        all_sequences_length = sum(len(s.seq) for s in records_seqs)
+        self.smith_waterman.set_total_work_size(all_targets_length * all_sequences_length)
+
         while target_index < len(targets):
             self.logger.debug('At target: {0} of {1}'.format(target_index, len(targets)))
 

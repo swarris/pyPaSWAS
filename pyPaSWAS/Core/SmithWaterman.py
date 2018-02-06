@@ -12,6 +12,7 @@ It can be used to initialize the device, allocate the required memory and run th
 import numpy
 import math
 import time
+import datetime
 
 from pyPaSWAS.Core.StartingPoint import StartingPoint
 from pyPaSWAS.Core.HitList import HitList
@@ -177,6 +178,11 @@ class SmithWaterman(object):
         if self.mem_fill_factor > 1.0 or self.mem_fill_factor <= 0.0:
             raise InvalidOptionException('maximux_memory_usage is not a float between 0.0 and 1.0'.format(settings.maximum_memory_usage))
 
+        # Attibutes related to reporting of current progress
+        self.total_work_size = 0
+        self.total_processed = 0
+        self.start_time = time.time()
+
     def __del__(self):
         '''Destructor. Removes the current running context'''
         pass
@@ -192,14 +198,6 @@ class SmithWaterman(object):
     def _device_global_mem_size(self):
         '''  defines maximum available mem on device. Should be implemented by subclasses. '''
         pass
-
-    def _get_max_length_xy(self):
-        '''
-        _get_max_length_xy gives the maximum length of both X and Y possible based on the total memory.
-        @return: int value of the maximum length of both X and Y.
-        '''
-        return (math.floor(math.sqrt((self._device_global_mem_size() * self.mem_fill_factor) / 
-                                    self._get_mem_size_basic_matrix()))) 
     
     def _get_max_number_sequences(self, length_sequences, length_targets, number_of_targets):
         '''
@@ -209,13 +207,10 @@ class SmithWaterman(object):
         '''
         self.logger.debug("Total memory on Device: {}".format(self._device_global_mem_size()/1024.0/1024.0))
         value = 1
-        gapExtensionFactor = 1
-        if self.gap_extension:
-            gapExtensionFactor = 3
-            
+
         try:
             value = math.floor((self._device_global_mem_size() * self.mem_fill_factor) / #@UndefinedVariable
-                               ((gapExtensionFactor * length_sequences * length_targets * (self._get_mem_size_basic_matrix()) +
+                               ((length_sequences * length_targets * (self._get_mem_size_basic_matrix()) +
                                  (length_sequences * length_targets * SmithWaterman.float_size) /
                                  (self.shared_x * self.shared_y)) * number_of_targets)) #@UndefinedVariable @IgnorePep8
         except:
@@ -269,7 +264,7 @@ class SmithWaterman(object):
         '''fills the max_possible_score datastructure on the host'''
         pass
     
-    def _get_starting_point_byte_array(self):
+    def _get_starting_point_byte_array(self, number_of_starting_points):
         '''
         Get the resulting starting points
         @return gives the resulting starting point array as byte array
@@ -372,18 +367,23 @@ class SmithWaterman(object):
         return max_number_of_targets
 
 
-    def set_targets(self, targets, target_index, max_length = None, records_seqs=None):
+    def set_targets(self, targets, target_index, max_length=None, records_seqs=None, use_all_records_seqs=True):
         '''Retrieves a block of targets from the target array and returns the index of the last target that will be processed'''
 
         if self.max_length == None or target_index == 0:                
             self._set_target_block_length(targets, target_index)
-            if records_seqs != None and len(records_seqs) > 0: 
-                self.max_number_of_targets = self._get_number_of_targets_with_sequences(records_seqs)
-                if self.max_number_of_targets < 1:
-                    self.max_number_of_targets = self._get_number_of_targets()
-            else:
-                self.max_number_of_targets = self._get_number_of_targets() 
-       
+            if records_seqs != None and len(records_seqs) > 0:
+                if use_all_records_seqs:
+                    self.max_number_of_targets = self._get_number_of_targets_with_sequences(records_seqs)
+                    if self.max_number_of_targets < 1:
+                        self.max_number_of_targets = self._get_number_of_targets()
+                else:
+                    # Find maximum possible number of targets for cases when number of records_seqs
+                    # is small. _get_number_of_targets assumes that many sequences are used, hence
+                    # it may return too small number.
+                    self.max_number_of_targets = max(self._get_number_of_targets(),
+                                                     self._get_number_of_targets_with_sequences(records_seqs))
+
         if max_length != None and self.settings.recompile == "F" and target_index > 0:
             self.max_length = max_length
         
@@ -395,8 +395,8 @@ class SmithWaterman(object):
         if self.number_of_targets > len(targets):
             self.number_of_targets = len(targets)
 
-        if self.number_of_targets * len(targets[0]) / self.shared_y > self.internal_limit:
-            self.number_of_targets = int(self.internal_limit * self.shared_y / len(targets[0]))
+        if self.number_of_targets * len(targets[target_index]) / self.shared_y > self.internal_limit:
+            self.number_of_targets = int(self.internal_limit * self.shared_y / len(targets[target_index]))
         
 
         # fill the target array with sequences
@@ -422,14 +422,21 @@ class SmithWaterman(object):
             @return: the amount of memory in bytes for the 1x1 alignment
             Calculate GPU memory requirements for 1x1 alignment with 1x1 character.
         """
-        # size of each element in a smith waterman matrix (lchar, uchar, luchar, value (is float) and direction)
+        gapExtensionFactor = 1
+        if self.gap_extension:
+            gapExtensionFactor = 3
+
+        # size of each element in a smith waterman matrix (direction (is char) and score (is float))
         mem_size = 1
-        mem_size += 1
-        mem_size += self.float_size
-        mem_size += 1
-        mem_size += 1
+        mem_size += gapExtensionFactor * self.float_size
         return mem_size
 
+    def set_total_work_size(self, size):
+        '''Sets total work size (number of cells) and resets current progress.
+        '''
+        self.total_work_size = size
+        self.total_processed = 0
+        self.start_time = time.time()
 
     def align_sequences(self, records_seqs, targets, target_index):
         '''Aligns sequences against the targets. Returns the resulting alignments in a hitlist.'''
@@ -437,7 +444,7 @@ class SmithWaterman(object):
         index = 0
         prev_seq_length = 0
         prev_target_length = 0
-        
+
         cont = True
         # step through all the sequences
         max_length = 0
@@ -445,6 +452,7 @@ class SmithWaterman(object):
             max_length = len(records_seqs[0])
         hitlist=HitList(self.logger)
         while index < len(records_seqs) and cont:
+            t0 = time.time()
             # make sure length of sequences can be divided by shared_x
             # don't reset when no need to recompile:
             if self.settings.recompile == "F" :
@@ -520,15 +528,34 @@ class SmithWaterman(object):
             self._init_zero_copy()
             # calculate scores of alignments
             self._calculate_score()
-            # perform the traceback
-            self._traceback_host()
 
-            # TODO: change to returning a value, change _print_alignments to getAlignments in SmithWaterman
-            # TODO: move _print_alignments to here? This should be a statement to retrieve the results and
-            # put them into a Hitlist (?)
-            #hitlist = self._print_alignments(records_seqs, targets, index, target_index)
-            self._print_alignments(records_seqs, targets, index, target_index, hitlist)
-            self.logger.info("Time spent on Smith-Waterman > {}".format(time.time()-t))
+            if self._is_traceback_required():
+                # perform the traceback
+                self._traceback_host()
+
+                # TODO: change to returning a value, change _print_alignments to getAlignments in SmithWaterman
+                # TODO: move _print_alignments to here? This should be a statement to retrieve the results and
+                # put them into a Hitlist (?)
+                #hitlist = self._print_alignments(records_seqs, targets, index, target_index)
+                self._print_alignments(records_seqs, targets, index, target_index, hitlist)
+
+            self.logger.debug("Time spent on Smith-Waterman > {}".format(time.time()-t))
+
+            if self.total_work_size > 0:
+                t1 = time.time()
+                processed = sum(len(s.seq) for s in targets[target_index:(target_index+self.number_targets)]) * \
+                            sum(len(s.seq) for s in records_seqs[index:(index+self.number_of_sequences)])
+                self.total_processed += processed
+                duration = t1 - t0
+                total_duration = t1 - self.start_time
+                performance = processed / 1e9 / duration
+                avg_performance = self.total_processed / 1e9 / total_duration
+                progress = self.total_processed / float(self.total_work_size)
+                eta = total_duration / progress * (1.0 - progress)
+                self.logger.info("Duration: {:5.3f} | Total: {} | Performance: {:5.2f} GCUPS | Avg: {:5.2f} GCUPS | Progress: {:7.3%} | ETA: {}"
+                    .format(duration, datetime.timedelta(seconds=round(total_duration)), performance, avg_performance, progress, datetime.timedelta(seconds=round(eta)))
+                )
+
             index += self.max_sequences
         return hitlist
 
@@ -586,6 +613,11 @@ class SmithWaterman(object):
             if (idx < self.x_div_shared_x - 1):
                 idx += 1
 
+    def _is_traceback_required(self):
+        '''Returns False if it is known after calculating scores that there are no possible
+        starting points, hence no need to run traceback.
+        '''
+        return True
 
     def _traceback_host(self):
         ''' Performs the traceback on the device '''
@@ -634,15 +666,18 @@ class SmithWaterman(object):
         if hit_list is None:
             hit_list = HitList(self.logger)
         self.logger.debug('Printing alignments.')
-        starting_points = self._get_starting_point_byte_array()
-        #starting_point = StartingPoint(self.logger)
-        
+
         number_of_starting_points = self._get_number_of_starting_points()
         self.logger.debug('Number of starting points is: {0}.'.format(number_of_starting_points))
+        if number_of_starting_points == 0:
+            # No need to read other data from device
+            return hit_list
         if number_of_starting_points >= (self.maximum_number_starting_points * self.number_of_sequences * self.number_targets):
             self.logger.warning("Too many hits returned. Skipping the rest. Please set lower_limit_score higher in config.")
             number_of_starting_points = self.maximum_number_starting_points * self.number_of_sequences * self.number_targets
-        
+
+        starting_points = self._get_starting_point_byte_array(number_of_starting_points)
+
         max_score = 0
 
         direction_array = self._get_direction_byte_array()

@@ -2,7 +2,12 @@ pyPaSWAS
 ========
 [![DOI](https://zenodo.org/badge/28648467.svg)](https://zenodo.org/badge/latestdoi/28648467)
 
-Extented python version of PaSWAS. Original paper in PLOS ONE: http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0122524
+Extented python version of PaSWAS. Original papers in PLOS ONE: 
+
+http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0122524
+
+http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0190279
+
 
 For DNA/RNA/protein sequence alignment and trimming. 
 
@@ -22,6 +27,15 @@ Platforms supported:
 - Other systems supporting OpenCL (AMD, Intel GPUs, etc) should be able to run the software, but are untested.
 
 More information: https://github.com/swarris/pyPaSWAS/wiki
+
+Docker
+------
+
+The pyPasWAS source contains several docker install files. Clone the repository: 
+
+git clone https://github.com/swarris/pyPaSWAS.git
+
+Then use one of the docker images in the _docker_ folder. For more information, see the [README](https://github.com/swarris/pyPaSWAS/tree/master/docker) 
 
 Installation
 ------------

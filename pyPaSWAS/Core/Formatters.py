@@ -33,11 +33,16 @@ class DefaultFormatter(object):
         '''Name of the formatter. Used for logging'''
         self.name = 'defaultformatter'
 
+    def _get_hits(self):
+        '''Returns ordered list of hits'''
+        hits = self.hitlist.real_hits.values()
+        return sorted(hits, key=lambda hit: (hit.get_seq_id(), hit.get_target_id(), hit.score))
+
     def print_results(self):
         '''sets, formats and prints the results to a file.'''
         self.logger.debug('printing results...')
         output = open(self.outputfile, 'w')
-        for hit in self.hitlist.real_hits.values():
+        for hit in self._get_hits():
             formatted_hit = self._format_hit(hit)
             output.write(formatted_hit + "\n")
         self.logger.debug('finished printing results')
@@ -81,7 +86,7 @@ class SamFormatter(DefaultFormatter):
         '''sets, formats and prints the results to a file.'''
         self.logger.info('formatting results...')
         #format header and hit lines
-        for hit in self.hitlist.real_hits.values():
+        for hit in self._get_hits():
             self._format_hit(hit)
 
         self.logger.debug('printing results...')
@@ -132,7 +137,7 @@ class TrimmerFormatter(DefaultFormatter):
         '''sets, formats and prints the results to a file.'''
         self.logger.info('formatting results...')
         #format header and hit lines
-        for hit in self.hitlist.real_hits.values():
+        for hit in self._get_hits():
             self._format_hit(hit)
 
         self.logger.debug('printing results...')
@@ -173,7 +178,7 @@ class FASTA(DefaultFormatter):
         '''sets, formats and prints the results to a file.'''
         self.logger.info('formatting results...')
         #format header and hit lines
-        for hit in self.hitlist.real_hits.values():
+        for hit in self._get_hits():
             self._format_hit(hit)
 
         self.logger.debug('printing results...')
