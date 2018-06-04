@@ -369,7 +369,7 @@ class SmithWaterman(object):
 
     def set_targets(self, targets, target_index, max_length=None, records_seqs=None, use_all_records_seqs=True):
         '''Retrieves a block of targets from the target array and returns the index of the last target that will be processed'''
-
+        self.max_number_of_targets = 1
         if self.max_length == None or target_index == 0:                
             self._set_target_block_length(targets, target_index)
             if records_seqs != None and len(records_seqs) > 0:
