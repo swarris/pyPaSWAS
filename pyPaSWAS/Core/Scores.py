@@ -321,15 +321,38 @@ class DnaRnaScore(Score):
                                                                                               self.gap_score,
                                                                                               self.other_score,
                                                                                               self.any_score))
-        dna_rna_ord = [ord('A') - ord('A'), ord('T') - ord('A'), ord('C') - ord('A'),
-                       ord('G') - ord('A'), ord('U') - ord('A')]
-        any_ord = ord('N') - ord('A')
+        A = ord('A') - ord('A')
+        T = ord('T') - ord('A')
+        C = ord('C') - ord('A')
+        G = ord('G') - ord('A')
+        U = ord('U') - ord('A')
+
+        K = ord('K') - ord('A')
+        M = ord('M') - ord('A')
+        R = ord('R') - ord('A')
+        Y = ord('Y') - ord('A')
+        S = ord('S') - ord('A')
+        W = ord('W') - ord('A')
+        N = ord('N') - ord('A')
+
+        dna_rna_ord = [A , T, C, G, U]
+        any_ord = N
+
+        ambi_ord = {}
+        ambi_ord[K] = [G, T]
+        ambi_ord[M] = [A, C]
+        ambi_ord[R] = [A, G]
+        ambi_ord[Y] = [C, T]
+        ambi_ord[S] = [C, G]
+        ambi_ord[W] = [A, T]
+ 
+
         self.matrix = [[self.other_score for _i in range(self.dimensions)] for _j in range(self.dimensions)]
         self.highest_score = self.match_score
 
         for row in range(0, self.dimensions):
             for col in range(0, self.dimensions):
-                if row == col:
+                if row == col or ((row in ambi_ord and col in ambi_ord[row]) or (col in ambi_ord and row in ambi_ord[col])):
                     self.matrix[row][col] = self.match_score
                 elif row == any_ord or col == any_ord:
                     self.matrix[row][col] = self.any_score
