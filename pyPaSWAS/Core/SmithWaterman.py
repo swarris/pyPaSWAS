@@ -606,8 +606,12 @@ class SmithWaterman(object):
             else:
                 number_of_blocks = max_number_of_blocks
             
-            self._execute_calculate_score_kernel(number_of_blocks, idx, idy)
-
+            try:
+                self._execute_calculate_score_kernel(number_of_blocks, idx, idy)
+            except Exception as exception:
+                self.logger.error("Sequence too long or device unavailable. Please restrict length by using --limit_length= and try again.")
+                raise exception
+            
             if (idx == self.x_div_shared_x - 1):
                 idy += 1
             if (idx < self.x_div_shared_x - 1):
@@ -637,8 +641,12 @@ class SmithWaterman(object):
             else:
                 number_of_blocks = max_number_of_blocks
             
-            self._execute_traceback_kernel(number_of_blocks, idx, idy)
-
+            try:
+                self._execute_traceback_kernel(number_of_blocks, idx, idy)
+            except Exception as exception:
+                self.logger.error("Sequence too long or device unavailable. Please restrict length by using --limit_length= and try again.")
+                raise exception
+            
             if (idy == 0):
                 idx -= 1
             if (idy > 0):

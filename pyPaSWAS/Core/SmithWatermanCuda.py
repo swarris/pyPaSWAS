@@ -193,77 +193,70 @@ class SmithWatermanCuda(SmithWaterman):
         dim_grid_sw = (self.number_of_sequences, self.number_targets * number_of_blocks)
         dim_block = (self.shared_x, self.shared_y, 1)
 
-        try:
-            if self.gap_extension:
-                calculate_score_function = self.module.get_function("calculateScoreAffineGap")
-                calculate_score_function(self.d_matrix,self.d_matrix_i,self.d_matrix_j, 
-                                         numpy.int32(idx), 
-                                         numpy.int32(idy),
-                                         numpy.int32(number_of_blocks), 
-                                         self.d_sequences, 
-                                         self.d_targets,
-                                         self.d_global_maxima, 
-                                         self.d_global_direction,
-                                         block=dim_block, 
-                                         grid=dim_grid_sw)
-            else:
-                calculate_score_function = self.module.get_function("calculateScore")
-                calculate_score_function(self.d_matrix, 
-                                         numpy.int32(idx), 
-                                         numpy.int32(idy),
-                                         numpy.int32(number_of_blocks), 
-                                         self.d_sequences, 
-                                         self.d_targets,
-                                         self.d_global_maxima, 
-                                         self.d_global_direction,
-                                         block=dim_block, 
-                                         grid=dim_grid_sw)
-                
-            driver.Context.synchronize()  #@UndefinedVariable @IgnorePep8            
+        if self.gap_extension:
+            calculate_score_function = self.module.get_function("calculateScoreAffineGap")
+            calculate_score_function(self.d_matrix,self.d_matrix_i,self.d_matrix_j, 
+                                     numpy.int32(idx), 
+                                     numpy.int32(idy),
+                                     numpy.int32(number_of_blocks), 
+                                     self.d_sequences, 
+                                     self.d_targets,
+                                     self.d_global_maxima, 
+                                     self.d_global_direction,
+                                     block=dim_block, 
+                                     grid=dim_grid_sw)
+        else:
+            calculate_score_function = self.module.get_function("calculateScore")
+            calculate_score_function(self.d_matrix, 
+                                     numpy.int32(idx), 
+                                     numpy.int32(idy),
+                                     numpy.int32(number_of_blocks), 
+                                     self.d_sequences, 
+                                     self.d_targets,
+                                     self.d_global_maxima, 
+                                     self.d_global_direction,
+                                     block=dim_block, 
+                                     grid=dim_grid_sw)
+            
+        driver.Context.synchronize()  #@UndefinedVariable @IgnorePep8            
         # TODO: catch proper exception
-        except Exception as exception:
-            self.logger.warning('Warning: {0}\nContinuing calculation...'.format(exception))
-        
+
     
     def _execute_traceback_kernel(self, number_of_blocks, idx, idy):
         ''' Executes a single run of the traceback kernel'''
         dim_grid_sw = (self.number_of_sequences, self.number_targets * number_of_blocks)
         dim_block = (self.shared_x, self.shared_y, 1)
         
-        try:
-            if self.gap_extension:
-                traceback_function = self.module.get_function("tracebackAffineGap")
-                traceback_function(self.d_matrix,self.d_matrix_i,self.d_matrix_j,
-                               numpy.int32(idx),
-                               numpy.int32(idy),
-                               numpy.int32(number_of_blocks),
-                               self.d_global_maxima,
-                               self.d_global_direction,
-                               self.d_global_direction_zero_copy,
-                               self.d_index_increment,
-                               self.d_starting_points_zero_copy,
-                               self.d_max_possible_score_zero_copy,
-                               block=dim_block,
-                               grid=dim_grid_sw)
-            else:
-                traceback_function = self.module.get_function("traceback")
-                traceback_function(self.d_matrix,
-                   numpy.int32(idx),
-                   numpy.int32(idy),
-                   numpy.int32(number_of_blocks),
-                   self.d_global_maxima,
-                   self.d_global_direction,
-                   self.d_global_direction_zero_copy,
-                   self.d_index_increment,
-                   self.d_starting_points_zero_copy,
-                   self.d_max_possible_score_zero_copy,
-                   block=dim_block,
-                   grid=dim_grid_sw)
+        if self.gap_extension:
+            traceback_function = self.module.get_function("tracebackAffineGap")
+            traceback_function(self.d_matrix,self.d_matrix_i,self.d_matrix_j,
+                           numpy.int32(idx),
+                           numpy.int32(idy),
+                           numpy.int32(number_of_blocks),
+                           self.d_global_maxima,
+                           self.d_global_direction,
+                           self.d_global_direction_zero_copy,
+                           self.d_index_increment,
+                           self.d_starting_points_zero_copy,
+                           self.d_max_possible_score_zero_copy,
+                           block=dim_block,
+                           grid=dim_grid_sw)
+        else:
+            traceback_function = self.module.get_function("traceback")
+            traceback_function(self.d_matrix,
+               numpy.int32(idx),
+               numpy.int32(idy),
+               numpy.int32(number_of_blocks),
+               self.d_global_maxima,
+               self.d_global_direction,
+               self.d_global_direction_zero_copy,
+               self.d_index_increment,
+               self.d_starting_points_zero_copy,
+               self.d_max_possible_score_zero_copy,
+               block=dim_block,
+               grid=dim_grid_sw)
 
-            driver.Context.synchronize()  #@UndefinedVariable @IgnorePep8
-        except Exception as exception:
-            self.logger.error('Something went wrong during traceback: {}...'.format(exception))
-            raise exception
+        driver.Context.synchronize()  #@UndefinedVariable @IgnorePep8
     
 
     def _get_number_of_starting_points(self):
