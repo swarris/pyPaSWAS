@@ -68,20 +68,20 @@ class Reader(object):
     def complement_records(self):
         '''Appends the reverse complements to the parsed records '''
         #self.logger.debug('Creating complement sequences...')
-        seqIO = lambda seqIO: SWSeqRecord(Seq(str(seqIO.seq.reverse_complement()), seqIO.seq.alphabet),
+        seqIO = lambda seqIO: SWSeqRecord(Seq(str(seqIO.seq.reverse_complement())),
                                           identifier=(str(seqIO.id) + self.rc_string))
         self.records.extend([seqIO(record) for record in self.records])
 
     def complement_records_only(self):
         '''Creates the reverse complements to the parsed records '''
-        seqIO = lambda seqIO: SWSeqRecord(Seq(str(seqIO.seq.reverse_complement()), seqIO.seq.alphabet),
+        seqIO = lambda seqIO: SWSeqRecord(Seq(str(seqIO.seq.reverse_complement())),
                                           identifier=(str(seqIO.id) + self.rc_string))
         self.records = [seqIO(record) for record in self.records]
 
     def reverse_records(self):
         '''Appends the reverse complements to the parsed records '''
         #self.logger.debug('Creating complement sequences...')
-        seqIO = lambda seqIO: SWSeqRecord(Seq(str(seqIO.seq[::-1]), seqIO.seq.alphabet),
+        seqIO = lambda seqIO: SWSeqRecord(Seq(str(seqIO.seq[::-1])),
                                           identifier=(str(seqIO.id) + self.rc_string))
         self.records.extend([seqIO(record) for record in self.records])
 
@@ -102,7 +102,7 @@ class BioPythonReader(Reader):
         if self.limitlength > 0:
             nrecords = len(self.records)
             #self.logger.debug('Checking sequences length..')
-            self.records = [SWSeqRecord(Seq(str(record.seq), record.seq.alphabet),
+            self.records = [SWSeqRecord(Seq(str(record.seq)),
                                         identifier=record.id) for record in self.records
                             if len(record.seq) <= self.limitlength and len(record.seq) > 0]
             diff = nrecords - len(self.records)
@@ -112,7 +112,7 @@ class BioPythonReader(Reader):
                 self.logger.info('No sequences remaining after filtering on length for {}.'
                                            ' Please adjust using the limit_length parameter.'.format(self.path))
         else:
-            self.records = [SWSeqRecord(Seq(str(record.seq), record.seq.alphabet),
+            self.records = [SWSeqRecord(Seq(str(record.seq)),
                                         identifier=record.id) for record in self.records]
 
         self.logger.debug('\t{} sequences read.'.format(len(self.records)))
